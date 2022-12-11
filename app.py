@@ -1,9 +1,9 @@
-import csv
+import csv, os
 
 from flask import Flask, request, render_template, url_for
 from flask.views import View
 
-import smswx
+import smswx, config
 
 app = Flask(__name__)
 app.TESTING=True
@@ -32,7 +32,8 @@ for r in ['molding', 'turnshoes', 'welted', 'smswx', 'secret_recipe']:
 
 @app.route('/goods')
 def goods():
-    products = csv.reader(open('goods.csv'))
+    db = open(os.path.join(config.DB_ROOT, "goods.csv"))
+    products = csv.reader(db)
     return render_template('goods.html', products=products)
 
 if __name__ == '__main__':

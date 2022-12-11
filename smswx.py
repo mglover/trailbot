@@ -7,7 +7,9 @@ and return the 3 day weather forecast from NWS as TwiML
 """
 
 from flask import Flask, request, redirect
-import csv, urllib, json
+import csv, os, urllib, json
+
+import config
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON
@@ -58,7 +60,7 @@ def wx_by_lat_lon(lat, lon, **kwargs):
 
 
 def wx_by_zip(zip, **kwargs):
-    zipfile = "zipcode.csv"
+    zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
     zipdb = csv.reader(open(zipfile))
     for row in zipdb:
         if len(row) and row[0]==zip:
@@ -67,7 +69,7 @@ def wx_by_zip(zip, **kwargs):
 
 
 def wx_by_shelter(snam, **kwargs):
-    sheltfile = "at_shelters.csv"
+    sheltfile = os.path.join(config.DB_ROOT,"at_shelters.csv")
     sheltdb = csv.reader(open(sheltfile))
     maybes = []
     for row in sheltdb:
