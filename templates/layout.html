@@ -1,3 +1,11 @@
+{% macro menus() %}
+  <ul class="menu">
+    <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
+    <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
+    <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
+    <li><a href="{{ url_for('smswx') }}">WeatherBot</a></li>
+  </ul>
+{% endmacro %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,17 +19,16 @@
   </div>
   <hr>
   {% block menus %}
-  <ul id="menu">
-    <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
-    <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
-    <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
-    <li><a href="{{ url_for('smswx') }}">WeatherBot</a></li>
-  </ul>
- {%endblock%}
+    {{ menus() }}
+  {%endblock%}
 </div>
 <div id="content">
 {% block main %} {% endblock %}
 </div>
+<div id="footmenu">
+{{menus()}}
+</div>
+
 <div id="footer">
 {% block footer %} 
 <address>
