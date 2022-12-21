@@ -19,7 +19,7 @@ class BasicView(View):
 app.add_url_rule('/', view_func=BasicView.as_view('/', 'index'))
 app.add_url_rule('/wx', view_func=smswx.sms_reply)
 
-for r in ['molding', 'smswx', 'secret_recipe','location']:
+for r in ['molding', 'smswx', 'footnotes']:
     app.add_url_rule('/'+r, view_func=BasicView.as_view(r, r))
 
 def getdb(dbnam):
