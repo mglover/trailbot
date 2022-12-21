@@ -6,10 +6,41 @@
     <li><a href="{{ url_for('smswx') }}">WeatherBot</a></li>
   </ul>
 {% endmacro %}
+{% macro static(fn) %}
+  {{ url_for('static', filename=fn) }}
+{% endmacro %}
+{% macro showprod(style, products) %}
+  {% if products: %}
+  <div class="slideshow {{style}}">
+  {% for row in products: %}
+
+    {%set name = row[0] %}
+    {%set price = row[1] %}
+    {%set descrip = row[2] %}
+    {%set pics = row[3:] %}
+
+    {% if name %}<h3>{{name}}</h3>{% endif %}
+
+    <div class="detail">
+      <div class="pics">
+        {% for p in pics %}
+        <div class="pic"><img src="{{ static(p) }}"></div>
+        {% endfor %}
+      </div>
+      <div class="caption">
+        {{descrip}}
+        <span class="price">${{price}}</span>
+    </div>
+  </div>
+  {% endfor %}
+
+  </div>
+  {% endif %}
+{% endmacro %}
 <!DOCTYPE html>
 <html>
 <head>
-<title>Old Skool Trail Goods : {% block title %}{% endblock %}</title>
+<title>Old Skool Trail Goods : {{title}}</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -17,26 +48,26 @@
   <div id="masthead">
     {% block masthead %}<a href="{{url_for('/')}}">Old Skool Trail Goods</a>{% endblock %}
   </div>
-  <hr>
-  {% block menus %}
-    {{ menus() }}
-  {%endblock%}
+  {{ menus() }}
 </div>
 <div id="content">
-{% block main %} {% endblock %}
+  <h2>{{title}}</h2>
+  <div class="main">
+  {% block main %} {% endblock %}
+  </div>
 </div>
 <div id="footmenu">
-{{menus()}}
+  {{ menus() }}
 </div>
 
 <div id="footer">
-{% block footer %} 
-<address>
-<a href="email:info@oldscooltrailgoods.com">info@oldskooltrailgoods.com</a>
-<a href="tel:+19713364571">971-336-4571</a>
-</address>
-<div>&copy; 2022 Old Skool Trail Goods</div>
-{% endblock %}
+  {% block footer %} 
+  <address>
+    <a href="email:info@oldscooltrailgoods.com">info@oldskooltrailgoods.com</a>
+    <a href="tel:+19713364571">971-336-4571</a>
+  </address>
+  <div>&copy; 2022 Old Skool Trail Goods</div>
+  {% endblock %}
 </div>
 </body>
 </html>

@@ -5,27 +5,8 @@
 <p>All of the items on this page are original designs that have seen 
 years of real-world use.  All products not marked 'in-stock' are made 
 when ordered, and can be modified or customized on request.
-
-{% for row in products: %}
-
-{%set name = row[0] %}
-{%set price = row[1] %}
-{%set descrip = row[2] %}
-{%set pics = row[3:] %}
-
-<div class="section">
-<h3>{{name}}</h3>
-<div class="photos">
-{% for p in pics %}
-<img class="product" src="{{ static(p) }}">
-{% endfor %}
-</div>
-<p>
-{{ descrip }}
-<span class="price">${{price}}</span>
 </p>
-</div>
-{% endfor %}
 
-</div>
+{{ showprod('goods', products) }}
+
 {% endblock %}
