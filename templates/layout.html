@@ -43,9 +43,9 @@
 </head>
 <body>
 <div id="mast">
-  <div id="masthead">
-    {% block masthead %}<a href="{{url_for('/')}}">Old Skool Trail Goods</a>{% endblock %}
-  </div>
+  <div id="masthead">{% block masthead %}
+    <a href="{{url_for('/')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
+  {% endblock %}</div>
   {{ menus() }}
 </div>
 <div id="content">
