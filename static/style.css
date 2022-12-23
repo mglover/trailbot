@@ -15,16 +15,6 @@
     text-decoration: none;
     color: black;
   }
-  img {
-    page-break-inside: avoid;
-  }
-  .slideshow h3 {
-    break-before: avoid;
-  }
-  .slideshow .detail {
-    break-after: avoid;
-  }
-
   .didactic ul {
     padding: 0 2em;
   }
@@ -114,13 +104,14 @@ h1 {
   font-size: 125%;
 }
 h2 {
+  margin-top: 0;
   text-align: center;
 }
 h3 {
   font-size: 110%;
 }
 address {
-  margin-bottom: 1em;
+  margin: 1em 0;
 }
 code {
   margin-left: 2em;
@@ -130,8 +121,8 @@ code {
   margin: 1em;
 }
 ul {
-  padding: 0;
-  padding-bottom: 1em;
+  list-style-type: none;
+  padding: 0.5em 0;
 }
 ul li {
   padding: 0.2em 0;
@@ -143,10 +134,6 @@ ul li {
 .price {
   font-weight: bold;
 }
-
-.storyline {
-  max-width: 70vw;
-}
 .storytime p {
   max-width: 40em;
   margin: auto;
@@ -154,16 +141,12 @@ ul li {
 }
 .storytime img {
   align: center;
-  margin: auto;
-  max-width: 70vw;
-  max-height: 60vh;
+  max-width: 20em;
+  max-height: 70vh;
   margin: 1em auto;
   display: block;
   padding-top: .2em;
   padding-bottom: 2em;
-}
-.storytime img.squeezit {
-  max-height: 50vh;
 }
 .storytime img::before {
   content "\a";
@@ -186,12 +169,7 @@ ul li {
   margin: 0 1em;
 }
 .didactic dd {
-  margin: 0;
-  padding: 0 0 1em 2em;
-}
-.didactic ul {
-  list-style-type: none;
-  padding: 0.5em 1em;
+  margin: 0 0 1em 2em;
 }
 
 .slideshow{
