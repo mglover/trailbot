@@ -11,7 +11,7 @@
 {% endmacro %}
 {% macro showprod(style, products) %}
   {% if products: %}
-  <div class="slideshow {{style}}">
+  <dl class="slideshow {{style}}">
   {% for row in products: %}
 
     {%set name = row[0] %}
@@ -19,9 +19,9 @@
     {%set descrip = row[2] %}
     {%set pics = row[3:] %}
 
-    {% if name %}<h3>{{name}}</h3>{% endif %}
+    {%if name%}<dt class="name">{{name}}</dt>{%endif%}
 
-    <div class="detail">
+    <dd class="detail">
       <div class="pics">
         {% for p in pics %}
         <div class="pic"><img src="{{ static(p) }}"></div>
@@ -30,11 +30,9 @@
       <div class="caption">
         {{descrip}}
         <span class="price">${{price}}</span>
-    </div>
-  </div>
+    </dd>
   {% endfor %}
-
-  </div>
+  </dl>
   {% endif %}
 {% endmacro %}
 <!DOCTYPE html>
