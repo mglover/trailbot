@@ -11,6 +11,19 @@
       margin: 1in;
     }
   }
+  a {
+    text-decoration: none;
+    color: black;
+  }
+  img {
+    page-break-inside: avoid;
+  }
+  .slideshow h3 {
+    break-before: avoid;
+  }
+  .slideshow .detail {
+    break-after: avoid;
+  }
 
   .instructions ul {
     padding: 0 2em;
@@ -99,6 +112,9 @@ h1 {
 h2 {
   text-align: center;
 }
+h3 {
+  font-size: 110%;
+}
 address {
   margin-bottom: 1em;
 }
@@ -150,13 +166,19 @@ ol.instructions {
   padding: 0;
   padding-bottom: 0.5em;
 }
-.storytime {
+.storyline {
+  max-width: 70vw;
+}
+.storytime p {
+  max-width: 40em;
+  margin: auto;
   text-align: center;
 }
 .storytime img {
+  align: center;
   margin: auto;
   max-width: 70vw;
-  max-height: 80vh;
+  max-height: 60vh;
   margin: 1em auto;
   display: block;
   padding-top: .2em;
@@ -190,13 +212,19 @@ ol.instructions {
 }
 
 .slideshow{
+  font-weight: bold;
   text-align: center;
   align: center;
   padding-bottom: 1em;
   margin: 2%;
   display: block;
 }
+.slideshow .name {
+  font-size: 115%;
+  padding: 1em;
+}
 .slideshow .detail {
+  margin: 0;
   display: inline-block;
   padding: 1% 1%;
 }
