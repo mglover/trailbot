@@ -25,16 +25,16 @@
     break-after: avoid;
   }
 
-  .instructions ul {
+  .didactic ul {
     padding: 0 2em;
   }
-  .instructions li ul li { 
+  .didactic li ul li { 
     margin: 0.5em 0; 
   }
-  .instructions li {
+  .dicactic li {
     page-break-inside: avoid;
   }
-  .instructions img {
+  .didactic img {
     align: left;
     margin: 1em;  
   }
@@ -97,6 +97,10 @@
     font-weight: bold;
     font-style: normal;
   }
+  code {
+    background: #224;
+    border-radius: 3px;
+  }
   .slideshow .detail {
     background:#3f2b18;
   }
@@ -119,13 +123,11 @@ address {
   margin-bottom: 1em;
 }
 code {
-  background: #224;
   margin-left: 2em;
   width: 50%;
   display: block;
   padding: .5em;
   margin: 1em;
-  border-radius: 3px;
 }
 ul {
   padding: 0;
@@ -142,30 +144,6 @@ ul li {
   font-weight: bold;
 }
 
-ol.instructions {
-  list-style-type: arabic;
-  max-width: 40em;
-  margin: auto;
-  font-size: 110%;
-}
-.instructions img {
-  max-width: 90%;
-  padding: 1em;
-  align: center;
-}
-.instructions > li {
-  font-weight: bold;
-  padding: 1em 0;
-}
-.instructions li ul {
-  font-weight: normal;
-  padding: 1em 1em;
-}
-.instructions li ul li {
-  list-style-type: none;
-  padding: 0;
-  padding-bottom: 0.5em;
-}
 .storyline {
   max-width: 70vw;
 }
@@ -192,23 +170,28 @@ ol.instructions {
   white-space: pre;
 }
 
-.footnotes {
+.didactic {
   max-width: 40em;
   margin: auto;
   margin--bottom: 1em;
-}
-.footnotes dt {
   font-size: 110%;
+}
+.didactic img {
+  max-width: 90%;
+  padding: 1em;
+  align: center;
+}
+.didactic dt {
   font-weight: bold;
-  margin-bottom: 1em
+  margin: 0 1em;
 }
-.footnotes dd {
+.didactic dd {
   margin: 0;
-  padding: 0 1em;
+  padding: 0 0 1em 2em;
 }
-.footnotes ul {
+.didactic ul {
   list-style-type: none;
-  margin: 0;
+  padding: 0.5em 1em;
 }
 
 .slideshow{
