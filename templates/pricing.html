@@ -1,0 +1,83 @@
+{% set title="Pricing Calculator" %}
+{% extends 'layout.html' %}
+{% block css %}
+table {
+  margin: auto  
+  display: inline;
+  padding: 1em;
+td {
+  width: 20%;
+}
+input {
+  width: 4em;
+}
+{% endblock %}
+{% block main %}
+{% set ns = namespace(idx=0) %}
+{% macro form(table) %}
+  <form method="POST">
+  <input type="hidden" name="db" value="{{table.dbnam}}">
+  {% set ns.idx = 0 %}
+{% endmacro %}
+
+{% macro formend() %}
+  </form>
+{% endmacro %}
+
+{% macro cell(n,v,f) %}
+  {% if f.find('hidden') > -1 : %}
+    <input type="hidden" name="{{n}}" value="{{v}}"/>
+  {% else : %}
+    <td>
+    {% if f == 'edit': %}
+      <input type="text" name="{{n}}" value="{{v}}"\>
+    {% elif f.find('computed') > -1 : %}
+      {{v}}
+    {% else : %}
+      <input type="hidden" name="{{n}}" value="{{v}}"/>
+      {{v}}
+    {% endif %}
+    </td>
+  {% endif %}  
+{% endmacro %}
+
+{% macro dbtable (cols, rows) %}
+<table class="db">
+  <tr>
+  {% for c in cols %}
+    {%if c.tags.find('hidden') <=-1 :%}<th>{{c.name}}</th>{%endif%}
+  {% endfor %}
+  </tr>
+
+  {% for r in range(rows|length): %}
+  <tr>
+    {% for c in range(cols|length): %}
+      {% set nam = "%i,%i"%(ns.idx, c) %}
+      {{ cell(nam, rows[r][c], cols[c].tags) }}
+    {% endfor %}
+  </tr>
+    {% set ns.idx = ns.idx + 1 %}
+  {% endfor %}
+  
+</table>
+{% endmacro %}
+
+
+<h4>Components</h4>
+{{ form(components) }}
+{{ dbtable(components.cols, components.rows) }}
+<input type=submit name="{{components.dbnam}}" value="Update Components">
+{{ formend() }}
+<hr/>
+
+<h4>Products</h4>
+{{ form(pricing) }}
+{% for pnam, rows in pricing.groupByProduct().items() %}
+  <h4>{{pnam}}: {{pricing.total(rows)}}</h4>
+  {{ dbtable(pricing.cols, rows) }}
+  <input type=submit name="{{pricing.dbnam}}" value="Update Products">
+{% endfor %}
+{{ formend() }}
+<hr/>
+
+{% endblock %}

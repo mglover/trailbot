@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, url_for
 from flask.views import View
 
-import smswx
+import config,smswx
 from db import getdb
 
 app = Flask(__name__)
@@ -14,10 +14,24 @@ class BasicView(View):
         return render_template(self.template)
 
 
+try:
+    admin=config.ADMIN
+    wx=config.WX
+except NameError:
+    admin=False
+    wx=True
+
+if wx:
+    import smswx
+    app.add_url_rule('/wx', view_func=smswx.sms_reply)
+
+if admin:
+    import pricing
+    app.add_url_rule('/pricing',view_func=pricing.index,
+        methods=['POST','GET'])
+
 
 app.add_url_rule('/', view_func=BasicView.as_view('/', 'index'))
-app.add_url_rule('/wx', view_func=smswx.sms_reply)
-
 for r in ['molding', 'smswx', 'footnotes']:
     app.add_url_rule('/'+r, view_func=BasicView.as_view(r, r))
 
