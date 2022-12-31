@@ -1,11 +1,13 @@
 {% 
-set formns = namespace(idx=0) 
+set form = namespace(idx=0, action="replace") 
 %}
 {% 
-macro begin(table) %}
+macro begin(table, action="replace") %}
   <form method="POST">
   <input type="hidden" name="db" value="{{table.dbnam}}">
-  {% set formns.idx = 0 %}
+  <input type="hidden" name="action" value="{{action}}">
+  {% set form.idx = 0 %}
+  {% set form.action=action %}
 {% endmacro 
 %}
 {% 
@@ -14,14 +16,14 @@ macro end() %}
 {% endmacro 
 %}
 {% 
-macro cell(n,v,f) %}
-  {% if f.find('hidden') > -1 : %}
+macro cell(n,v,c) %}
+  {% if 'hidden' in c.tags: %}
     <input type="hidden" name="{{n}}" value="{{v}}"/>
   {% else : %}
     <td>
-    {% if f == 'edit': %}
+    {% if 'edit' in c.tags: %}
       <input type="text" name="{{n}}" value="{{v}}"\>
-    {% elif f.find('computed') > -1 : %}
+    {% elif 'computed' in c.tags: %}
       {{v}}
     {% else : %}
       <input type="hidden" name="{{n}}" value="{{v}}"/>
@@ -31,30 +33,36 @@ macro cell(n,v,f) %}
   {% endif %}  
 {% endmacro 
 %}
+{%
+macro header(cols) %}
+  <tr>
+  {% for c in cols %}
+    {%if 'hidden' not in c.tags :%}
+        <th>{{c.name}}</th>
+    {%endif%}    
+  {% endfor %}
+  </tr>
+
+{% endmacro
+%}
 {% 
 macro row(cols, row) %}
   <tr>
   {% for c in range(cols|length): %}
-    {% set nam = "%i,%i"%(formns.idx, c) %}
-    {{ cell(nam, row[c], cols[c].tags) }}
+    {% set nam = "%i,%i"%(form.idx, c) %}
+    {{ cell(nam, row[c], cols[c]) }}
   {% endfor %}
   </tr>
-  {% set formns.idx = formns.idx + 1 %}
+  {% set form.idx = form.idx + 1 %}
 {% endmacro 
 %}
 {% 
 macro dbtable (cols, rows) %}
 <table class="db">
-  <tr>
-  {% for c in cols %}
-    {%if c.tags.find('hidden') <=-1 :%}<th>{{c.name}}</th>{%endif%}
-  {% endfor %}
-  </tr>
-
+  {{ header(cols) }}
   {% for r in range(rows|length): %}
-    {{ row(cols, r) }}
+    {{ row(cols, rows[r]) }}
   {% endfor %}
-  
 </table>
 {% endmacro %}
 

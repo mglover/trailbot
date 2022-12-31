@@ -22,14 +22,18 @@ class Column(object):
     def __init__(self, name, typ, tags):
         self.name = name
         self.typ = typ
-        self.tags = tags
+        self.tags = [t for t in tags.split(' ') if len(t)]
+
+    def un(self, val):
+        if val in self.tags:
+            self.tags.remove(val)
 
 class Table(object):
     dbnam = None
     cols = []
 
     @classmethod
-    def init(self, rows):
+    def init(cls, rows):
         cls.rows = rows
 
     @classmethod
@@ -58,8 +62,12 @@ class Table(object):
                 return i
         raise ValueError("No column %s" % name,)
 
+    @classmethod
+    def blankrow(cls):
+        return ['' for c in cls.cols]
 
-class Components(Table):
+
+class Component(Table):
     dbnam = 'components'
     cols = [
         Column('Component', str, 'key'),
@@ -67,18 +75,23 @@ class Components(Table):
     ]
     rows = []
 
+    def __new__(self, key):
+        for r in self.rows:
+            if r[0] == key: return key
+        raise ValueError("No component: %s" % key)
+
     @classmethod
     def price(cls, nam):
         return dict(cls.rows)[nam]
 
 
-class Products(Table):
+class Product(Table):
     dbnam = 'assemblies'
     cols = [
         Column('Product', str, 'hidden key'),
-        Column('Component', str, 'key'),
+        Column('Component', Component, 'key'),
         Column('Count',int, 'edit'),
     ]
 
 
-tables = [Components, Products]
+tables = [Component, Product]

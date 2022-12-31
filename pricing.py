@@ -1,5 +1,5 @@
 from flask import request, redirect, render_template,url_for
-from db import Column, Components, Products, usd
+from db import Column, Component, Product, usd
 
 def updateFromPostData(postdata):
     return
@@ -14,8 +14,8 @@ def groupByColumn(colidx, rows):
 
 
 class Pricing(object):
-    dbnam = Products.dbnam
-    cols = Products.cols + [
+    dbnam = Product.dbnam
+    cols = Product.cols + [
         Column('Price Each', usd, 'computed'),
         Column('Subtotal', usd, 'computed')
     ]
@@ -35,8 +35,8 @@ class Pricing(object):
 
 
 def index():
-    Components.load()
-    Products.load()
+    Component.load()
+    Product.load()
 
     if request.method == 'POST':
         updateFromPostData(request.form)
@@ -45,3 +45,14 @@ def index():
 
     return render_template('pricing.html',
         components=Components, pricing=pricing)
+
+def new():
+    Component.load()
+    Product.load()
+
+    for c in Product.cols:
+        c.un('hidden')
+        c.tags.append('edit')
+
+    return render_template('newproduct.html', 
+        components=Component, products=Product)
