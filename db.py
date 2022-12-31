@@ -33,10 +33,6 @@ class Table(object):
     cols = []
 
     @classmethod
-    def init(cls, rows):
-        cls.rows = rows
-
-    @classmethod
     def load(cls):
         cls.rows = [cls.parse(row) for row in getdb(cls.dbnam)]
 
@@ -63,8 +59,48 @@ class Table(object):
         raise ValueError("No column %s" % name,)
 
     @classmethod
-    def blankrow(cls):
-        return ['' for c in cls.cols]
+    def getkey(cls, row):
+        k =  [row[i] for i in range(len(cls.cols))
+            if 'key' in cls.cols[i].tags]
+        return tuple(k)
+
+    @classmethod
+    def keys(cls):
+        return [key(row) for row in self.rows]
+
+    @classmethod
+    def indexFromKey(cls, key):
+        for idx in range(len(cls.rows)):
+            r = cls.rows[idx]
+            if cls.getkey(r) == key:
+                return idx
+        raise ValueError("No %s: %s" % (cls.dbnam, keys))
+
+    @classmethod
+    def fromIndex(cls, idx):
+        self = cls()
+        self.idx = idx
+        self.data = self.rows[idx];
+        self.key = self.getkey(self.data)
+        return self
+
+    @classmethod
+    def select(cls):
+        return [cls.fromIndex(idx) for idx in range(len(cls.rows))]
+
+    @classmethod
+    def newrow(cls):
+        self = cls()
+        self.idx=0
+        self.data=['' for c in cls.cols]
+        self.key=None
+        return self
+
+    def __init__(self, *key):
+        if key:
+            self.key = key
+            self.idx = self.indexFromKey(key)
+            self.data = self.rows[self.idx]
 
 
 class Component(Table):
@@ -75,14 +111,15 @@ class Component(Table):
     ]
     rows = []
 
-    def __new__(self, key):
-        for r in self.rows:
-            if r[0] == key: return key
-        raise ValueError("No component: %s" % key)
-
     @classmethod
-    def price(cls, nam):
-        return dict(cls.rows)[nam]
+    def options(cls):
+        return [r[0] for r in cls.rows]
+
+    def price(self):
+        return self.data[1]
+
+    def __str__(self):
+        return str(self.data[0])
 
 
 class Product(Table):
