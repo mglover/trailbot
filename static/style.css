@@ -224,14 +224,35 @@ ul li {
   padding: 1em 10vw;
 }
 
-table.pricing {
-  margin: auto  
-  display: inline;
+table.db {
+  margin: auto;
   padding: 1em;
+  border: 2px solid white;
 }
-.pricing td {
-  width: 20%;
+.db th {
+  padding: 0.5em;
+  text-align: left;
 }
-.pricing input {
+.db td {
+  padding: 0 0.5em 0 1em;
+}
+.db .int {
+  max-width: 2em;
+}
+.db .usd {
+  max-width: 4em;
+  text-align: right;
+}
+.db .int input {
+  width: 2em;
+  text-align: right;
+}
+.db .usd input {
   width: 4em;
+  text-align: right;
 }
+.submit {
+  margin: auto;
+  max-width: 50em;
+}
+
