@@ -6,10 +6,12 @@ for a given zip code, lat/lon, or AT shelter name
 and return the 3 day weather forecast from NWS as TwiML
 """
 
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, Blueprint
 import csv, os, urllib, json
 
 import config
+
+bp = Blueprint('wx', __name__, '/wx')
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON
@@ -102,6 +104,8 @@ def isfloat(s):
     except:
         return False
 
+
+@bp.route("/")
 def sms_reply():
     frm = request.args.get('From')
     sms = request.args.get('Body')
