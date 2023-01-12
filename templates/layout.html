@@ -3,7 +3,7 @@
     <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
     <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
     <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
-    <li><a href="{{ url_for('smswx') }}">WeatherBot</a></li>
+    <li><a href="{{ url_for('weatherbot') }}">WeatherBot</a></li>
   </ul>
 {% endmacro %}
 {% macro static(fn) %}
@@ -50,7 +50,7 @@
 <body>
 <div id="mast">
   <div id="masthead">{% block masthead %}
-    <a href="{{url_for('/')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
+    <a href="{{url_for('index')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
   {% endblock %}</div>
   {{ menus() }}
 </div>

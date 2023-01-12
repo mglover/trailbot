@@ -5,14 +5,7 @@ import config,smswx
 from db import getdb
 
 app = Flask(__name__)
-app.TESTING=True
-
-class BasicView(View):
-    def __init__(self, template):
-        self.template=template+'.html'
-    def dispatch_request(self):
-        return render_template(self.template)
-
+app.TESTING=config.ADMIN
 
 try:
     admin=config.ADMIN
@@ -23,19 +16,28 @@ except NameError:
 
 if wx:
     import smswx
-    app.add_url_rule('/wx', view_func=smswx.sms_reply)
+    app.register_blueprint(smswx.bp, url_prefix='/wx')
 
 if admin:
     import pricing
-    app.add_url_rule('/pricing',view_func=pricing.index,
-        methods=['POST','GET'])
-    app.add_url_rule('/pricing_new',view_func=pricing.new,
-        methods=['POST','GET'])
+    app.register_blueprint(pricing.bp, url_prefix=('/pricing'))
 
-app.add_url_rule('/', view_func=BasicView.as_view('/', 'index'))
-for r in ['molding', 'smswx', 'footnotes']:
-    app.add_url_rule('/'+r, view_func=BasicView.as_view(r, r))
+@app.route('/')
+def index():
+    print(app)
+    return render_template('index.html')
 
+@app.route('/smswx')
+def weatherbot():
+    return render_template('smswx.html')
+
+@app.route('/footnotes')
+def footnotes():
+    return render_template('footnotes.html')
+
+@app.route('/molding')
+def molding():
+    return render_template('molding.html')
 
 @app.route('/goods')
 def goods():
