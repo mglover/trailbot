@@ -19,7 +19,7 @@ Add Product, Name: <input name="pnam"></form>
 {{ form.begin(pricing.table)|safe }}
 {% for pnam, grp in pricing.groupBy("Product").items() %}
   <h4>{{pnam}}: {{grp.total()}}</h4>
-  {{ form.table(grp.rows,pricing.cols)|safe }}
+  {{ form.table(grp.rows,pricing.cols, footer=grp.footer())|safe }}
   {{ form.submit("Update Products")|safe }}
 {% endfor %}
 {{ form.end()|safe }}

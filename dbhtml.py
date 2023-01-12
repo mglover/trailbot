@@ -102,17 +102,25 @@ class Form(object):
         return '\n'.join(r)
 
     @classmethod
-    def tfoot(cls, cols):
-        return "<tfoot></tfoot>"
+    def tfoot(cls, row, cols):
+        r = []
+        r.append('<tfoot>')
+        cells = zip(cols, row)
+        for c,d in cells:
+            htcls = str(c.typ.__name__)
+            r.append('<td class="%s">%s</td>'%(htcls, d))
+        r.append('</tfoot>')
+        return '\n'.join(r)
 
     @classmethod
-    def table(cls, rows, cols):
+    def table(cls, rows, cols, footer=None):
         r = []
         r.append('<table class="db">')
         r.append(cls.thead(cols))
         for row in rows:
             r.append(cls.tr(row, cols))
-        r.append(cls.tfoot(cols))
+        if footer:
+            r.append(cls.tfoot(footer, cols))
         r.append("</table>")
         return '\n'.join(r)
 
