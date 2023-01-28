@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" 
+    viewBox="-15 -13 120 122">
+<style>
+  /* global defaults */
+  svg {
+    fill: transparent;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  /* standalone (favicon) style */
+  #logo {
+    stroke-width: 12;
+    stroke: #ca3;
+  }
+  #bg {
+    fill: #172707;
+  }
+</style>
+<g id="bg">
+  <circle cx="45" cy="48" r="60"/>
+</g>
+<g id="logo">
+  <path id="f" d="M40,95 L85.5,36"/>
+
+  <path id = "cl" d="M43,74 L11,63.8 M38,91.5 L7,78.25"/>
+
+  <ellipse id="cf" cx="40" cy="82.5"  rx="5" ry="9" 
+        transform="rotate(15, 40, 82.5)" />
+
+  <g transform="rotate(17,12,68)">
+    <defs><clipPath id="cc">
+      <rect x="4" y="60" width="8" height="25"/>
+    </clipPath></defs>
+    <ellipse id="cb" cx="12" cy="71.5"  rx="5" ry="8" clip-path="url(#cc)"/>
+  </g>
+
+  <path id="p" d="M35,70 C 45 50, 80 25, 75 48"/>
+  <path id="b" d="M17 65 C 13 57, 12 60, 24 40 C 37 15, 82 22, 50.2 51" />
+  <path id="t" d="M43,25.5 C 43 -3, 90 0, 79 42.5"/>
+
+</g>
+</svg>
