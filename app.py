@@ -1,5 +1,7 @@
-from flask import Flask, request, render_template, url_for
+from flask import Flask, request, render_template, url_for, send_from_directory
 from flask.views import View
+
+import os.path
 
 import config,smswx
 from db import getdb
@@ -21,6 +23,10 @@ if wx:
 if admin:
     import pricing
     app.register_blueprint(pricing.bp, url_prefix=('/pricing'))
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
 def index():
