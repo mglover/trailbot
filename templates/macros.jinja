@@ -1,0 +1,36 @@
+{% macro menus() %}
+  <ul class="menu">
+    <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
+    <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
+    <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
+    <li><a href="{{ url_for('weatherbot') }}">WeatherBot</a></li>
+  </ul>
+{% endmacro %}
+{% macro static(fn) %}{{ url_for('static', filename=fn) }}{% endmacro %}
+{% macro showprod(products, style) %}
+  {% if products: %}
+  <dl class="slideshow {{style}}">
+  {% for row in products: %}
+
+    {%set name = row[0] %}
+    {%set price = row[1] %}
+    {%set descrip = row[2] %}
+    {%set pics = row[3:] %}
+
+    {%if name and name[0] != '#'%}<dt class="name">{{name}}</dt>{%endif%}
+
+    <dd class="detail">
+      <div class="pics">
+        {% for p in pics %}
+        <div class="pic"><img src="{{ static(p) }}"></div>
+        {% endfor %}
+      </div>
+      <div class="caption">
+        {{descrip}}
+        <span class="price">${{price}}</span>
+    </dd>
+  {% endfor %}
+  </dl>
+  {% endif %}
+{% endmacro %}
+
