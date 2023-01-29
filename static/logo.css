@@ -1,4 +1,6 @@
-/* interactive logo */
+/* OSTG interactive logo 
+ * &copy; 2023 Old Skool Trail Goods
+*/
 @keyframes logrotate {
   2% {
     transform: rotate(5deg);
