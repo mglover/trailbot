@@ -41,6 +41,10 @@ def weatherbot():
 def footnotes():
     return render_template('footnotes.html')
 
+@app.route('/news')
+def news():
+    return render_template('news.html')
+
 @app.route('/molding')
 def molding():
     return render_template('molding.html')
