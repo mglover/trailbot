@@ -33,6 +33,11 @@ def getdb(dbnam, cat=""):
     return [row for row in r 
         if len(row) and (not cat or row[0]==cat)]
 
+def putdb(dbnam, data):
+    fd = open(dbpath(dbnam), 'w')
+    w = csv.writer(fd)
+    w.writerows(data)
+
 class usd(float):
     def __init__(self, raw=0.0):
         float.__init__(raw)
@@ -86,7 +91,8 @@ class Table(object):
 
     @classmethod
     def append(cls, rows):
-        for row in rows: cls.rows.append(cls.parse(row))
+        for row in rows: 
+            cls.rows.append(cls.parse(row))
 
     @classmethod
     def parse(cls,row):
@@ -128,7 +134,7 @@ class Table(object):
             k = cls.getkey(r)
             if k == key:
                 return idx
-        raise ValueError("No %s: #%s#" % (cls.dbnam, key))
+        raise ValueError("No %s: #%s#" % (cls.dbnam, key), cls.rows)
 
     @classmethod
     def select(cls):
@@ -177,13 +183,53 @@ class Component(Table):
         return str(self.data[0])
 
 
+class Subassembly(Table):
+    dbnam = 'subassembly'
+    cols = [
+        Column('Subassembly', str, 'hidden key'),
+        Column('Component', Component, 'edit'),
+        Column('Count', int, 'edit')
+    ]
+
+    @classmethod
+    def enableComponents(cls):
+        for cnam,ea in Component.rows:
+            cls.append([(cnam,cnam,1),])
+
+    @classmethod
+    def disableComponents(cls):
+        cls.rows = [r for r in cls.rows if str(r[0]) != str(r[1])]
+
+    @classmethod
+    def save(cls):
+        pass
+
+    @classmethod
+    def options(cls):
+        subs = [r[0] for r in cls.rows]
+        uniq = list(set(subs))
+        uniq.sort()
+        return uniq
+
+    def price(self):
+        search,_,_ = self.data
+        rows = list(filter(lambda r:r[0]==search, self.rows))
+        return usd(sum([compo.price()*cnt for snam,compo,cnt in rows]))
+
+    def __repr__(self):
+        return self.data[0]
+
 class Product(Table):
     dbnam = 'assemblies'
     cols = [
         Column('Product', str, 'hidden key'),
-        Column('Component', Component, 'key'),
+        Column('Subassembly', Subassembly, 'key'),
         Column('Count',int, 'edit'),
     ]
 
 
-tables = {'components': Component, 'assemblies':Product}
+tables = {
+    'components': Component, 
+    'subassembly': Subassembly, 
+    'assemblies':Product
+}

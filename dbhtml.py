@@ -11,9 +11,14 @@ class Form(object):
         return "%i,%i" % (cls.row_idx, colnum)
 
     @classmethod
-    def begin(cls, table, action="replace"):
+    def begin(cls, table, title=None, hideable=False, action="replace"):
         cls.row_idx=0
         r = []
+        if title:
+            r.append("<h4>%s</h4>" % title)
+        if hideable:
+            r.append('<input type="checkbox" class="collapsor" checked=True>')
+        r.append('<div class="db">')
         r.append('<form method="POST">')
         r.append('<input type="hidden" name="db" value="%s">'%table.dbnam)
         r.append('<input type="hidden" name="action" value="%s">'%action)
@@ -21,7 +26,7 @@ class Form(object):
 
     @classmethod
     def end(cls):
-        return "</form>"
+        return "</form></div>"
 
     @classmethod
     def select(cls, row, idx):
@@ -113,9 +118,13 @@ class Form(object):
         return '\n'.join(r)
 
     @classmethod
-    def table(cls, rows, cols, footer=None):
+    def table(cls, rows, cols,title=None, footer=None):
         r = []
-        r.append('<table class="db">')
+        if title:
+            r.append('<h4>')
+            r.append('%s</h4>'%title)
+
+        r.append('<table>')
         r.append(cls.thead(cols))
         for row in rows:
             r.append(cls.tr(row, cols))
