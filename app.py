@@ -24,34 +24,24 @@ if admin:
     import pricing
     app.register_blueprint(pricing.bp, url_prefix=('/pricing'))
 
+
+def static(name, path=None):
+    if not path: path='/'+name
+    def f():
+        return render_template(name+'.html')
+    app.add_url_rule(path, name, f)
+
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route('/')
-def index():
-    print(app)
-    return render_template('index.html')
 
-@app.route('/smswx')
-def weatherbot():
-    return render_template('smswx.html')
+static('index', '/')
+for s in ('bcard', 'smswx', 'footnotes', 'news', 'molding', 'shoecare',
+    'weatherbot', 'lessons'): static(s)
 
-@app.route('/footnotes')
-def footnotes():
-    return render_template('footnotes.html')
 
-@app.route('/news')
-def news():
-    return render_template('news.html')
-
-@app.route('/molding')
-def molding():
-    return render_template('molding.html')
-
-@app.route('/shoecare')
-def newshoes():
-    return render_template('shoecare.html')
 
 @app.route('/goods')
 def goods():
