@@ -1,45 +1,49 @@
-<html>
-  <head>
-    <title>Syllabus - Five week turnshoe class</title>
-  </head>
-  <body>
-    <h1>Turnshoe class syllabus</h1>
-    <p>Tuition includes: all materials, basic toolkit (awl haft with a set of blades, skife), and in-class use of specialty tools.  Students are encouraged to bring their own scissors, utility or xacto knife, ruler, pens, and sharpies if they have them.  I will also have some on hand.  
-    </p>
-    <p>Week 1
-      <ul>
-	<li>Create model of your feet (cardboard, duct tape, nylon stockings, sharpies)</li>
-	<li>Convert the model to a paper pattern (kraft paper, scissors, xacto knife, ruler, hole punch, pens) </li>
-      </ul>
-    </p>
-    <p>Week 2
-      <ul>
-	<li>Transfer pattern pieces to leather (paper pattern, pens)
-	<li>Cut leather for uppers (6 oz. chrometan leather, leather shears</li>
-	<li>Cut leather for soles (9 oz. latigo leather, utility knife)</li>
+{% set title="Class Syllabus: Turnshoes" %}
+{% extends 'layout.html' %}
+{% block main %}
+<p class="didactic">
+Class sessions run 4-5 hours.  Some homework is required to finish on 
+time.
+</p>
+<dl class="didactic">
+  <dt>Session 1</dt>
+  <dd><ul class="flat">
+    <li>Create model of your feet (cardboard, duct tape, nylon 
+        stockings, sharpies)</li>
+	<li>Convert the model to a paper pattern (kraft paper, scissors, 
+        xacto knife, ruler, hole punch, pens) </li>
+  </ul></dd>
+
+  <dt>Session 2</dt>
+  <dd><ul class="flat">
+    <li>Transfer pattern pieces to leather (paper pattern, pens)
+	<li>Cut leather for uppers (6 oz. chrometan leather, leather shears
+	<li>Cut leather for soles (9 oz. latigo leather, utility knife)
 	<li>Sharpen your curved awl blade (file, curved awl)
-      </ul>
-    </p>
-    <p>Week 3
-      <ul>
-	<li>Prepare soles for sewing (file, stitch groover, plough, ruler, sharpie)</li>
-	<li>Prepare uppers for sewing (skife, ruler, pen, strap punch)</li>
-	<li>Stitch uppers -- continue as homework (straight awl, needles, bonded polyester thread)</li>
-      </ul>
-    </p
-    <p>Homework: finish stitching uppers
-    <p>
-      Week 4
-      <ul>
-	<li>Stitch uppers to soles (curved awl, machine stitching needle, nyltex thread)</li>
-	<li>Turn shoes rightside out</li>
-      </ul>
-    </p>
-    <p>Week 5
-      <ul>
-	<li>Hammer shoes into finished shape (hammer, anvil)</li>
-	<li>Cut and install ankle strap (ruler, utility knife, 6 oz. chrometan leather)</li>
-      </ul>
-    </p>
-  </body>
+  </ul></dd>
+
+  <dt>Session 3</dt>
+  <dd><ul class="flat">
+	<li>Prepare soles for sewing (file, stitch groover, plough, ruler, 
+        sharpie)
+	<li>Prepare uppers for sewing (skife, ruler, pen, strap punch)
+	<li>Stitch uppers -- continue as homework (straight awl, needles, 
+        bonded polyester thread)
+  </ul></dd>
+
+  <dt>Session 4</dt>
+  <dd><ul class="flat">
+	<li>Stitch uppers to soles (curved awl, machine stitching needle, 
+        nyltex thread)
+	<li>Turn shoes rightside out
+  </ul></dd>
+
+  <dt>Session 5<dt>
+  <dd><ul class="flat">
+	<li>Hammer shoes into finished shape (hammer, anvil)
+	<li>Cut and install ankle strap (ruler, utility knife, 6 oz. 
+        chrometan leather)
+    </ul></dd>
+</dl>
+{% endblock %}
 </html>

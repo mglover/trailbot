@@ -39,7 +39,7 @@ def favicon():
 
 static('index', '/')
 for s in ('bcard', 'smswx', 'footnotes', 'news', 'molding', 'shoecare',
-    'weatherbot', 'lessons'): static(s)
+    'weatherbot', 'lessons', 'turnshoe_syllabus'): static(s)
 
 
 
