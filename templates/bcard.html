@@ -1,0 +1,131 @@
+<html>
+<head>
+<style>
+@media print {
+  body {
+    size: 2.25in 3.75in;
+  }
+}
+
+.card {
+  width: 2.25in;
+  height: 3.75in;
+  display: inline-flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  text-align: center;
+  align-content: center;
+  margin: .25in;
+  background: #946d46;
+  color: #241;
+}
+#front {
+  justify-content: space-between;
+}
+#back {
+  justify-content: space-around;;
+}
+.revert {
+  padding: .125in;
+}
+.invert {
+  background: #241;
+  color: #946d46;
+  padding: .125in;
+}
+
+#fn{
+  padding-top: .25in;
+  font-size: 16pt;
+}
+#role {
+  font-size: 11pt;
+}
+.tn {
+  font-weight: bold;
+}
+#about {
+  padding: 0 .125in;
+  font-size: 13pt;
+}
+#about ul {
+  margin: 12pt;
+  list-style-type: none;
+  padding: 0;
+}
+#contact {
+  font-weight: bold;
+  padding-bottom: .25in;
+  font-size: 16pt;
+}
+
+.bn {
+  font-weight: bold;
+  font-size: 24pt;
+  padding: 0.125in;
+}
+.tld {
+  font-size: 11pt;
+}
+#foo {
+  height: 2in;
+  stroke: transparent;
+  fill: transparent;
+}
+#bg{
+  fill: #241;
+}
+#pack {
+  stroke-width: 5;
+  stroke: #241;
+  stroke: #946d46;
+  fill: transparent;
+  stroke-linecap: round;
+  }
+.invert #pack {
+}
+</style>
+</head>
+
+
+<body>
+<div id="front" class="card">
+
+  <div id="fn" class="invert">
+    Mike
+    <span class="tn">"Old Skool"</span>
+    Glover
+    <div id="role">
+      Owner, Shoemaker, and Leatherworker
+    </div>  </div>
+
+
+  <div id="about" class="revert">
+    <ul>
+      <li> Hiking Boots 
+      <li> Turnshoes 
+      <li> Leather Goods
+    </ul>
+    Custom footwear and original designs, handmade in leather.
+  </div>
+  <div id="contact" class="invert">
+    <div class="phone">971 336 4571</div>
+  </div>
+
+</div>
+
+<div id="back" class="card">
+
+  <div class="bn revert">Old Skool</div>
+  <svg id="foo" class="revert"  viewBox="2 -13 86 125">
+    <use xlink:href="{{url_for('static', filename='logo.svg', 
+        _external=True)}}#logo"/>
+  </svg>
+
+  <div class="bn revert">
+    Trail Goods
+    <span class="tld">.com</span>
+  </div>
+
+</div>
+</body>
