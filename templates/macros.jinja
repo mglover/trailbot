@@ -1,8 +1,8 @@
 {% macro footnote(anch) %}
 {{   url_for('footnotes', _anchor=anch) }}
 {% endmacro %}
-{% macro image(img) %}
-  <img src="{{ url_for('static', filename=img) }}"/>
+{% macro image(img, class="") %}
+  <img class={{class}} src="{{ url_for('static', filename=img) }}"/>
 {% endmacro %}
 {% macro static(fn) %}
 {{   url_for('static', filename=fn) }}
