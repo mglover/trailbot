@@ -21,7 +21,7 @@
       fill-opacity: 1;
       fill-rule: nonezero;
       stroke-width: 0.75;
-      font-family:serif;
+      font-family:liberation-serif,serif;
     }
     #mask_circle {
         fill: white;
