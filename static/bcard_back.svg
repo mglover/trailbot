@@ -20,7 +20,7 @@
     }
 
     #revert,#top,#bottom {
-      font-family: liberation-serif,serif;
+      font-family:"Liberation Serif";
     }
 
     #bottom_mask,#top_mask {
