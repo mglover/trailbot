@@ -104,6 +104,61 @@ def isfloat(s):
     except:
         return False
 
+class User(object):
+    dbpath = os.path.join(config.DB_ROOT,'users')
+
+    @classmethod
+    def byHandle(cls, handle):
+        pass
+
+    @classmethod
+    def byPhone(cls, phone):
+        pass
+
+    @classmethod
+    def register(cls, phone, handle):
+        pass
+
+    def unregister(cls, phone):
+        pass
+
+    def subscribe(cls, phone):
+        pass
+
+    def unsubscribe(self, phone):
+        pass
+
+    def setStatus(self, status):
+        pass
+
+    def getStatus(self):
+        pass
+
+def status(frm, req):
+    args = req.split()
+    if len(args) == 1 and args[0][0] == '@':
+        # this is a status request
+        u = User.byHandle(args[0])
+        return twiML(u.getStatus)
+    else:
+        #this is a status update
+        u = User.byPhone(frm)
+        return twiML(u.setStatus(req))
+
+def wx(frm, req):
+    parts = req.split()
+    if len(parts) < 1:
+        return twiML("No args")
+    elif len(parts)==1 and len(parts[0])==5 and parts[0].isdigit():
+        zip = parts[0]
+        return twiML(wx_by_zip(zip))
+    elif len(parts) == 2 and isfloat(parts[0]) and isfloat(parts[1]):
+        lat = parts[0]
+        lon = parts[1]
+        return twiML(wx_by_lat_lon(lat, lon))
+    else:
+        return twiML(wx_by_shelter(' '.join(parts[1:])))
+
 
 @bp.route("/fetch")
 def sms_reply():
@@ -111,23 +166,16 @@ def sms_reply():
     sms = request.args.get('Body')
     if not frm or not sms:
         return twiML("No request")
-    parts = sms.split()
-    if not parts:
-        return twiML("No request body")
-    elif  parts[0] != 'wx':
-        return twiML("Bad Request")
-    elif len(parts) < 2:
-        return twiML("No args")
-    elif len(parts) >= 2 and len(parts[1])==5 and parts[1].isdigit():
-        zip = parts[1]
-        return twiML(wx_by_zip(zip))
-    elif len(parts) >= 3 and isfloat(parts[1]) and isfloat(parts[2]):
-        lat = parts[1]
-        lon = parts[2]
-        return twiML(wx_by_lat_lon(lat, lon))
-    else:
-        return twiML(wx_by_shelter(' '.join(parts[1:])))
+    try:
+        cmd,args = sms.split(maxsplit=1)
+    except ValueError:
+        cmd = sms
+        args= ""
 
+    if cmd == 'wx':
+        return wx(frm, args)
+    else:
+        return twiML("Bad Request")
 
 if __name__ == "__main__":
     app.run(debug=False)
