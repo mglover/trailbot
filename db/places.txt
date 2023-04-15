@@ -1,0 +1,1 @@
+/home/mg-overlay/places.txt
