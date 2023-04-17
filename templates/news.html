@@ -2,12 +2,14 @@
 {% extends 'layout.html' %}
 {% block main %}
 <dl class="didactic"</dl>
-<dt>On the Road!</dt>
-<dd>
-<p>
-The 2023 Old Skool Road Show commences March 1st.
-</p><p>
 
+{% for art in articles: %}
+<dt>{{art['title']}}
+<dd><div class="dateline">Posted {{art['created']}}</div>
+<p>{{art['body']}}
+</p>
 </dd>
+{% endfor %}
+</dl>
 
 {% endblock main %}
