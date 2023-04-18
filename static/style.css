@@ -43,7 +43,7 @@
   #logo {
     height: 3em;
   }
-  #content {
+  #content,#overlay {
     background: #2e1a07;
   }
   code {
@@ -156,6 +156,12 @@ ul.menu {
 .price {
   font-weight: bold;
 }
+.dateline {
+  font-style: italic;
+  font-size: 80%;
+}
+
+
 .storytime {
   width: 90%
   max-width: 30em;
