@@ -5,19 +5,21 @@
 {% block css %}
 <link rel="stylesheet" href="{{static('gallery.css')}}">
 {% endblock %}
-{% block main %}
-
+{% block assets %}
 <div id="overlay" class="hidden">
-    <div id="close">X</div>
     <div class="photo">
         <img/>
         <span class="caption"></span>
     </div>
     <div class="nav">
-        <button id="prev">Prev</button>
-        <button id="next">Next</button>
+        <span id="prev">&lt;&lt;Prev</span>
+        <span id="close">X</span>
+        <span id="next">Next&gt;&gt;</span>
     </div>
 </div>
+{% endblock %}
+{% block main %}
+
 <div id="gallerymain">
     <div id="slideshow">
     {% for item in gallery: %}

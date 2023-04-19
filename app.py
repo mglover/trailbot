@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, url_for, send_from_directory
+from flask import Flask, abort, request, render_template, url_for, send_from_directory
 from flask.views import View
 
 import os, json
@@ -82,7 +82,7 @@ def metagallery():
         first_photo = data['items'][0][0]
         caption = data['title']
         link = url_for('gallery', gname=g)
-        gallery.append({first_photo,caption, link})
+        gallery.append((first_photo,caption, link))
     return render_template('gallery.html', gallery=gallery,
         title="Photo Galleries")
 
