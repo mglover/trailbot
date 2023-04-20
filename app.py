@@ -78,7 +78,10 @@ def metagallery():
     gdir = os.path.join(config.DB_ROOT, 'galleries')
     gallery = []
     for g in os.listdir(gdir):
-        data = getGallery(g)
+        try:
+            data = getGallery(g)
+        except  json.JSONDecodeError:
+            continue
         first_photo = data['items'][0][0]
         caption = data['title']
         link = url_for('gallery', gname=g)

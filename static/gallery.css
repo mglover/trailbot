@@ -12,6 +12,7 @@ span {
     display: block;
     text-align: center;
     font-weight: bold;
+    margin: auto;
 }
 h2 {
     text-align: center;
@@ -38,7 +39,7 @@ h2 {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-    align-items: flex-end;
+    align-items: flex-start;
     z-index: 0;
     width: 100%;
 }
