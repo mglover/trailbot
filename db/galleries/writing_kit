@@ -1,0 +1,11 @@
+{
+  "title": "Writing Kit",
+  "items": [
+    ["writing_kit_front.jpg","Sized perfectly for writing supplies"],
+    ["writing_kit_back.jpg","Not as exciting from the back"],
+    ["writing_kit_side.jpg","Sides expand to hold plenty of paper"],
+    ["writing_kit_open.jpg","It opens!"],
+    ["writing_kit_old.jpg","This one has been traveling with me for 10 years"],
+    ["writing_kit_full.jpg","It keeps my pens, notebooks, and paper tidy and safe"]
+  ]
+}
