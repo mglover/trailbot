@@ -54,8 +54,6 @@ def news():
     for n in news:
         f = os.path.join(newsdir, n)
         data = json.load(open(f))
-        data['created'] = datetime.fromtimestamp(
-            os.stat(f).st_mtime).strftime("%d %B %Y")
         articles.append(data)
 
     return render_template('news.html', articles=articles)
