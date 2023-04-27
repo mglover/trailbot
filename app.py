@@ -66,34 +66,26 @@ def gallery_list():
     for g in os.listdir(gdir):
         p = getPreview(g)
         if p : gallery.append(p)
-
-    return render_template('gallery.html', gallery=gallery,
-        title="Photo Galleries", click="link")
+    args = {'items':gallery, 'title':"Photo Galleries"}
+    return render_template('gallery.html', args=args)
 
 
 @app.route('/gallery/<gname>')
 def gallery(gname):
-    gallery, title  = getGallery(gname)
-    return render_template('gallery.html', gallery=gallery,
-        title=title)
+    args = getGallery(gname)
+    return render_template('gallery.html', args=getGallery(gname))
 
 @app.route('/goods')
 def goods():
-    gallery, title = getGallery('goods')
-    return render_template('goods.html', title=title,
-        gallery=gallery)
+    return render_template('goods.html', args=getGallery('goods'))
 
 @app.route('/welted')
 def welted():
-    gallery, title = getGallery('welted')
-    return render_template('welted.html', title=title,
-        gallery=gallery)
+    return render_template('welted.html', args=getGallery('welted'))
 
 @app.route('/turnshoes')
 def turnshoes():
-    gallery, title = getGallery('turnshoes')
-    return render_template('turnshoes.html', title=title,
-        gallery=gallery)
+    return render_template('turnshoes.html', args=getGallery('turnshoes'))
 
 
 if __name__ == '__main__':

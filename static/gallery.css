@@ -30,6 +30,9 @@ h2 {
     height: 100%;
 }
 
+#gallerymain .slug {
+    text-align: center;
+}
 .gallery {
     background:#3f2b18;
     padding: 0;
