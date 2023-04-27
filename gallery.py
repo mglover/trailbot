@@ -3,17 +3,16 @@ from flask import abort, url_for
 import os, json
 
 def getData(gname):
-    try:
-        gfile = os.path.join(config.DB_ROOT, 'galleries', gname)
-        gdata = json.load(open(gfile))
-    except FileNotFoundError:
-        abort(404)
+    gfile = os.path.join(config.DB_ROOT, 'galleries', gname)
+    gdata = json.load(open(gfile))
     return gdata
 
 def getPreview(gname):
     try:
         gdata = getData(gname)
     except  json.JSONDecodeError:
+        return None
+    except FileNotFoundError:
         return None
     if gdata.get('hidden', False):
         return  None
@@ -23,7 +22,10 @@ def getPreview(gname):
     return (first_photo,caption, link)
 
 def getGallery(gname):
-    gdata = getData(gname)
+    try:
+        gdata = getData(gname)
+    except FileNotFoundError:
+        abort(404)
     title = gdata['title']
     gallery = []
     for item in gdata['items']:
