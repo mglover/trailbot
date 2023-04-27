@@ -23,7 +23,15 @@
       <a href="{{url_for('index')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
     </div>
   </div>
-  <div id="mastmenu"{{ menus() }}</div>
+  <div id="mastmenu">
+    {{ menus() }}
+    <hr/>
+    <ul class="menu secondmenu">
+      <li><a href="{{ url_for('news') }}">News</li>
+      <li><a href="{{ url_for('gallery_list') }}">Photos</li>
+      <li><a href="{{ url_for('weatherbot') }}">WeatherBot</a></li>
+    </ul>
+  </div>
 </div>
 <div id="content">
   <h2>{{title}}</h2>
@@ -34,7 +42,6 @@
 <div id="footmenu">
   {{ menus() }}
 </div>
-
 <div id="footer">
   {% block footer %} 
   <address>
