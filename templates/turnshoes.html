@@ -1,7 +1,7 @@
+{% from 'macros.jinja' import showGallery %}
 {% set title="Turnshoes" %}
-{% extends 'layout_shoes.html' %}
-
-{% block shoemain %} 
+{% extends 'layout.html' %}
+{% block main %} 
 <div class="didactic">
 
 <p>
@@ -10,7 +10,14 @@ back at least
 <a href="{{url_for('footnotes', _anchor='sources')}}">1000 years</a> in 
 archeological digs in Europe.  The "Carolingian" below is from that time 
 period. 
-</p><p>
+</p>
+
+<div class="gallery float">
+  {{showGallery(gallery) }}
+</div>
+
+
+<p>
 In this style, the uppers are sewn  inside out to a thick, single-piece 
 sole, and the finished shoe is then "turned" rightside out, hence the 
 name.  The result is lightweight, flexible, attractive, and extremely 

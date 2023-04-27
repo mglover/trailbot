@@ -92,9 +92,9 @@ def welted():
 
 @app.route('/turnshoes')
 def turnshoes():
-    products = getdb('shoes', '#turn')
-    return render_template('turnshoes.html', title='Turnshoes',
-        products=products)
+    gallery, title = getGallery('turnshoes')
+    return render_template('turnshoes.html', title=title,
+        gallery=gallery)
 
 
 if __name__ == '__main__':
