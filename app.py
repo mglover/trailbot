@@ -86,9 +86,9 @@ def goods():
 
 @app.route('/welted')
 def welted():
-    products = getdb('shoes', '#welted')
-    return render_template('welted.html', title='Hiking Boots',
-        products=products)
+    gallery, title = getGallery('welted')
+    return render_template('welted.html', title=title,
+        gallery=gallery)
 
 @app.route('/turnshoes')
 def turnshoes():
