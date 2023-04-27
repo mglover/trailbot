@@ -1,6 +1,5 @@
 {% extends 'layout.html' %}
 {% block js %}
-<script src="{{static('gallery.js')}}"></script>
 {% endblock %}
 {% block css %}
 <link rel="stylesheet" href="{{static('gallery.css')}}">
@@ -23,15 +22,16 @@
 <div id="gallerymain">
     <div id="slideshow">
     {% for item in gallery: %}
+        {% set has_link = item|length > 2 and item[2] %}
+        {% if has_link: %}
+            <a href="{{item[2]}}">
+        {% endif %}
         <div class="photo">
             <img src="{{static(item[0])}}">
-            {% if item|length > 2: %}
-                <a href="{{item[2]}}">
-            {% endif %}
             <span class="caption">{{item[1]}}</span>
-            {% if item|length > 2: %}
-                </a>
-            {% endif %}            
+        {% if has_link: %}
+            </a>
+        {% endif %}            
         </div>
     {% endfor %}
     </div>
