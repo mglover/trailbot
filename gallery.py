@@ -7,6 +7,9 @@ def getData(gname):
     gdata = json.load(open(gfile))
     return gdata
 
+def itemIsGallery(item):
+    return len(item) < 2
+
 def getPreview(gname):
     try:
         gdata = getData(gname)
@@ -16,10 +19,14 @@ def getPreview(gname):
         return None
     if gdata.get('hidden', False):
         return  None
-    first_photo = gdata['items'][0][0]
+    if itemIsGallery(gdata["items"][0]):
+        photo = getPreview(gdata["items"][0][0])['photo']
+    else:
+        photo = gdata['items'][0][0]
     return  {
-        'photo': gdata['items'][0][0], 
+        'photo': photo,
         'caption': gdata['title'],
+        'toplevel': gdata.get('toplevel', True),
         'link': url_for('gallery', gname=gname)
     }
 
@@ -30,8 +37,7 @@ def getGallery(gname):
         abort(404)
     gallery = []
     for item in gdata['items']:
-        if len(item) < 2:
-            # this is a link to another gallery
+        if itemIsGallery(item):
             p = getPreview(item[0])
             if p:
                 gallery.append(p)

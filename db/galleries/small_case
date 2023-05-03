@@ -1,5 +1,6 @@
 {
   "title": "Small Bags",
+  "toplevel": false,
   "items": [
     ["small_case.jpg", ""],
     ["small_case2.jpg",""],
