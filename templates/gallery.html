@@ -12,7 +12,7 @@
 
 <div id="gallerymain">
     {% if 'slug' in args: %}
-        <p class="slug">{{args['slug']}}</p>
+        <p class="slug">{{args['slug']|safe}}</p>
     {% endif %}
     <div class="gallery">
         {{showGallery(args['items'])}}
