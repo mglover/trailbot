@@ -1,20 +1,26 @@
-{% macro footnote(anch) %}
-{{   url_for('footnotes', _anchor=anch) }}
-{% endmacro %}
-{% macro image(img, class="") %}
+{%
+
+macro footnote(anch) %}
+    {{ url_for('footnotes', _anchor=anch) }}
+{% endmacro %}{% 
+
+macro image(img, class="") %}
   <img class={{class}} src="{{ url_for('static', filename=img) }}"/>
-{% endmacro %}
-{% macro static(fn) %}
-{{   url_for('static', filename=fn) }}
-{% endmacro %}
-{% macro menus() %}
+{% endmacro %}{%
+
+macro static(fn) %}
+    {{ url_for('static', filename=fn) }}
+{% endmacro %}{%
+
+macro menus() %}
   <ul class="menu">
     <li><a href="{{ url_for('welted') }}">Walking Boots</a></li>
     <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
     <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
   </ul>
-{% endmacro %}
-{% macro showGallery(items) %}
+{% endmacro %}{%
+
+macro showGallery(items) %}
   {% for item in items: %}
     {% if 'link' in item: %}
         {% set a=item['link'] %}
@@ -31,4 +37,3 @@
     {% endfor %}
 {% endmacro %}
 
-}
