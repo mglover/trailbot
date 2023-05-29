@@ -1,8 +1,11 @@
 {
   "title": "Animals",
-  "slug": "They move fast, and they're far away or in the dark: I take blurry photos of animals.",
   "items": [
     ["baby_goats"],
-    ["turkeys_in_camp"]
+    ["sheep"],
+    ["horses"],
+    ["turkeys_in_camp"],
+    ["vinegaroon"],
+    ["bullfrog"]
   ]
 }
