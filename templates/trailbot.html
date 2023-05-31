@@ -69,23 +69,22 @@ Weather Service, and send you a condensed 3 day forecast:
 mph.
 </code>
 
-And so on for two more days. These are the official forecasts, with some 
-abbreviations applied.
-
-<p>TrailBot understands 
+And so on for two more days. TrailBot understands 
   City, ST (don't forget the comma!):
   <code>wx Washington, DC,</code>
   latitude/longitude pairs (no comma!):
   <code>wx 38.9413 -78.1911</code>
   ZIP codes:
   <code>wx 17020</code>
-  and, back to it's roots,AT shelternames:
+  and, back to it's roots, AT shelternames:
   <code>wx Low Gap</code>
 
 
 <h3>Status Updates</h2>
 
-<p>Without TrailBot, there are two ways I can send a group text 
+<h4>Why?</h4>
+
+<p>Without TrailBot, there are two ways I can send a group texts 
   from my phone: send an MMS group message, but then everyone on the 
   list sees everyone else's responses to my updates (and their phone 
   numbers), or send a plain SMS text message to each member of group 
@@ -96,7 +95,7 @@ abbreviations applied.
 
 <h4>Posting Status Updates</h4>
 
-<p>To post updates on TrailBot, you have to register a handle:
+<p>To post updates on TrailBot, you have to first register a handle:
 
 <code>reg @MajorTom</code>
 
@@ -129,7 +128,7 @@ Or, most usefully, people can subscribe to receive your updates
 
 <h4>Subscribing to Updates</h4>
 
-If you know someone's handle, you can subscribe to their updates::
+If you know someone's handle, you can subscribe to their updates:
 
 <code>sub @MajorTom</code>
 
@@ -142,10 +141,14 @@ TrailBot will say:
 
 Now whenever MajorTom posts an update, you'll get a message like this:
 
-<code class="b">I'm floating in the most peculiar way</code>
+<code class="b">@MajorTom: I'm floating in the most peculiar way</code>
 
 And like TrailBot says, you can stop receiving updates at any time:
 <code>unsub @MajorTom</code>
+
+TrailBot will say:
+
+<code class="b">Success: unsubscribed from @MajorTom</code>
 
 
 <h4>Direct Messages</h4>
@@ -159,7 +162,7 @@ update:
 
 <code>@MajorTom Take yr protein pills and put yr helmet on!</code>
 
-and TrailBot will send them:
+and @MajorTom will receive:
 
 <code class="b">
 @GroundControl:Take yr protein pills and put yr helmet on!</code>
@@ -167,8 +170,23 @@ and TrailBot will send them:
 
 <h4>More about handles and registering</h4>
 
-<p>Handles are limited to 16 characters. They aren't case sensitive, but 
-your handle will always use the capitalization you registered with.  
+<p>Handles are limited to 16 characters. TrailBot will use whatever 
+Capitalization you register with, but differently capitalized versions 
+of your handle still belong to you.  If someone else tries:
+
+<code>reg @maJorTom</code>
+
+TrailBot will say:
+
+<code class="b">Handle '@maJorTom' already exists</code>
+
+But if they send:
+
+<code>status @MajOrTom</code>
+
+TrailBot will say:
+
+<code class="b">@MajorTom: Planet Earth is Blue</code>
 
 <p>When you register a handle, TrailBot will remember your last status 
 update, and the phone numbers of your subscribers.
