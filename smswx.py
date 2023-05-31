@@ -232,7 +232,7 @@ class User(object):
     @classmethod
     def lookup(cls, crit):
         if crit.startswith('@'):
-            fxn = lambda x: x.endswith(crit)
+            fxn = lambda x: x.lower().endswith(crit.lower())
         else:
             fxn = lambda x: x.startswith(crit+'@')
         for f in os.listdir(cls.dbpath):
