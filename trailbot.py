@@ -9,6 +9,7 @@ and return the 3 day weather forecast from NWS as TwiML
 from flask import Flask, request, Response, redirect, abort,Blueprint
 import csv, os, urllib, json
 
+from turns import turns
 import config
 
 bp = Blueprint('wx', __name__, '/wx')
@@ -45,7 +46,6 @@ def isfloat(s):
     except:
         return False
 
-
 class TBError(Exception):
     msg = "TBError: '%s'"
     def __init__(self, *args):
@@ -56,64 +56,7 @@ class TBError(Exception):
 ##
 ## geo
 ##
-def coordsFromZip(zip, **kwargs):
-    zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
-    zipdb = csv.reader(open(zipfile))
-    for row in zipdb:
-        if len(row) and row[0]==zip:
-            return row[3],row[4]
-    raise LookupZipError(zip)
 
-
-def coordsFromShelter(snam, **kwargs):
-    sheltfile = os.path.join(config.DB_ROOT,"at_shelters.csv")
-    sheltdb = csv.reader(open(sheltfile))
-    maybes = []
-    for row in sheltdb:
-        if len(row) and snam.lower() in row[0].lower():
-            maybes.append(row)
-    if not len(maybes):
-        raise LookupShelterError(snam)
-    elif len(maybes) > 1:
-        raise LookupMultipleError(snam, ','.join(m[0] for m in maybes))
-    else:
-        s = maybes[0]
-        return s[30], s[31]
-
-def coordsFromCitystate(citystate):
-    """look at a subset of the NGIS National File for place names
-    """
-    placefile = os.path.join(config.DB_ROOT, "places.txt")
-    pldb = csv.reader(open(placefile))
-    maybes = []
-    parts =citystate.split(',')
-    if len(parts) == 3:
-        city = parts[0].lstrip()
-        county = parts[1].lstrip()
-        state = parts[2].lstrip()
-    elif len(parts) == 2:
-        city = parts[0].lstrip()
-        county = None
-        state = parts[1].lstrip()
-    else:
-        raise LookupLocationError(citystate)
-
-    for row in pldb:
-        if not len(row): continue
-        if row[0].lower() == city.lower() \
-            and row[1].lower() == state.lower() \
-            and (not county or row[3].lower() == county.lower()):
-            maybes.append(row)
-    if not len(maybes):
-        raise LookupLocationError(citystate)
-    if len(maybes) > 1:
-        raise LookupMultipleError(
-            citystate, [', '.join(r[0:2]) for r in maybes])
-    return maybes[0][3], maybes[0][4],
-
-##
-## weatherbot
-##
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"
@@ -123,6 +66,97 @@ class LookupLocationError(TBError):
     msg = "Location not found: %s"
 class LookupMultipleError(TBError):
     msg = "multiple matches for %s: %s"
+
+
+class Location(object):
+    def __init__(self, lat, lon, orig=None):
+        self.lat = lat
+        self.lon = lon
+        self.orig = orig
+
+    def __str__(self):
+        return "%s %s" % (self.lat, self.lon)
+
+    def toOSRM(self):
+        return "%s,%s" % (self.lon, self.lat)
+
+    @classmethod
+    def fromZip(cls, zip):
+        zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
+        zipdb = csv.reader(open(zipfile))
+        for row in zipdb:
+            if len(row) and row[0]==zip:
+                return cls(row[3], row[4], orig=zip)
+        raise LookupZipError(zip)
+
+    @classmethod
+    def fromShelter(cls, snam):
+        sheltfile = os.path.join(config.DB_ROOT,"at_shelters.csv")
+        sheltdb = csv.reader(open(sheltfile))
+        maybes = []
+        for row in sheltdb:
+            if len(row) and snam.lower() in row[0].lower():
+                maybes.append(row)
+        if not len(maybes):
+            raise LookupShelterError(snam)
+        elif len(maybes) > 1:
+            raise LookupMultipleError(snam, ','.join(m[0] for m in 
+                maybes))
+        else:
+            s = maybes[0]
+        return cls(s[30], s[31], orig=snam)
+
+    @classmethod
+    def fromCitystate(cls, citystate):
+        """look at a subset of the NGIS National File for place names
+        """
+        placefile = os.path.join(config.DB_ROOT, "places.txt")
+        pldb = csv.reader(open(placefile))
+        maybes = []
+        parts =citystate.split(',')
+        if len(parts) == 3:
+            city = parts[0].lstrip()
+            county = parts[1].lstrip()
+            state = parts[2].lstrip()
+        elif len(parts) == 2:
+            city = parts[0].lstrip()
+            county = None
+            state = parts[1].lstrip()
+        else:
+            raise LookupLocationError(citystate)
+
+        for row in pldb:
+            if not len(row): continue
+            if row[0].lower() == city.lower() \
+                and row[1].lower() == state.lower() \
+                and (not county or row[3].lower() == county.lower()):
+                maybes.append(row)
+        if not len(maybes):
+            raise LookupLocationError(citystate)
+        if len(maybes) > 1:
+            raise LookupMultipleError(
+                citystate, [', '.join(r[0:2]) for r in maybes])
+        return cls(maybes[0][3], maybes[0][4], orig=citystate)
+
+    @classmethod
+    def fromInput(cls, str):
+        parts = str.split()
+        if len(parts)==1 \
+            and len(parts[0])==5 and parts[0].isdigit():
+            return cls.fromZip(str)
+
+        elif len(parts) == 2 and \
+            isfloat(parts[0]) and isfloat(parts[1]):
+                return cls(parts[0], parts[1])
+        elif str.find(',') > -1:
+            return cls.fromCitystate(str)
+        else:
+            return cls.fromShelter(str)
+
+
+##
+## weatherbot
+##
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON
@@ -154,10 +188,10 @@ def wx_parse(wxjson, days=3):
     return rpt[:1500]
 
 
-def wx_by_lat_lon(lat, lon, **kwargs):
+def wxFromLocation(loc):
     urlbase = "http://forecast.weather.gov/MapClick.php"
-    urlargs = dict(lat=lat,
-                lon=lon,
+    urlargs = dict(lat=loc.lat,
+                lon=loc.lon,
                 unit=0,     # imperial=0, metric=1
                 lg="english", 
                 FcstType="json")
@@ -165,7 +199,7 @@ def wx_by_lat_lon(lat, lon, **kwargs):
     try:
         wxfd = urllib.request.urlopen(url)
         wxjson = json.load(wxfd)
-        return wx_parse(wxjson, **kwargs)
+        return wx_parse(wxjson)
 
     except urllib.error.URLError:
         return "NWS timed out looking for %s %s" % (lat, lon)
@@ -177,20 +211,10 @@ def wx_by_lat_lon(lat, lon, **kwargs):
 
 
 def wx(req):
-    parts = req.split()
-    if len(parts) < 1:
+    if not  len(req):
         return twiML("Weather report for where?")
-    elif len(parts)==1 and len(parts[0])==5 and parts[0].isdigit():
-        lat,lon = coordsFromZip(req)
-    elif len(parts) == 2 and isfloat(parts[0]) and isfloat(parts[1]):
-        lat = parts[0]
-        lon = parts[1]
-    elif req.find(',') > -1:
-        lat, lon = coordsFromCitystate(req)
-    else:
-        lat, lon = coordsFromShelter(req)
-
-    return twiML(wx_by_lat_lon(lat,lon))
+    loc = Location.fromInput(req)
+    return twiML(wxFromLocation(loc))
 
 ##
 ## status/registration
@@ -336,6 +360,7 @@ def status_update(user, status):
     msgs.append(twiMsg("Success: update sent to %d followers" % len(msgs)))
     return twiResp(''.join(msgs))
 
+
 ##
 ## ui
 ##
@@ -441,6 +466,20 @@ def sms_reply():
                 to=u.phone)
             return twiResp(tmsg)
 
+
+        elif cmd == 'where':
+            loc = Location.fromInput(args)
+            return twiML("%s is located at %s" % (args, str(loc)))
+
+        elif cmd in ('driving', 'biking'):
+            """driving|biking  [ from ] <loc_a> to <loc_b>
+            """
+            if args.startswith('from'):
+                args=args[4:]
+            a,b = args.split(' to ')
+            loc_a = Location.fromInput(a)
+            loc_b = Location.fromInput(b)
+            return twiML(turns(loc_a, loc_b, cmd))
         else:
             msg ="I don't know how to do %s. \n" % cmd
             msg+="msg 'help' for a list of commands, "
