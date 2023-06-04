@@ -23,16 +23,22 @@ def durationFromSeconds(sec):
 def turnFromStep(step, last_step=None):
     typ = step['maneuver']['type']
     mod =  step['maneuver'].get('modifier', '')
-    nam = step.get('ref', 'unnamed road')
     dist = distanceFromMeters(step.get('distance'))
 
-    if step.get('name'):
-        nam+= " (%s)" % step['name']
+    if step.get('ref'):
+        if step.get('name'):
+            nam = "%s (%s)" % (step['ref'], step['name'])
+        else:
+            nam = step['ref']
+    elif step.get('name'):
+        nam = step['name']
+    else:
+        nam = 'unnamed road'
 
     if typ == 'arrive':
         msg =  "Reach destination"
 
-    if typ == 'depart':
+    elif typ == 'depart':
         msg = "Start on %s" % (nam)
 
     elif typ == 'new name':
@@ -61,7 +67,8 @@ def turnFromStep(step, last_step=None):
     if step.get('destinations'):
         msg+=" toward %s" % step['destinations']
 
-    msg+= " for %s" % dist
+    if typ != "arrive":
+        msg+= " for %s" % dist
 
     return msg
 
