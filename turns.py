@@ -22,7 +22,7 @@ def durationFromSeconds(sec):
 
 def turnFromStep(step, last_step=None):
     typ = step['maneuver']['type']
-    mod =  step['maneuver']['modifier']
+    mod =  step['maneuver'].get('modifier', '')
     nam = step.get('ref', 'unnamed road')
     dist = distanceFromMeters(step.get('distance'))
 
