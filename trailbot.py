@@ -118,7 +118,7 @@ def sms_reply():
         elif cmd =='wx':
             if not  len(args):
                 return twiML("Weather report for where?")
-            loc = Location.fromInput(args)
+            loc = Location.fromInput(args, user)
             return twiML(wxFromLocation(loc))
 
         elif cmd.startswith('reg'):
@@ -159,6 +159,12 @@ def sms_reply():
                 # this is a status update
                 return status_update(user, args)
 
+        elif cmd == 'whoami':
+            if user:
+                return twiML("You are @%s" % user.handle)
+            else:
+                return twiML("You are not registered")
+
         elif cmd.startswith('@'):
             if not user:
                 raise RegistrationRequired("to send direct messages")
@@ -168,48 +174,43 @@ def sms_reply():
             return twiResp(tmsg)
 
         elif cmd == 'where':
-            loc = Location.fromInput(args)
+            loc = Lo,cation.fromInput(args, user)
             return twiML(loc.toSMS())
 
-        elif cmd == 'set':
+        elif cmd == 'addr':
             if not user:
                 raise RegistrationRequired("to use saved data")
 
-            typ, nam, q = args.split(maxsplit=2)
-            if typ not in ('location'):
-                return twiML("Err? I don't know what a %s is" % typ)
+            nam, q = args.split(maxsplit=1)
+            loc = Location.fromInput(q, user)
+            user.saveBytes(nam, loc.toJson())
 
-            loc = Location.fromInput(q)
-
-            user.saveData('location', nam, loc)
-            msg= "Success. Saved "
-            msg+= loc.toSMS()
-            msg+="\n\nNow you can use '%s' as a location name" % nam
-            msg+="\nTo forget '%s', send 'unloc %hs'" % (nam, nam)
+            msg= "Success. '%s' is set to:" % nam
+            msg+="\n"+loc.toSMS()
+            msg+="\n\nTo forget '%s', send 'forget %hs'" % (nam, nam)
             return twiML(msg)
 
-        elif cmd == 'unset':
+        elif cmd == 'forget':
             if not user:
                 raise RegistrationRequired("to use saved data")
 
-            typ, nam = args.split()
-            user.eraseData(typ, nam)
+            user.eraseData(typ, args)
 
-            msg ="Success: location '%s' forgotten" % args
+            msg ="Success: '%s' forgotten" % args
             return twiML(msg)
 
 
         elif cmd in ('drive', 'bike'):
-            """driving|biking  [ from ] <loc_a> to <loc_b>
-            """
             if cmd == 'drive': profile='car'
             elif cmd == 'bike': profile='bike'
             if args.startswith('from'):
                 args=args[4:]
             a,b = args.split(' to ')
-            loc_a = Location.fromInput(a, user=user)
-            loc_b = Location.fromInput(b)
-            return twiML(turns(loc_a, loc_b, profile))
+            loc_a = Location.fromInput(a, user)
+            loc_b = Location.fromInput(b, user)
+            msg = turns(loc_a, loc_b, profile)
+            return twiML(msg[:1500])
+
 
         else:
             msg ="I don't know how to do %s. \n" % cmd

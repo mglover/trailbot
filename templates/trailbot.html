@@ -45,29 +45,85 @@ TrailBot will say:
         visit oldskooltrailgoods.com/trailbot
 </code>
 
+<!--
 You can text:
 <code>help &lt;command&gt;</code>
 
 And TrailBot will send back detailed help for &lt;command&gt;.
+-->
 
 <h3 id="loc">Locations</h3>
 
-<p>TrailBot can look up these 'simple' location formats on its own:
+<p> the &lt;command&gt; for location lookup is 'where'
+
+<p> Like this:
+
+<code>where empire state building</code>
+
+<p>And TrailBot will respond:
+
+<code class="b">
+  Location Empire State Building
+  <br>(full name: Empire State Building, 350, 5th Avenue, Manhattan 
+   Community Board 5, Manhattan, New York County, City of New York, New 
+   York, 10018, United States)
+  <br>has coordinates 40.74844205 -73.98565890160751
+</code>
+
+<p>TrailBot can look up these location formats on its own:
   City, ST (don't forget the comma!):
-  <code>wx Washington, DC,</code>
+  <code>where Washington, DC,</code>
   latitude/longitude pairs (no comma!):
   <code>wx 38.9413 -78.1911</code>
   ZIP codes:
-  <code>wx 17020</code>
-  and, back to it's roots, AT shelternames:
-  <code>wx Low Gap</code>
+  <code>drive from 17020 to 83843</code>
+  and, back to it's roots, AT shelternames (with the trail:at hint):
+  <code>wx trail:at Low Gap</code>
 
-You can use any of those anywhere a location is needed.  If you want 
-to use a more 'complex' location (e.g.: street addresses, well-known 
-place names), TrailBot has to ask for help.
+<p>If none of those match, TrailBot will look up your location
+with <a href="http://nominatim.org">Nominatim</a>, a free geolocation 
+service covering the entire world. It even knows where the Empire State 
+Bulding is!
 
-<p>
 
+<h3>Address Book</h3>
+
+<p>The &lt;command&gt; to save addresses is 'addr'
+
+<p>Say 'addr name location', like this:
+
+<code>addr vacation fisherman's wharf, san francisco</code>
+
+<p>And TrailBot will reply:
+
+<code class="b">
+    Success. 'vacation' is set to:
+    <br>fisherman's wharf, san francisco
+    <br>(full name: Fisherman's Wharf of San Francisco, Taylor Street, 
+        Port of San Francisco, San Francisco, CAL Fire Northern Region, 
+        California, 94133, United States)
+    <br>coordinates: 37.808332 -122.415715
+    <br>
+    <br>To forget 'vacation', just 'forget vacation'
+</code>
+
+<p>After that, you can use the word 'vacation' anywhere that TrailBot 
+expects a location.  Like this:
+
+<code>wx vacation</code>
+
+<p>And TrailBot will tell you:
+
+<code class="b">
+  <br>2 Miles N San Francisco CA
+  <br>4 Jun 22:06 pm PDT
+  <br>Tonight: Mostly cloudy, with a low ~54. SW wind ~17 mph, with 
+    gusts as high as 22 mph.  
+  <br>
+  <br>Mon: Partly sunny, with a high near 59. Breezy, with a SW wind 
+    17-26 mph, with gusts as high as 32 mph.  
+  [...]
+</code>
 
 <h3 id="wx">Weather Reports</h2>
 
