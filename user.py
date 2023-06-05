@@ -43,7 +43,7 @@ class DatumEmptyError(TBError):
 class DatumNameTooLong(TBError):
     msg = "Name '%s' is to long. Max "+str(NAM_MAX)+" characters"
 class DatumNameInvalidChars(TBError):
-    msg = "Name '%s' must contain letters and numbers only""
+    msg = "Name '%s' must contain letters and numbers only"
 
 
 class UserDatum(object):
