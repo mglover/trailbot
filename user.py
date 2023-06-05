@@ -4,6 +4,7 @@
 import config
 import os, json
 from core import *
+from location import Location
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
@@ -36,33 +37,42 @@ class StatusTooLongError(TBError):
     msg = "Status is too long. Max. "+str(STATUS_MAX)+" characters"
 class DatumDoesNotExistError(TBError):
     msg = "No saved data for %s"
-
+class DatumEmptyError(TBError):
+    msg = "No data to save for %s"
 
 
 class UserDatum(object):
-    def __init__(self, user, typ, nam, data):
+    def __init__(self, user, nam, bytes=None):
         self.user = user
-        self.data = data
-        self.typ = typ
+        self.bytes = bytes
         self.nam = nam
+        self.path = os.path.join(self.user.dbfile('saved'), self.nam)
 
     def save(self):
-        savdb = self.user.dbfile('saved')
-        if not os.path.exists(savdb):
-            os.mkdir(savdb)
-        typdb = os.path.join(savdb, self.typ)
-        if not os.path.exists(typdb):
-            os.mkdir(typdb)
-        datafd = open(os.path.join(typdb, self.nam), "w")
-        datafd.write(self.data.toJson())
+        if not os.path.exists(self.savdb):
+            os.mkdir(self.savdb)
+
+        if self.value:
+            datafd = open(self.path, "w")
+            datafd.write(self.bytes)
+        else:
+            raise DatumEmptyError(self.nam)
+
+    def load(self):
+        if not os.path.exists(self.path):
+            return None
+        else:
+            datafd = open(self.path)
+            self.bytes = datafd.read()
+            return self.bytes
 
     @classmethod
-    def unsave(cls, user, typ, nam):
-        savdb = user.dbfile('saved')
-        datafile = os.path.join(savdb, typ, nam)
-        if not os.path.exists(datafile):
-            raise DatumDoesNotExistError(nam)
-        os.unlink(datafile)
+    def unsave(cls, user, nam):
+        self = cls(usr, '', nam)
+        if os.path.exists(self.path):
+            os.unlink(self.path)
+        else:
+            raise DatumDoesNotExistError(self.nam)
 
 
 
@@ -165,19 +175,13 @@ class User(object):
         self.status = status
         self.save()
 
-    def saveData(self, typ, nam, data):
-        data = UserDatum(self, typ, nam, data)
+    def getBytes(self, nam):
+        datum = UserDatum(self, nam)
+        datum.load()
+
+    def saveDytes(self, nam, bytes):
+        data = UserDatum(self, nam, bytes)
         data.save()
 
-
-    def getData(self, typ, nam):
-        db = self.dbfile('saved')
-        datafile = os.path.join(db, typ, nam)
-        if not os.path.exists(datafile):
-            return None
-        data = json.load(open(datafile))
-        return UserDatum(self, typ, nam, data)
-
-
-    def eraseData(self, typ, nam):
-        userDatum.unset(self, typ, nam)
+    def eraseBytes(self, nam):
+        userDatum.erase(self, nam)
