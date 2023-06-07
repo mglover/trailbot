@@ -197,11 +197,15 @@ def sms_reply():
             loc = Location.fromInput(args, user)
             return twiML(loc.toSMS())
 
-        elif cmd == 'addr':
+        elif cmd  in('addr', 'here','there','home'):
             if not user:
-                raise RegistrationRequired("to use saved data")
+                raise RegistrationRequired("to use saved locations")
 
-            nam, q = args.split(maxsplit=1)
+            if cmd == 'addr':
+                nam, q = args.split(maxsplit=1)
+            else:
+                nam = cmd
+                q = args
             loc = Location.fromInput(q, user)
             user.saveBytes(nam, loc.toJson())
 
