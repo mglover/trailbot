@@ -11,7 +11,7 @@ import os
 
 import config
 from core import *
-from user import User, UserDatum, HandleUnknownError
+from user import User, UserDatum, HandleUnknownError, NotRegisteredError
 from location import Location
 from turns import turns
 from wx import wxFromLocation
@@ -121,27 +121,40 @@ def sms_reply():
             loc = Location.fromInput(args, user)
             return twiML(wxFromLocation(loc))
 
+        ## registration/subscription
+
         elif cmd.startswith('reg'):
             u = User.register(frm, args)
-            return twiML("Success:  @%s registered."%u.handle)
+            msg = "Success:  @%s registered."%u.handle
+            msg+="\n\nTo set your first status update,"
+            msg+="\n say 'status Your First Status'"
+            msg+= "\nsay 'help' for help"
+            return twiML(msg)
 
         elif cmd.startswith('unreg'):
             if not user:
                 raise NotRegisteredError
-            u.unregister()
-            return twiML("Success: @%s unregistered."%u.handle)
+            user.unregister()
+            return twiML("Success: @%s unregistered."%user.handle)
 
         elif cmd.startswith('sub'):
             subu = User.lookup(args)
             subu.subscribe(frm)
-            msg = "Success: subscribed to @%s.\n" % u.handle
-            msg+=" Unsubscribe at any time by sending 'unsub @%s'." % u.handle
+            msg = "Success: subscribed to @%s." % subu.handle
+            msg+="\nUnsubscribe at any time by sending 'unsub @%s'." %\
+                subu.handle
+            if not user:
+                msg+="\n\n To send a direct message to @%s" % subu.handle
+                msg+="\nyou have to register your own @handle."
+                msg+="\nSay 'reg @YourNewHandle' to register"
+                msg+="\nThen you can say '@%s Yo! sup?'" % subu.handle
+                msg+="\nFor help, say 'help'"
             return twiML(msg)
 
         elif cmd.startswith('unsub'):
             subu = User.lookup(args)
             subu.unsubscribe(frm)
-            return twiML("Success: unsubscribed from @%s" % u.handle)
+            return twiML("Success: unsubscribed from @%s" % subu.handle)
 
         elif cmd =='status':
             if not args:
@@ -172,6 +185,8 @@ def sms_reply():
             tmsg= twiMsg('@%s: %s'%(user.handle, args ), 
                 to=dstu.phone)
             return twiResp(tmsg)
+
+        ## direction/location
 
         elif cmd == 'where':
             loc = Location.fromInput(args, user)
