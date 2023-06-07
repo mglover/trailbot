@@ -96,9 +96,10 @@ def turns(loc_a, loc_b, profile):
     )
     query = "steps=true&overview=false"
 
-    resp = urlopen("%s%s?%s" % (host, path, query))
+    url = "%s%s?%s" % (host, path, query)
+    resp = urlopen(url)
     if  resp.status != 200:
-        raise ValueError(resp.status)
+        raise ValueError(resp.status, resp.body)
 
     route = json.load(resp)
     return turnsFromRoute(route, start=loc_a.orig, end=loc_b.orig)

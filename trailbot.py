@@ -223,16 +223,66 @@ def sms_reply():
             msg ="Success: '%s' forgotten" % args
             return twiML(msg)
 
-
         elif cmd in ('drive', 'bike'):
             if cmd == 'drive': profile='car'
             elif cmd == 'bike': profile='bike'
-            if args.startswith('from'):
-                args=args[4:]
-            a,b = args.split(' to ')
-            loc_a = Location.fromInput(a, user)
-            loc_b = Location.fromInput(b, user)
-            msg = turns(loc_a, loc_b, profile)
+
+            """ BEGIN parsing nightmare"""
+            args = ' '+args
+            # check all keywords
+            points = {
+                't':args.find(' to '),
+                'f':args.find(' from ')
+            }
+
+            # filter only points given
+            keys = list(filter(lambda x: points[x] >=0, points.keys()))
+            points = dict(zip([points[k] for k in keys], keys))
+
+            #ordered by line position
+            ordered = list(points.keys())
+            ordered.sort()
+            loc = {}
+            for i in range(len(ordered)):
+                # get the end of the substring
+                pos = ordered[i]
+                if i <= len(ordered)-2:
+                    end = ordered[i+1]
+                else:
+                    end = len(args)
+
+                if points[pos] == 't':
+                    arg = args[pos+4:end]
+
+                elif points[pos] == 'f':
+                    arg = args[pos+6:end]
+
+                loc[points[pos]] = Location.fromInput(arg, user)
+
+            if user:
+                here = Location.fromInput("here")
+                there = Location.fromInput("there")
+                home = Location.fromInput("home")
+
+                if 'f' not in loc and here: loc['f'] = here
+                if 'f' not in loc  and home: loc['f'] = home
+                if 't' not in loc  and there: loc['t'] = there
+                if 't' not in loc and home: loc['t']= home
+            """ END parsing nightmare"""
+
+
+            if not 'f' in loc:
+                msg = "Err? You have to tell me where you're starting from."
+                msg+="\nsay 'drive from StartLocation to EndLocation'"
+                msg+="\nor say 'here StartLocation'"
+                msg+= "\nthen say 'drive to EndLocation'"
+                return twiML(msg)
+            if not 't' in loc:
+                msg = "Err? You have to tell me where you're going to."
+                msg+="\nsay 'drive toEndLocation from StartLocation'"
+                msg+="\nor say 'there EndLocation'"
+                msg+="\nthen say 'drive from StartLocation'" 
+            msg = turns(loc['f'], loc['t'], profile)
             return twiML(msg[:1500])
 
 
