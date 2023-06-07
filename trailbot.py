@@ -82,7 +82,7 @@ class RegistrationRequired(TBError):
 """You must register a @handle to %s
 
 To register a handle, choose @YourNewHandle
-and send 'reg @YourNewHandle"""
+and say 'reg @YourNewHandle"""
 
 
 @bp.route("/fetch")
@@ -141,15 +141,20 @@ def sms_reply():
             subu = User.lookup(args)
             subu.subscribe(frm)
             msg = "Success: subscribed to @%s." % subu.handle
-            msg+="\nUnsubscribe at any time by sending 'unsub @%s'." %\
+            msg+="\nTo unsubscribe at any time, say 'unsub @%s'." %\
                 subu.handle
             if not user:
-                msg+="\n\n To send a direct message to @%s" % subu.handle
+                msg+="\n\nTo send a direct message to @%s" % subu.handle
                 msg+="\nyou have to register your own @handle."
                 msg+="\nSay 'reg @YourNewHandle' to register"
                 msg+="\nThen you can say '@%s Yo! sup?'" % subu.handle
                 msg+="\nFor help, say 'help'"
-            return twiML(msg)
+            if subu.status:
+                msg+="\n\nCurrent status for @%s follows." % subu.handle
+                stat = "@%s: %s" % (subu.handle, subu.status)
+                return twiResp(twiMsg(msg)+twiMsg(stat))
+            else:
+                return twiML(msg)
 
         elif cmd.startswith('unsub'):
             subu = User.lookup(args)
@@ -158,7 +163,7 @@ def sms_reply():
 
         elif cmd =='status':
             if not args:
-                msg = "Err? send status Your new status to set your status"
+                msg = "Err? say status Your new status to set your status"
                 msg+= "\nor status @handle to get another user's status"
                 return twiML(msg)
             if args.startswith('@'):
@@ -202,7 +207,7 @@ def sms_reply():
 
             msg= "Success. '%s' is set to:" % nam
             msg+="\n"+loc.toSMS()
-            msg+="\n\nTo forget '%s', send 'forget %hs'" % (nam, nam)
+            msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
             return twiML(msg)
 
         elif cmd == 'forget':
