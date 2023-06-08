@@ -13,7 +13,7 @@ import config
 from core import *
 from user import User, UserDatum, HandleUnknownError, NotRegisteredError
 from location import Location
-from turns import turns
+import turns
 from wx import wxFromLocation
 
 bp = Blueprint('wx', __name__, '/wx')
@@ -214,6 +214,7 @@ def sms_reply():
             msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
             return twiML(msg)
 
+
         elif cmd == 'forget':
             if not user:
                 raise RegistrationRequired("to use saved data")
@@ -227,61 +228,32 @@ def sms_reply():
             if cmd == 'drive': profile='car'
             elif cmd == 'bike': profile='bike'
 
-            """ BEGIN parsing nightmare"""
-            args = ' '+args
-            # check all keywords
-            points = {
-                't':args.find(' to '),
-                'f':args.find(' from ')
-            }
+            parts = turns.parseRequest(args, ('to', 'from'))
+            locs = dict(
+                [(k, Location.fromInput(v, user))
+                    for k,v in parts
+            ])
 
-            # filter only points given
-            keys = list(filter(lambda x: points[x] >=0, points.keys()))
-            points = dict(zip([points[k] for k in keys], keys))
-
-            #ordered by line position
-            ordered = list(points.keys())
-            ordered.sort()
-            loc = {}
-            for i in range(len(ordered)):
-                # get the end of the substring
-                pos = ordered[i]
-                if i <= len(ordered)-2:
-                    end = ordered[i+1]
-                else:
-                    end = len(args)
-
-                if points[pos] == 't':
-                    arg = args[pos+4:end]
-
-                elif points[pos] == 'f':
-                    arg = args[pos+6:end]
-
-                loc[points[pos]] = Location.fromInput(arg, user)
 
             if user:
                 here = Location.fromUserData("here", user)
                 there = Location.fromUserData("there", user)
-                home = Location.fromUserData("home", user)
 
-                if 'f' not in loc and here: loc['f'] = here
-                if 'f' not in loc  and home: loc['f'] = home
-                if 't' not in loc  and there: loc['t'] = there
-                if 't' not in loc and home: loc['t']= home
-            """ END parsing nightmare"""
+            if 'from' not in locs and here: locs['from'] = here
+            if 'to' not in locs and there: locs['to'] = there
 
-            if not 'f' in loc:
+            if not 'from' in locs:
                 msg = "Err? You have to tell me where you're starting from."
                 msg+="\nsay 'drive from StartLocation to EndLocation'"
                 msg+="\nor say 'here StartLocation'"
                 msg+= "\nthen say 'drive to EndLocation'"
                 return twiML(msg)
-            if not 't' in loc:
+            if not 'true' in locs:
                 msg = "Err? You have to tell me where you're going to."
                 msg+="\nsay 'drive toEndLocation from StartLocation'"
                 msg+="\nor say 'there EndLocation'"
                 msg+="\nthen say 'drive from StartLocation'" 
-            msg = turns(loc['f'], loc['t'], profile)
+            msg = turns.fromLocations(locs['from'], locs['to'], profile)
             return twiML(msg[:1500])
 
 

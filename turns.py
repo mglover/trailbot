@@ -72,7 +72,7 @@ def turnFromStep(step, last_step=None):
 
     return msg
 
-def turnsFromRoute(route, start=None, end=None):
+def fromRoute(route, start=None, end=None):
     r0 = route['routes'][0]
     msg= "Turn directions courtesy OSRM"
     msg+="\nfrom %s\nto %s" % (start, end)
@@ -87,7 +87,7 @@ def turnsFromRoute(route, start=None, end=None):
         msg+='\n'.join([turnFromStep(s) for s in leg['steps']])
         return msg
 
-def turns(loc_a, loc_b, profile):
+def fromLocations(loc_a, loc_b, profile):
     host = "https://router.project-osrm.org"
     path = "/route/v1/%s/%s;%s" % (
         profile,
@@ -102,7 +102,46 @@ def turns(loc_a, loc_b, profile):
         raise ValueError(resp.status, resp.body)
 
     route = json.load(resp)
-    return turnsFromRoute(route, start=loc_a.orig, end=loc_b.orig)
+    return fromRoute(route, start=loc_a.orig, end=loc_b.orig)
+
+def parseRequest(req, keywords):
+        """ search the request for values separated by keywords 
+            return a dict of keyword, value pairs.
+        """
+
+        # find the first occasion of each keyword, create a sorted
+        # (offset, keyword) list
+        req = ' '+req
+        keywords = [ ' '+k.strip()+' ' for k in keywords ]
+        keylocs = [
+            (req.find(k), k)
+            for k in keywords
+            if req.find(k)>=0]
+        keylocs.sort()
+
+        values = []
+        if not len(keylocs):
+            return values
+
+        first_loc = keylocs[0][0]
+
+        if first_loc > 0:
+            # there's text before the first keyword
+            values.append(('',req[0:first_loc]))
+
+        for i in range(len(keylocs)):
+            # list is (offset, keyword
+            start, kw = keylocs[i]
+            start += len(kw)
+
+            # get the end of the substring
+            if i <= len(keylocs)-2:
+                end = keylocs[i+1][0]
+            else:
+                end = len(req)
+
+            values.append((kw.strip(), req[start:end]))
+        return values
 
 if __name__ == '__main__':
     data = json.load(open('route.json'))
