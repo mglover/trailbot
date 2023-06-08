@@ -260,16 +260,15 @@ def sms_reply():
                 loc[points[pos]] = Location.fromInput(arg, user)
 
             if user:
-                here = Location.fromInput("here")
-                there = Location.fromInput("there")
-                home = Location.fromInput("home")
+                here = Location.fromUserData("here", user)
+                there = Location.fromUserData("there", user)
+                home = Location.fromUserData("home", user)
 
                 if 'f' not in loc and here: loc['f'] = here
                 if 'f' not in loc  and home: loc['f'] = home
                 if 't' not in loc  and there: loc['t'] = there
                 if 't' not in loc and home: loc['t']= home
             """ END parsing nightmare"""
-
 
             if not 'f' in loc:
                 msg = "Err? You have to tell me where you're starting from."

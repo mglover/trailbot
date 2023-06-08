@@ -143,15 +143,17 @@ class Location(object):
         )
 
     @classmethod
+    def fromUserData(cls, str, user):
+        jsdata = user.getBytes(str)
+        if jsdata: return cls.fromJson(jsdata)
+        else: return None
+
+    @classmethod
     def fromInput(cls, str, user=None):
         parts = str.split()
         if user and len(parts)==1:
-            jsdata = user.getBytes(parts[0])
-        else:
-            jsdata = None
-
-        if jsdata:
-            return cls.fromJson(jsdata)
+            self = cls.fromUserData(str, user)
+            if self: return self
         elif len(parts)==1 \
             and len(parts[0])==5 and parts[0].isdigit():
             return cls.fromZip(str)
