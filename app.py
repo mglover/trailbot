@@ -41,7 +41,7 @@ def favicon():
 
 static('index', '/')
 for s in ('footnotes', 'molding', 
-    'patterning', 'shoecare', 'weatherbot', 'trailbot', 'lessons', 
+    'patterning', 'shoecare', 'trailbot', 'lessons', 
     'turnshoe_syllabus'): static(s)
 
 @app.route('/welted')
