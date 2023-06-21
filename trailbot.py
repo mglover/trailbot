@@ -234,6 +234,10 @@ def sms_reply():
                     for k,v in parts
             ])
 
+            if '' in locs and 'to' not in locs:
+                locs['to'] = locs['']
+            elif '' in locs and 'from' not in locs:
+                locs['from'] = locs['']
 
             if user:
                 here = Location.lookup("here", user)
@@ -252,7 +256,7 @@ def sms_reply():
                 msg = "Err? You have to tell me where you're going to."
                 msg+="\nsay 'drive toEndLocation from StartLocation'"
                 msg+="\nor say 'there EndLocation'"
-                msg+="\nthen say 'drive from StartLocation'" 
+                msg+="\nthen say 'drive from StartLocation'"
             msg = turns.fromLocations(locs['from'], locs['to'], profile)
             return twiML(msg[:1500])
 

@@ -119,12 +119,12 @@ def parseRequest(req, keywords):
             if req.find(k)>=0]
         keylocs.sort()
 
-        values = []
         if not len(keylocs):
-            return values
+            return [('', req)]
 
         first_loc = keylocs[0][0]
 
+        values = []
         if first_loc > 0:
             # there's text before the first keyword
             values.append(('',req[0:first_loc]))
