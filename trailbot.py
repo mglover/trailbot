@@ -107,6 +107,8 @@ def sms_reply():
         cmd = sms
         args= ""
 
+    cmd = cmd.lower()
+
     try:
         if cmd.startswith('help'):
             msg = "This is TrailBot, you asked for help?"
