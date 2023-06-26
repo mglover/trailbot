@@ -120,7 +120,7 @@ def parseRequest(req, keywords):
         keylocs.sort()
 
         if not len(keylocs):
-            return [('', req)]
+            return [('', req.strip())]
 
         first_loc = keylocs[0][0]
 
