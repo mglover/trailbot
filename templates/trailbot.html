@@ -54,9 +54,11 @@ And TrailBot will send back detailed help for &lt;command&gt;.
 
 <h3 id="loc">Locations</h3>
 
-<p> the &lt;command&gt; for location lookup is 'where'
+<p> TrailBot knows how to take descriptions of places on Earth 
+(sorry @MajorTom) and figure out their exact locations.
 
-<p> Like this:
+<p> The &lt;command&gt;: 'where' tells TrailBot to find a location, 
+like this:
 
 <code>where empire state building</code>
 
@@ -70,25 +72,70 @@ And TrailBot will send back detailed help for &lt;command&gt;.
   <br>has coordinates 40.74844205 -73.98565890160751
 </code>
 
+<p>TrailBot (mostly) uses <a href="http://nominatim.org">Nominatim</a>, a free geolocation service covering the entire world. 
+
 <p>TrailBot can look up these location formats on its own:
   City, ST (don't forget the comma!):
   <code>where Washington, DC,</code>
   latitude/longitude pairs (no comma!):
-  <code>wx 38.9413 -78.1911</code>
+  <code>where 38.9413 -78.1911</code>
   ZIP codes:
-  <code>drive from 17020 to 83843</code>
+  <code>where 83843</code>
   and, back to it's roots, AT shelternames (with the trail:at hint):
-  <code>wx trail:at Low Gap</code>
+  <code>where trail:at Low Gap</code>
 
-<p>If none of those match, TrailBot will look up your location
-with <a href="http://nominatim.org">Nominatim</a>, a free geolocation 
-service covering the entire world. It even knows where the Empire State 
-Bulding is!
+<h3> here and there</h3>
+
+<p>If you're using TrailBot, it's likely that you're somewhere on the 
+surface of Earth, and a good chance that you're going somewhere else.
+
+<p>The &lt;command&gt;s 'here' and 'there' can keep track of those 
+places 
+
+<p>'here' tells TrailBot where you are, like this:
+
+<code>here Leadville, CO</code>
+
+<p>'there' tells TrailBot where you're going:
+
+<code>there Jackson, WY</code>
+
+<p>whereupon TrailBot will respond to the first request like this:
+<code class="b">
+Success. 'here' is set to: leadville (full name: Leadville, Lake 
+County, Colorado, 80461, United States) coordinates: 39.2508229 -106.2925238 To forget 'here', say 'forget here'
+</code>
+
+<p>Now you can use 'here' and 'there' as locations.  So:
+
+<code>where here</code>
+
+will tell you that you're in Leadville. 
+<p>Even better,<a href="#wx">weather reports</a> and <a 
+href="#driving">driving directions</a>  will use 'here' 
+and 'there' as you'd expect, so
+
+<code>wx</code>
+
+returns the weather for Leadville,
+
+<code>wx there</code>
+
+gives you the forecast in Jackson, and 
+
+<code>drive</code>
+
+<p> tells you how to get there.
+
+<p> 'here' and 'there' are shortcuts for 'addr here' and 'addr there', 
+and otherwise work just like any other saved address in your...
 
 
 <h3>Address Book</h3>
 
-<p>The &lt;command&gt; to save addresses is 'addr'
+<p>TrailBot can keep track of more than just here or there.
+
+<p>The &lt;command&gt; 'addr' can give a name to any location
 
 <p>Say 'addr name location', like this:
 
@@ -123,6 +170,60 @@ expects a location.  Like this:
   <br>Mon: Partly sunny, with a high near 59. Breezy, with a SW wind 
     17-26 mph, with gusts as high as 32 mph.  
   [...]
+</code>
+
+
+<h4>Shared Locations</h4>
+
+<p>The &lt;command&gt;s 'share' and 'unshare' let you control who else 
+can see locations in your address book.  Locations are private unless 
+you explicitly share them, like this:
+
+<code>share vacation with @GroundControl</code>
+
+and TrailBot says:
+
+<code class="b">Success. Shared vacation with @GroundControl</code>
+
+<p>@GroundControl can now ask:
+
+<code>where @MajorTom.vacation</code>
+
+and get back:
+
+<code class="b">
+Fisherman's Wharf, San Francisco (full name: 
+Fisherman's Wharf of San 
+Francisco, Taylor Street, Port of San Francisco, San Francisco, CAL 
+Fire Northern Region, California, 94133, United States) coordinates: 37.808332 -122.415715
+</code>
+
+<p>You can share a location with as many users as you want, or you can 
+share a location with everyone, like this:
+
+<code>share vacation</code>
+
+<p>To stop sharing, tell TrailBot:
+
+<code>unshare vacation</code>
+
+to stop sharing with everyone.
+
+<h4>Secret Menu: sharing 'here'</h4>
+
+<p> If @MajorTom tells TrailBot:
+
+<code>share here</code>
+
+<p> anyone can ask:
+
+<code>where @MajorTom</code>
+
+and TrailBot will tell them:
+
+<code class="b">
+Cape Canaveral (full name: Cape Canaveral, Brevard County, Florida, 
+United States) coordinates: 28.45077 -80.52662 
 </code>
 
 <h3 id="wx">Weather Reports</h2>
