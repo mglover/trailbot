@@ -70,8 +70,8 @@ class UserDatum(object):
 
     def save(self):
         if self.bytes:
-            datafd = open(self.path, "w")
-            datafd.write(self.bytes)
+            with open(self.path, "w") as datafd:
+                datafd.write(self.bytes)
         else:
             raise DatumEmptyError(self.nam)
 
@@ -243,14 +243,17 @@ class User(object):
         except FileNotFoundError:
             self.status = None
         try:
-            self.subs = open(self.dbfile('subs')).read().split('\n')
+            with open(self.dbfile('subs')) as sfd:
+                self.subs = sfd.read().split('\n')
+
         except FileNotFoundError:
             self.subs = []
         self.save()
 
     def save(self):
         if '' in self.subs: self.subs.remove('')
-        open(self.dbfile('subs'), 'w').write('\n'.join(self.subs))
+        with open(self.dbfile('subs'), 'w') as sfd:
+            sfd.write('\n'.join(self.subs))
         if self.status:
             open(self.dbfile('status'),'w').write(self.status)
 
