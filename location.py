@@ -103,9 +103,6 @@ class Location(UserObj):
     def fromCitystate(cls, citystate):
         """look at a subset of the NGIS National File for place names
         """
-        placefile = os.path.join(config.DB_ROOT, "places.txt")
-        pldb = csv.reader(open(placefile))
-        maybes = []
         parts =citystate.split(',')
         if len(parts) == 3:
             city = parts[0].lstrip()
@@ -118,12 +115,18 @@ class Location(UserObj):
         else:
             raise LookupLocationError(citystate)
 
-        for row in pldb:
-            if not len(row): continue
-            if row[0].lower() == city.lower() \
+        maybes = []
+        with open(os.path.join(config.DB_ROOT, "places.txt")) as plfd:
+            pldb = csv.reader(plfd)
+            for row in pldb:
+                if not len(row): 
+                    continue
+                if row[0].lower() == city.lower() \
                 and row[1].lower() == state.lower() \
                 and (not county or row[3].lower() == county.lower()):
-                maybes.append(row)
+                    maybes.append(row)
+
+
         if not len(maybes):
             raise LookupLocationError(citystate)
         if len(maybes) > 1:
@@ -138,14 +141,23 @@ class Location(UserObj):
         query = urlencode({"q":q, "format":"json"})
         req = Request(
             "%s%s?%s" % (host, path, query),
-            headers={"User-Agent": "TrailBot 1.3"}
+            headers={
+                "User-Agent": "TrailBot 1.4",
+                "Referer": "http://oldskooltrailgoods.com/trailbot"
+            }
         )
+#        req.set_proxy("localhost:3182", "http")
         resp = urlopen(req)
+
+        # XXX for testing
+        import time
+        time.sleep(1)
+
         data = json.load(resp)
         if not len(data):
             raise LookupLocationError(q)
         return cls(
-            data[0]['lat'],
+             data[0]['lat'],
             data[0]['lon'],
             orig=q,
             match=data[0]["display_name"]
