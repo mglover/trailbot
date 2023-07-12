@@ -1,6 +1,8 @@
 from requests import Session
 from urllib.parse import urlencode
 
+import config
+
 class TBError(Exception):
     msg = "TBError: '%s'"
     def __init__(self, *args):
@@ -12,10 +14,13 @@ class TBError(Exception):
 class TBSession (Session):
     def __init__(self):
         super().__init__()
-        self.proxies = {
-            'http': 'http://localhost:3182',
-            'https': 'http://localhost:3182'
-        }
+        try:
+            self.proxies = {
+                'http': config.PROXY,
+                'https': config.PROXY
+             }
+        except AttributeError: 
+            pass
         self.verify = False
         self.headers = {
             "User-Agent": "TrailBot 1.4",
