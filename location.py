@@ -1,12 +1,11 @@
 ##
 ## geo
 ##
-from urllib.request import Request, urlopen
-from urllib.parse import urlencode
 import json, os, csv
 
 import config
-from core import *
+import tbrequest
+from core import TBError, proxy
 from user import UserObj
 
 class LookupZipError(TBError):
@@ -119,7 +118,7 @@ class Location(UserObj):
         with open(os.path.join(config.DB_ROOT, "places.txt")) as plfd:
             pldb = csv.reader(plfd)
             for row in pldb:
-                if not len(row): 
+                if not len(row):
                     continue
                 if row[0].lower() == city.lower() \
                 and row[1].lower() == state.lower() \
@@ -136,24 +135,11 @@ class Location(UserObj):
 
     @classmethod
     def fromNominatim(cls, q):
-        host="https://nominatim.openstreetmap.org"
-        path="/search"
-        query = urlencode({"q":q, "format":"json"})
-        req = Request(
-            "%s%s?%s" % (host, path, query),
-            headers={
-                "User-Agent": "TrailBot 1.4",
-                "Referer": "http://oldskooltrailgoods.com/trailbot"
-            }
-        )
-#        req.set_proxy("localhost:3182", "http")
-        resp = urlopen(req)
+        with proxy.get(
+            'https://nominatim.openstreetmap.org/search',
+            params= {"q":q, "format":"json"}
+        ) as resp: data = resp.json()
 
-        # XXX for testing
-        import time
-        time.sleep(1)
-
-        data = json.load(resp)
         if not len(data):
             raise LookupLocationError(q)
         return cls(

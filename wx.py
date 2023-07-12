@@ -1,7 +1,8 @@
 ##
 ## weatherbot
 ##
-import json, urllib
+from core import proxy
+import requests
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON
@@ -18,13 +19,13 @@ def wx_parse(wxjson, days=3):
 
     replaces = {'A chance of': 'Chance',
         ' percent':'%', 'around ': '~', ' to ': '-',
-        'Southeast': 'SE', 'Northeast': 'NE', 
+        'Southeast': 'SE', 'Northeast': 'NE',
         'Southwest': 'SW', 'Northwest': 'NW',
-        'southeast': 'SE', 'northeast': 'NE', 
+        'southeast': 'SE', 'northeast': 'NE',
         'southwest': 'SW', 'northwest': 'NW',
         'East': 'E', 'West': 'W', 'South': 'S', 'North': 'N',
         'Monday': 'Mon', 'Tuesday': 'Tue', 'Wednesday': 'Wed',
-        'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat', 
+        'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat',
         'Sunday': 'Sun', 'Night': 'PM',
         'thunderstorm': 't-storm', 'Chance of precipitation is': 'PoP'}
     for orig,new in replaces.items():
@@ -34,20 +35,20 @@ def wx_parse(wxjson, days=3):
 
 
 def wxFromLocation(loc):
-    urlbase = "http://forecast.weather.gov/MapClick.php"
-    urlargs = dict(lat=loc.lat,
-                lon=loc.lon,
-                unit=0,     # imperial=0, metric=1
-                lg="english", 
-                FcstType="json")
-    url = urlbase + "?" + urllib.parse.urlencode(urlargs)
     try:
-        wxfd = urllib.request.urlopen(url)
-        wxjson = json.load(wxfd)
-        return wx_parse(wxjson)
+        with proxy.get(
+            'http://forecast.weather.gov/MapClick.php',
+            params = {
+                'lat': loc.lat,
+                'lon': loc.lon,
+                'unit': 0,     # imperial=0, metric=1
+                'lg': "english",
+                'FcstType': "json"
+            }
+        ) as resp: return wx_parse(resp.json())
 
-    except urllib.error.URLError:
+    except requests.ConnectionError:
         return "NWS timed out looking for %s %s" % (loc.lat, loc.lon)
 
-    except json.decoder.JSONDecodeError:
+    except requests.JSONDecodeError:
         return "no data for %s %s" % (loc.lat, loc.lon)
