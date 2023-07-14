@@ -37,7 +37,7 @@ def wx_parse(wxjson, days=3):
 def wxFromLocation(loc):
     try:
         with proxy.get(
-            'http://forecast.weather.gov/MapClick.php',
+            'https://forecast.weather.gov/MapClick.php',
             params = {
                 'lat': loc.lat,
                 'lon': loc.lon,
