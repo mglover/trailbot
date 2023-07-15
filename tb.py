@@ -10,11 +10,11 @@ from flask import Flask, request, Response, redirect, abort,Blueprint
 import os
 
 import config
-from core import *
-from user import User, UserDatum, HandleUnknownError, NotRegisteredError
-from location import Location
-import turns
-from wx import wxFromLocation
+from .core import *
+from .location import Location
+from .wx import wxFromLocation
+from .user import User, UserDatum, HandleUnknownError, NotRegisteredError
+from . import turns
 
 bp = Blueprint('wx', __name__, '/wx')
 

@@ -1,7 +1,7 @@
 from requests import Session
 from urllib.parse import urlencode
 
-import config
+from . import config
 
 class TBError(Exception):
     msg = "TBError: '%s'"
