@@ -1,3 +1,5 @@
+import re
+
 from trailbot.user import User
 from trailbot.core import TBError
 
@@ -71,13 +73,14 @@ class TBResponse(object):
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
         for spec in specs:
-            routes.append((spec, cmd))
+            spec_re = re.compile('^'+spec+'$')
+            routes.append((spec_re, cmd))
         return cmd
     return fxn
 
 def dispatch(req):
-    for r in routes:
-        if r[0] == req.cmd: return r[1](req)
+    for spec_re, cmd in routes:
+        if spec_re.match(req.cmd): return cmd(req)
     return None
 
 
