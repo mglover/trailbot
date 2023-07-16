@@ -11,7 +11,7 @@ import os
 
 from . import config
 from .core import *
-from .dispatch import tbroute, TBRequest, TBResponse, dispatch
+from .dispatch import tbroute, TBRequest, TBResponse, dispatch, needsreg
 
 from .location import Location
 from .wx import wxFromLocation
@@ -47,13 +47,6 @@ def auth_reqd(error):
         401,
         {'WWW-Authenticate': 'Basic realm TrailBot'}
     )
-
-class RegistrationRequired(TBError):
-    msg = \
-"""You must register a @handle to %s
-
-To register a handle, choose @YourNewHandle
-and say 'reg @YourNewHandle"""
 
 
 @tbroute('help')
@@ -208,20 +201,16 @@ def tbt(req):
     return msg[:1500]
 
 @tbroute('forget')
+@needsreg("to use saved data")
 def forget(req):
-    if not req.user:
-        raise RegistrationRequired("to use saved data")
-
     req.user.eraseObj(req.args)
 
     msg ="Success: '%s' forgotten" % req.args
     return msg
 
 @tbroute('addr', 'here', 'there')
+@needsreg("to use saved data")
 def saveloc(req):
-    if not req.user:
-        raise RegistrationRequired("to use saved locations")
-
     if req.cmd == 'addr':
         nam, q = req.args.split(maxsplit=1)
     else:
@@ -236,9 +225,8 @@ def saveloc(req):
     return msg
 
 @tbroute('share','unshare')
+@needsreg('to share data')
 def sharing(req):
-    if not req.user:
-        raise RegistrationRequired('to share data')
     parts = req.args.split()
     if len(parts) == 1:
         nam = parts[0]
@@ -257,9 +245,8 @@ def sharing(req):
         return "Success. Unshared %s with %s" % (nam, spec)
 
 @tbroute('@.*')
+@needsreg("to send direct messages")
 def dm(req):
-    if not req.user:
-        raise RegistrationRequired("to send direct messages")
     dstu = req.user.lookup(req.cmd)
     resp =TBResponse()
     resp.addMsg('@%s: %s'%(req.user.handle, req.args),

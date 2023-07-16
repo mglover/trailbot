@@ -7,6 +7,14 @@ routes = []
 class EmptyRequest(TBError):
     msg = "No request"
 
+class RegistrationRequired(TBError):
+    msg = \
+"""You must register a @handle %s
+
+To register a handle, choose @YourNewHandle
+and say 'reg @YourNewHandle"""
+
+
 class TBRequest(object):
     def __init__(self, frm, cmd, args):
         self.frm = frm
@@ -72,6 +80,14 @@ class TBResponse(object):
         return str(resp)
 
 
+def needsreg(reason):
+    def fxn(inner):
+        def require(req, *args, **kwargs):
+            if not req.user:
+                raise RegistrationRequired(reason)
+            return inner(req, *args, **kwargs)
+        return require
+    return fxn
 
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
