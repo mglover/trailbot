@@ -11,14 +11,21 @@ import os
 
 from . import config
 from .core import *
-from .dispatch import tbroute, TBRequest, TBResponse, dispatch, needsreg
+from .dispatch import TBRequest, TBResponse, dispatch, needsreg, getAction, tbhelp, tbroute
 
 from .location import Location
 from .wx import wxFromLocation
-from .user import User, UserDatum, HandleUnknownError, NotRegisteredError
+from .user import User, UserDatum, NotRegisteredError
 from . import turns
 
 bp = Blueprint('wx', __name__, '/wx')
+
+
+class UnknownCommand(TBError):
+    msg ="I don't know how to do %s. \n"
+    msg+="msg 'help' for a list of commands, "
+    msg+="or visit oldskooltrailgoods.com/trailbot "
+    msg+="to view the full documentation."
 
 
 ##
@@ -26,10 +33,8 @@ bp = Blueprint('wx', __name__, '/wx')
 ##
 @bp.errorhandler(500)
 def code_fail(error):
-    return twiML(
-"""I'm sorry, something has gone wrong with my programming.
+    return """I'm sorry, something has gone wrong with my programming.
 Try again?  That works sometimes.  I'll let the boss know what happened!"""
-   )
 
 def authenticate(request):
     username="twilio"
@@ -51,19 +56,35 @@ def auth_reqd(error):
 
 @tbroute('help')
 def help(req):
-    msg = "This is TrailBot, you asked for help?"
-    msg+= "\nI understand these commands:"
-    msg+= "\nwx, sub, unsub, reg, unreg, status."
+    if req.args:
+        hcmd = req.args
+        hfxn = getAction(hcmd)
+        if not hfxn: raise UnknownCommand(hcmd)
+        print(hfxn)
+        if hasattr(hfxn, '_help'):
+            return hfxn._help
+        else:
+            return f"Sorry, I don't know anything else about {hcmd}"
+    else:
+        msg = "This is TrailBot, you asked for help?"
+        msg+= "\nI understand these commands:"
+        msg+= "\nwx, sub, unsub, reg, unreg, status."
 
-    msg+= "\n If you know another person's @handle,"
-    msg+= " you can send them a direct message "
-    msg+= " by starting your message with @handle"
+        msg+= "\n If you know another person's @handle,"
+        msg+= " you can send them a direct message "
+        msg+= " by starting your message with @handle"
 
-    msg+= "\nTo view the full documentation, visit"
-    msg+= " oldskooltrailgoods.com/trailbot"
+        msg+= "\nTo view the full documentation, visit"
+        msg+= " oldskooltrailgoods.com/trailbot"
     return msg
 
 @tbroute('wx')
+@tbhelp(
+"""wx -- get a 3 day weather report from US NWS.
+
+You can say something like:
+ 'wx New York City' or ' wx denver, co'
+""")
 def wx(req):
     loc = None
     if len(req.args):
@@ -254,19 +275,14 @@ def dm(req):
     return resp
 
 
-
-
 @bp.route("/fetch")
 def sms_reply():
     authenticate(request)
     try:
         tbreq = TBRequest.fromFlask(request)
         msg = dispatch(tbreq)
-        if msg is None:
-            msg ="I don't know how to do %s. \n" % tbreq.cmd
-            msg+="msg 'help' for a list of commands, "
-            msg+="or visit oldskooltrailgoods.com/trailbot "
-            msg+="to view the full documentation."
+        if msg is None: 
+            raise UnknownCommand(tbreq.cmd)
 
     except TBError as e:
         msg = str(e)
