@@ -1,5 +1,4 @@
 import re
-
 from trailbot.user import User
 from trailbot.core import TBError
 
@@ -38,10 +37,14 @@ class TBMessage(object):
     def __init__(self, msg, **kwargs):
         self.msg = msg
         self.kwargs = kwargs
+
+    def __str__(self):
+        return self.msg
+
     def asTwiML(self):
         resp = '<Message'
         if 'to' in self.kwargs:
-            resp+= ' to="%s">' % kwargs['to']
+            resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
         resp += self.msg
