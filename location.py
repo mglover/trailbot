@@ -74,10 +74,11 @@ class Location(UserObj):
     @classmethod
     def fromZip(cls, zip):
         zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
-        zipdb = csv.reader(open(zipfile))
-        for row in zipdb:
-            if len(row) and row[0]==zip:
-                return cls(row[3], row[4], orig=zip)
+        with open(zipfile) as zipfd:
+            zipdb = csv.reader(zipfd)
+            for row in zipdb:
+                if len(row) and row[0]==zip:
+                    return cls(row[3], row[4], orig=zip)
         raise LookupZipError(zip)
 
     @classmethod
