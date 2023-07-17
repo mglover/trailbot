@@ -24,7 +24,7 @@ class TBTest(unittest.TestCase):
         self.frm1 = "+1888776666"
         self.frm2 = "+1999887777"
 
-        self.req(self.frm1, "unreg")
+        self.req(self.frm1, "Unregister")
         self.req(self.frm2, "unreg")
 
     def req(self, frm, args,
@@ -57,7 +57,7 @@ class TBTest(unittest.TestCase):
         return self.req(self.frm2, args, **kw)
 
     def reg1(self):
-        self.assertSuccess(self.req1("reg @test1"))
+        self.assertSuccess(self.req1("Register @test1"))
 
     def reg2(self):
         self.assertSuccess(self.req2("reg @test2"))
@@ -91,7 +91,7 @@ class TBTest(unittest.TestCase):
         res = self.req1("whoami")
         self.assertEqual("You are not registered", res)
 
-        res = self.req1('reg @test1')
+        res = self.req1('register @test1')
         self.assertSuccess(res)
 
         res = self.req1('whoami')
@@ -104,8 +104,9 @@ class TBTest(unittest.TestCase):
 
     def test_sub(self):
         self.reg1()
-        self.assertStartsWith(self.req2("sub @test"), "I don't know any")
-        res = self.req2("sub @test1")
+        res = self.req2("sub @test3")
+        self.assertStartsWith(res, "I don't know any")
+        res = self.req2("subscribe @test1")
         self.assertSuccess(res)
 
     def test_unsub(self):
