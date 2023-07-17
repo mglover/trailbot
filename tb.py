@@ -11,7 +11,7 @@ import os
 
 from . import config
 from .core import *
-from .dispatch import TBRequest, TBResponse, dispatch, needsreg, getAction, tbhelp, tbroute
+from .dispatch import TBRequest, TBResponse, dispatch, getAction, tbroute
 
 from .location import Location
 from .wx import wxFromLocation
@@ -19,6 +19,14 @@ from .user import User, UserDatum, NotRegisteredError
 from . import turns
 
 bp = Blueprint('wx', __name__, '/wx')
+
+
+class RegistrationRequired(TBError):
+    msg = \
+"""You must register a @handle %s
+
+To register a handle, choose @YourNewHandle
+and say 'reg @YourNewHandle"""
 
 
 class UnknownCommand(TBError):
@@ -53,6 +61,30 @@ def auth_reqd(error):
         {'WWW-Authenticate': 'Basic realm TrailBot'}
     )
 
+##
+## action decorators
+##
+
+def needsreg(reason):
+    def fxn(inner):
+        def require(req, *args, **kwargs):
+            if not req.user:
+                raise RegistrationRequired(reason)
+            return inner(req, *args, **kwargs)
+        return require
+    return fxn
+
+
+def tbhelp(helpmsg):
+    def fxn(cmd, *args, **kwargs):
+        cmd._help = helpmsg
+        print("fxn %s has help %s" % (cmd, help))
+        return cmd
+    return fxn
+
+##
+## actions
+##
 
 @tbroute('help')
 def help(req):
@@ -83,7 +115,8 @@ def help(req):
 """wx -- get a 3 day weather report from US NWS.
 
 You can say something like:
- 'wx New York City' or ' wx denver, co'
+ 'wx New York City' or 
+ 'wx denver, co'
 """)
 def wx(req):
     loc = None
@@ -96,6 +129,12 @@ def wx(req):
     return wxFromLocation(loc)
 
 @tbroute('reg')
+@tbhelp(
+"""reg -- register a TrailBot @handle
+
+You can say something like:
+ 'reg @YourHandle'
+""")
 def reg(req):
     u = User.register(req.frm, req.args)
     msg = "Success: @%s registered."%u.handle
