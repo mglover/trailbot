@@ -220,6 +220,10 @@ class TBTest(unittest.TestCase):
         res = self.req1("drive from seattle to portland, or")
         self.assertStartsWith(res, "Turn directions courtesy OSRM")
 
+    def test_distance(self):
+        res = self.req1('distance from seattle to portland, or')
+        self.assertStartsWith(res, "Turn directions courtesy OSRM")
+
     def test_drive_here_there(self):
         self.reg1()
         self.assertSuccess(self.req1("here seattle"))
