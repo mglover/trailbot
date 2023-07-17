@@ -7,11 +7,11 @@ and return the 3 day weather forecast from NWS as TwiML
 """
 
 from flask import Flask, request, Response, redirect, abort,Blueprint
-import os
+import os, re
 
 from . import config
 from .core import *
-from .dispatch import TBRequest, TBResponse, dispatch, getAction, tbroute
+from .dispatch import TBRequest, TBResponse, getAction, tbroute
 
 from .location import Location
 from .wx import wxFromLocation
@@ -27,13 +27,6 @@ class RegistrationRequired(TBError):
 
 To register a handle, choose @YourNewHandle
 and say 'reg @YourNewHandle"""
-
-
-class UnknownCommand(TBError):
-    msg ="I don't know how to do %s. \n"
-    msg+="msg 'help' for a list of commands, "
-    msg+="or visit oldskooltrailgoods.com/trailbot "
-    msg+="to view the full documentation."
 
 
 ##
@@ -78,7 +71,6 @@ def needsreg(reason):
 def tbhelp(helpmsg):
     def fxn(cmd, *args, **kwargs):
         cmd._help = helpmsg
-        print("fxn %s has help %s" % (cmd, help))
         return cmd
     return fxn
 
@@ -92,7 +84,6 @@ def help(req):
         hcmd = req.args
         hfxn = getAction(hcmd)
         if not hfxn: raise UnknownCommand(hcmd)
-        print(hfxn)
         if hasattr(hfxn, '_help'):
             return hfxn._help
         else:
@@ -304,7 +295,7 @@ def sharing(req):
         req.user.unshareObj(nam, spec)
         return "Success. Unshared %s with %s" % (nam, spec)
 
-@tbroute('@.*')
+@tbroute(re.compile('^@.*$'))
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
@@ -319,9 +310,8 @@ def sms_reply():
     authenticate(request)
     try:
         tbreq = TBRequest.fromFlask(request)
-        msg = dispatch(tbreq)
-        if msg is None: 
-            raise UnknownCommand(tbreq.cmd)
+        act = getAction(tbreq.cmd)
+        msg = act(tbreq)
 
     except TBError as e:
         msg = str(e)
@@ -332,6 +322,3 @@ def sms_reply():
         resp = TBResponse()
         resp.addMsg(msg)
     return resp.asTwiML()
-
-
-
