@@ -11,7 +11,7 @@ import os, re
 
 from . import config
 from .core import *
-from .dispatch import TBRequest, TBResponse, getAction, tbroute
+from .dispatch import dispatch, tbroute, TBResponse, getAction
 
 from .location import Location
 from .wx import wxFromLocation
@@ -355,17 +355,4 @@ def dm(req):
 @bp.route("/fetch")
 def sms_reply():
     authenticate(request)
-    try:
-        tbreq = TBRequest.fromFlask(request)
-        act = getAction(tbreq.cmd)
-        msg = act(tbreq)
-
-    except TBError as e:
-        msg = str(e)
-
-    if type(msg) == TBResponse:
-        resp = msg
-    else:
-        resp = TBResponse()
-        resp.addMsg(msg)
-    return resp.asTwiML()
+    return dispatch(request)
