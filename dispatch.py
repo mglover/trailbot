@@ -82,7 +82,7 @@ class TBResponse(object):
         for m in self.msgs:
             resp+=m.asTwiML()
         resp+= "</Response>"
-        return str(resp)
+        return str(resp)[:1500]
 
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
@@ -115,6 +115,9 @@ def dispatch(request):
 
     except TBError as e:
         msg = str(e)
+
+    if msg is None:
+        abort(500)
 
     if type(msg) == TBResponse:
         resp = msg

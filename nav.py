@@ -1,8 +1,23 @@
 """
-  turns.py
+  nav.py
   comvert location pairs to turn-by-turn driving directions
 """
-from .core import proxy
+from .core import TBError, parseArgs, proxy
+
+class NavMissingFrom(TBError):
+    msg = "Err? You have to tell me where you're starting from."
+    msg+="\nsay 'drive from StartLocation to EndLocation'"
+    msg+="\nor say 'here StartLocation'"
+    msg+= "\nthen say 'drive to EndLocation'"
+
+class NavMissingTo(TBError):
+    msg = "Err? You have to tell me where you're going to."
+    msg+="\nsay 'drive toEndLocation from StartLocation'"
+    msg+="\nor say 'there EndLocation'"
+    msg+="\nthen say 'drive from StartLocation'"
+
+
+## conversions and unpacking
 
 def distanceFromMeters(m):
     miles = m/1609.344
@@ -69,81 +84,90 @@ def turnFromStep(step, last_step=None):
 
     return msg
 
-def fromRoute(route, start=None, end=None):
-    r0 = route['routes'][0]
-    msg= "Turn directions courtesy OSRM"
-    msg+="\nfrom %s\nto %s" % (start, end)
 
-    msg+="\n%s: %s" % (
-        distanceFromMeters(r0['distance']),
-        durationFromSeconds(r0['duration'])
-    )
-    for leg in r0['legs']:
-        if 'summary' in leg:
-            msg+="\nvia %s\n\n" % leg['summary']
-        msg+='\n'.join([turnFromStep(s) for s in leg['steps']])
+class Route(object):
+    baseurl = "https://router.project-osrm.org"
+    source = "OSRM"
+    params = {'overview': 'false', 'steps': 'false'}
+
+    def __init__(self, *locations, **params):
+        assert len(locations) == 2
+        self.locs = locations
+
+        params = dict([
+            (k, str(v).lower())
+            for k,v in params.items()
+            if type(v) in (bool,str)
+        ])
+        self.params.update(params)
+        self.profile = "car"
+
+        path = "/route/v1/%s/%s;%s" % (
+            self.profile,
+            self.locs[0].toOSRM(),
+            self.locs[1].toOSRM()
+        )
+        url = self.baseurl+path
+
+        with proxy.get(url, params=self.params) as resp:
+            if  resp.status_code != 200:
+                raise ValueError(resp)
+            self.route =  resp.json()
+
+
+    def toSMS(self):
+        r0 = self.route['routes'][0]
+        get_steps = self.params['steps'] == 'true'
+
+        if get_steps:
+            pre = "Driving directions"
+        else:
+             pre = "Distance"
+        pre+= " courtesy %s" % self.source
+
+        msg= pre + "\nfrom %s\nto %s" % (self.locs[0].orig, self.locs[1].orig)
+
+        msg+="\n%s: %s" % (
+            distanceFromMeters(r0['distance']),
+            durationFromSeconds(r0['duration'])
+        )
+        if get_steps:
+            for leg in r0['legs']:
+                if 'summary' in leg:
+                    msg+="\nvia %s\n\n" % leg['summary']
+                msg+='\n'.join([turnFromStep(s) for s in leg['steps']])
         return msg
 
-def  makeURL(loc_a, loc_b, profile):
-    path = "/route/v1/%s/%s;%s" % (
-        profile,
-        loc_a.toOSRM(),
-        loc_b.toOSRM()
-    )
-    return "https://router.project-osrm.org"+path
 
-def getResponse(url, query):
-    with proxy.get(url, params=query) as resp:
-        if  resp.status_code != 200:
-            raise ValueError(resp.status, resp.body)
-        return resp.json()
 
-def fromLocations(loc_a, loc_b, profile):
-    url = makeURL(loc_a, loc_b, profile)
-    route = getResponse(url,{"steps":"true", "overview":"false"})
-    return fromRoute(route, start=loc_a.orig, end=loc_b.orig)
+from .location import Location
+def getStartEnd(req):
+    if req.user:
+        here = Location.lookup("here", req.user)
+        there = Location.lookup("there", req.user)
+    else:
+        here = None
+        there = None
 
-def distance(loc_a, loc_b, profile):
-    url = makeURL(loc_a, loc_b, profile)
-    route = getResponse(url,{"steps":"false", "overview":"false"})
-    return fromRoute(route, start=loc_a.orig, end=loc_b.orig)
+    parts = parseArgs(req.args, ('to', 'from'))
+    locs = dict(
+        [(k, Location.fromInput(v, req.user))
+            for k,v in parts
+            if len(v.strip())
+    ])
 
-def parseRequest(req, keywords):
-        """ search the request for values separated by keywords 
-            return a dict of keyword, value pairs.
-        """
+    if '' in locs and 'to' not in locs:
+        locs['to'] = locs['']
+    elif '' in locs and 'from' not in locs:
+        locs['from'] = locs['']
 
-        # find the first occasion of each keyword, create a sorted
-        # (offset, keyword) list
-        req = ' '+req
-        keywords = [ ' '+k.strip()+' ' for k in keywords ]
-        keylocs = [
-            (req.find(k), k)
-            for k in keywords
-            if req.find(k)>=0]
-        keylocs.sort()
+    if 'from' not in locs and here: locs['from'] = here
+    if 'to' not in locs and there: locs['to'] = there
 
-        if not len(keylocs):
-            return [('', req.strip())]
+    if not 'from' in locs:
+        raise NavMissingFrom
 
-        first_loc = keylocs[0][0]
+    if not 'to' in locs:
+        raise NavMissingTo
 
-        values = []
-        if first_loc > 0:
-            # there's text before the first keyword
-            values.append(('',req[0:first_loc]))
-
-        for i in range(len(keylocs)):
-            # list is (offset, keyword
-            start, kw = keylocs[i]
-            start += len(kw)
-
-            # get the end of the substring
-            if i <= len(keylocs)-2:
-                end = keylocs[i+1][0]
-            else:
-                end = len(req)
-
-            values.append((kw.strip(), req[start:end]))
-        return values
-
+    return (locs['from'], locs['to'])
