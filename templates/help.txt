@@ -1,0 +1,9 @@
+Hi, this is TrailBot!
+I understand these %lt;command&gt;s:
+   wx, weather, drive, sub, unsub, reg, unreg, status
+
+Say 'help &lt;command&gt;' for more info
+Say 'help @' for direct messaging help
+
+To view the full documentation, visit
+   oldskooltrailgoods.com/trailbot

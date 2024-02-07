@@ -6,7 +6,8 @@ for a given zip code, lat/lon, place name,or AT shelter name
 and return the 3 day weather forecast from NWS as TwiML
 """
 
-from flask import Flask, request, Response, redirect, abort,Blueprint
+from flask import Flask, request, Response, redirect, abort,Blueprint,\
+    render_template
 import os, re
 
 from . import config
@@ -19,7 +20,7 @@ from .user import User, UserDatum, NotRegisteredError
 from .group import Group
 from . import nav
 
-bp = Blueprint('wx', __name__, '/wx')
+bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
 
 
 class RegistrationRequired(TBError):
@@ -91,15 +92,7 @@ def help(req):
             return f"Sorry, I don't know anything else about {hcmd}"
     else:
         ## This case is handled by Twilio upstream
-        msg = "Hi, this is TrailBot!"
-        msg+= "\nI understand these <commands>:"
-        msg+= "\nwx, weather, drive, sub, unsub, reg, unreg, status."
-
-        msg+= "\n\nSay 'help <command>' for more info"
-        msg+="\nSay 'help @' for direct messaging help"
-
-        msg+= "\n\nTo view the full documentation, visit"
-        msg+= " oldskooltrailgoods.com/trailbot"
+        msg = render_template('help.txt')
     return msg
 
 @tbroute('wx', 'weather')
@@ -130,18 +123,7 @@ You can say something like:
 """)
 def reg(req):
     u = User.register(req.frm, req.args)
-    msg = "Trailbot:  msg = Success: @%s registered."%u.handle
-    msg+="\n\nTo set your first status update,"
-    msg+="\n say 'status Your First Status'"
-    msg+="\nTo unregister, say"
-    msg+="\n  'unregister'"
-    msg+="\nTo opt-out of receiving private messages, say"
-    msg+="\n  'block *' to stop all private messages"
- 
-    msg+="\nor say"
-    msg+="\n   'block @handle' to stop messages from a specific @handle"
-    msg+="\nFor help, say 'help'"
-    return msg
+    return render_template('reg.txt', handle=u.handle)
 
 
 @tbroute('unregister')
