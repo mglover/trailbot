@@ -130,10 +130,17 @@ You can say something like:
 """)
 def reg(req):
     u = User.register(req.frm, req.args)
-    msg = "Success: @%s registered."%u.handle
+    msg = "Trailbot:  msg = "Success: @%s registered."%u.handle
     msg+="\n\nTo set your first status update,"
     msg+="\n say 'status Your First Status'"
-    msg+= "\nsay 'help' for help"
+    msg+="\nTo unregister, say"
+    msg+="\n  'unregister'"
+    msg+="\nTo opt-out of receiving private messages, say"
+    msg+="\n  'block *' to stop all private messages"
+ 
+    msg+="\nor say"
+    msg+="\n   'block @handle' to stop messages from a specific @handle"
+    msg+="\nFor help, say 'help'"
     return msg
 
 
@@ -165,16 +172,17 @@ def sub(req):
     subu.subscribe(req.frm)
 
     resp = TBResponse()
-
     msg = "Success: subscribed to @%s." % subu.handle
-    msg+="\nTo unsubscribe at any time, say 'unsub @%s'." %\
+    msg+="\nTo unsubscribe at any time, say 'unsubscribe @%s'." %\
         subu.handle
     if not req.user:
         msg+="\n\nTo send a direct message to @%s" % subu.handle
         msg+="\nyou have to register your own @handle."
         msg+="\nSay 'reg @YourNewHandle' to register"
         msg+="\nThen you can say '@%s Yo! sup?'" % subu.handle
-        msg+="\nFor help, say 'help'"
+
+     msg+="\nFor help, say 'help'"
+
     if subu.status:
         msg+="\n\nCurrent status for @%s follows." % subu.handle
 
@@ -215,7 +223,7 @@ def status(req):
         # this is a status request
         u = User.lookup(req.args)
         if u.status:
-            return "@%s: %s" % (u.handle, u.status)
+            return "TrailBot status for @%s: %s" % (u.handle, u.status)
         else:
             return "No status for %s" % u.handle
     else:
@@ -223,7 +231,7 @@ def status(req):
         status = req.args
         req.user.setStatus(status)
         resp = TBResponse()
-        tmpl = "@%s: %s" % (req.user.handle, status)
+        tmpl = "TrailBot: update from @%s: %s" % (req.user.handle, status)
         for pnum in req.user.subs:
             resp.addMsg(tmpl, to=pnum)
         resp.addMsg("Success: update sent to %d followers" % len(resp))
