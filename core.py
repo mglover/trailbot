@@ -1,5 +1,4 @@
 from requests import Session
-from urllib.parse import urlencode
 
 from . import config
 
