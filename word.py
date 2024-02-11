@@ -21,21 +21,20 @@ class DictionarySource (NetSource):
 def define(word):
     if not word: return "Which word should I define?"
     res = DictionarySource(word)
-    if res.err: return res.err
-    elif res.content:
-        try:
-            d0 = res.content[0]
-            if type(d0) is not dict:
-                return "No match for '%s' from %s" % (word, res.name)
-            return "From %s: %s: %s" % (
-                res.name,
-                d0["hwi"]["hw"],
-                d0['shortdef'][0]
-            )
-        except (IndexError, KeyError, TypeError) as e:
-            raise ValueError(e, res.content)
-
-
+    if res.err:
+        raise ValueError(res)
+        return res.err
+    elif type(res.content) is not list:
+        raise TypeError("Expected list, got %s" % type(res.content))
+    else:
+        if not len(res.content) or type(res.content[0]) is not dict:
+            return "No match for '%s' from %s" % (word, res.name)
+        d0 = res.content[0]
+        return "From %s: %s: %s" % (
+            res.name,
+            d0["hwi"]["hw"],
+            d0['shortdef'][0]
+        )
 
 """for later
 

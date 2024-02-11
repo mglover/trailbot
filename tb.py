@@ -433,8 +433,5 @@ def chat(req):
 
 @bp.route("/fetch")
 def sms_reply():
-    try:
         authenticate(request)
         return dispatch(request)
-    except:
-        abort(500)
