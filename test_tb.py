@@ -67,7 +67,7 @@ class TBTest(unittest.TestCase):
             raise AssertionError(f"'{res}' does not start with '{start}'")
 
     def assertSuccess(self, res):
-        return self.assertStartsWith(res, "Success")
+        return self.assertStartsWith(res, "TrailBot: Success")
 
     def assertError(self, res):
         return self.assertStartsWith(res, "Err?")
@@ -117,13 +117,14 @@ class TestSub(TBTest):
         self.reg1()
         res = self.req2("unsub @test1")
         self.assertStartsWith(res, "You're not subscribed")
-        self.assertStartsWith(self.req2("sub @test1"), "Success")
+        self.assertSuccess(self.req2("sub @test1"))
 
 class TestStatus(TBTest):
     def test_status(self):
         self.reg1()
         self.req1("status hello")
-        self.assertEqual("@test1: hello", self.req2("status @test1"))
+        self.assertEqual("TrailBot: status for @test1: hello", 
+            self.req2("status @test1"))
 
     def test_subs_status(self):
         self.reg1()
@@ -133,7 +134,8 @@ class TestStatus(TBTest):
         self.assertEqual(2, len(resp.msgs))
         self.assertSuccess(str(resp.msgs[1]))
         self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
-        self.assertEqual("@test1: foo", str(resp.msgs[0]))
+        self.assertEqual("TrailBot: update from @test1: foo", 
+            str(resp.msgs[0]))
 
     def test_status_subs(self):
         self.reg1()

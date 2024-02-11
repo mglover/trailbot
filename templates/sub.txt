@@ -1,0 +1,14 @@
+subscribed to @{{subu.handle}}.
+To unsubscribe at any time, say 'unsubscribe @{{subu.handle}}'.
+{% if not user: %}
+
+To send a direct message to @{{subu.handle}}
+you have to register your own @handle:
+Say 'reg @YourNewHandle' to register
+Then you can say '@{{subu.handle}} Yo! sup?'
+{% endif %}
+For help, say 'help'
+{% if subu.status: %}
+
+Current status for @{{subu.handle}} follows.
+{% endif %}

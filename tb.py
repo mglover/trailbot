@@ -81,6 +81,11 @@ def tbhelp(helpmsg):
 ## actions
 ##
 
+
+def success(msg):
+    return "TrailBot: Success: %s" % msg
+
+
 @tbroute('help')
 def help(req):
     if req.args:
@@ -151,7 +156,7 @@ def unreg(req):
     if not req.user:
         raise NotRegisteredError
     req.user.unregister()
-    return "Success: @%s unregistered." % req.user.handle
+    return success("@%s unregistered." % req.user.handle)
 
 
 @tbroute('subscribe')
@@ -166,21 +171,7 @@ def sub(req):
     subu.subscribe(req.frm)
 
     resp = TBResponse()
-    msg = "Success: subscribed to @%s." % subu.handle
-    msg+="\nTo unsubscribe at any time, say 'unsubscribe @%s'." %\
-        subu.handle
-    if not req.user:
-        msg+="\n\nTo send a direct message to @%s" % subu.handle
-        msg+="\nyou have to register your own @handle."
-        msg+="\nSay 'reg @YourNewHandle' to register"
-        msg+="\nThen you can say '@%s Yo! sup?'" % subu.handle
-
-    msg+="\nFor help, say 'help'"
-
-    if subu.status:
-        msg+="\n\nCurrent status for @%s follows." % subu.handle
-
-    resp.addMsg(msg)
+    resp.addMsg(success(render_template('sub.txt', subu=subu, user=req.user)))
     if subu.status:
         resp.addMsg("@%s: %s" % (subu.handle, subu.status))
 
@@ -196,7 +187,7 @@ Say: 'unsub @handle'
 def unsub(req):
     subu = User.lookup(req.args)
     subu.unsubscribe(req.frm)
-    return "Success: unsubscribed from @%s" % subu.handle
+    return success("unsubscribed from @%s" % subu.handle)
 
 
 @tbroute('status')
@@ -217,7 +208,7 @@ def status(req):
         # this is a status request
         u = User.lookup(req.args)
         if u.status:
-            return "TrailBot status for @%s: %s" % (u.handle, u.status)
+            return "TrailBot: status for @%s: %s" % (u.handle, u.status)
         else:
             return "No status for %s" % u.handle
     else:
@@ -228,7 +219,7 @@ def status(req):
         tmpl = "TrailBot: update from @%s: %s" % (req.user.handle, status)
         for pnum in req.user.subs:
             resp.addMsg(tmpl, to=pnum)
-        resp.addMsg("Success: update sent to %d followers" % len(resp))
+        resp.addMsg(success("update sent to %d followers" % len(resp)))
         return resp
 
 
@@ -293,9 +284,7 @@ Related help: 'addr', 'here', 'there'
 @needsreg("to use saved data")
 def forget(req):
     req.user.eraseObj(req.args)
-
-    msg ="Success: '%s' forgotten" % req.args
-    return msg
+    return success("'%s' forgotten" % req.args)
 
 
 @tbroute('address', 'here', 'there')
@@ -318,7 +307,7 @@ def saveloc(req):
 
     req.user.saveObj(nam.lower(), loc)
 
-    msg= "Success. '%s' is set to:" % nam
+    msg= success("'%s' is set to:" % nam)
     msg+="\n"+loc.toSMS()
     msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
     return msg
@@ -339,7 +328,7 @@ def share(req):
     spec = vals.get('with', '*')
 
     req.user.shareObj(nam, spec)
-    return "Success. Shared %s with %s" % (nam, spec)
+    return success("Shared %s with %s" % (nam, spec))
 
 
 @tbroute('unshare')
@@ -357,7 +346,7 @@ def unshare(req):
     spec = vals.get('with', '*')
 
     req.user.unshareObj(nam, spec)
-    return "Success. Unshared %s with %s" % (nam, spec)
+    return success("Unshared %s with %s" % (nam, spec))
 
 
 @tbroute(re.compile('^@.*$'))
@@ -386,7 +375,7 @@ def group(req):
         return "Err? What group do you want to create? say 'group #tag'"
     tag = flags.pop(0)
     Group.create(tag, req.user, *flags)
-    return "Success. Group '%s' created"
+    return success("Group '%s' created")
 
 @tbroute('ungroup')
 @needsreg("to use chat groups")
@@ -395,7 +384,7 @@ def ungroup(req):
         return "Err? You need to give me a group to remove. Say 'ungroup #tag'"
     g = Group.fromTag(req.args, req.user)
     g.destroy()
-    return "Success. Group '%s' removed"
+    return success("Group '%s' removed")
 
 @tbroute('invite')
 @needsreg("to use chat groups")
@@ -413,7 +402,7 @@ def invite(req):
     resp.addMsg(f"@{req.user.handle} has invited you to {tag}." 
         + "say 'join {tag}' to join",
         to=to_user.phone)
-    resp.addMsg("Success. %s invited to %s" % (handle, tag))
+    resp.addMsg(success("%s invited to %s" % (handle, tag)))
     return resp
 
 @tbroute('join')
@@ -423,14 +412,14 @@ def join(req):
         return "Err? What group do you want to join?  Say 'join #tag'"
     g = Group.fromTag(req.args, req.user)
     g.join()
-    return "Success.  You have joined #%s" % g.tag
+    return success("You have joined #%s" % g.tag)
 
 @tbroute('leave')
 @needsreg("to use chat groups")
 def leave(req):
     g = Group.fromTag(req.args, req.user)
     g.leave()
-    return "Success.  you have left #%s" % g.tag
+    return success("You have left #%s" % g.tag)
 
 @tbroute(re.compile('^#.*$'))
 @needsreg("to use chat groups")
