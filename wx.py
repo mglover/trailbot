@@ -1,8 +1,22 @@
 ##
 ## weatherbot
 ##
-import requests
-from .core import proxy
+from .netsource import NetSource
+
+class WxSource (NetSource):
+    name = "Nat'l Wx Svc"
+    baseUrl = 'https://forecast.weather.gov/MapClick.php'
+    def makeUrl(self, *args, **kwargs):
+        return self.baseUrl
+
+    def makeParams(self, loc, *args, **kwargs):
+        return {
+            'lat': loc.lat,
+            'lon': loc.lon,
+            'unit': 0,     # imperial=0, metric=1
+            'lg': "english",
+            'FcstType': "json"
+        }
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON
@@ -35,20 +49,6 @@ def wx_parse(wxjson, days=3):
 
 
 def wxFromLocation(loc):
-    try:
-        with proxy.get(
-            'https://forecast.weather.gov/MapClick.php',
-            params = {
-                'lat': loc.lat,
-                'lon': loc.lon,
-                'unit': 0,     # imperial=0, metric=1
-                'lg': "english",
-                'FcstType': "json"
-            }
-        ) as resp: return wx_parse(resp.json())
-
-    except requests.ConnectionError:
-        return "NWS timed out looking for %s %s" % (loc.lat, loc.lon)
-
-    except requests.JSONDecodeError:
-        return "no data for %s %s" % (loc.lat, loc.lon)
+    resp = WxSource(loc)
+    if resp.err: return resp.err
+    return wx_parse(resp.content)
