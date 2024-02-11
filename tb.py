@@ -8,13 +8,14 @@ and return the 3 day weather forecast from NWS as TwiML
 
 from flask import Flask, request, Response, redirect, abort,Blueprint,\
     render_template
-import os, re
+import os, re, requests
 
 from . import config
 from .core import *
 from .dispatch import dispatch, tbroute, TBResponse, getAction
 
 from .location import Location
+from . import word
 from .wx import wxFromLocation
 from .user import User, UserDatum, NotRegisteredError
 from .group import Group
@@ -113,6 +114,17 @@ def wx(req):
         return "Weather report for where?"
     return wxFromLocation(loc)
 
+
+@tbroute('word')
+@tbhelp(
+"""word -- look up a word in a dictionary
+
+You can say something like:
+  'word Hello'
+  'word brontosaurus'
+""")
+def define(req):
+    return word.define(req.args)
 
 @tbroute('register')
 @tbhelp(
@@ -362,6 +374,7 @@ def dm(req):
     resp.addMsg('@%s: %s'%(req.user.handle, req.args),
         to=dstu.phone)
     return resp
+
 
 ## -- chat --
 
