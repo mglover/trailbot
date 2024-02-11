@@ -29,11 +29,6 @@ def define(word):
             d0['shortdef'][0]
         )
 
-if __name__ == '__main__':
-    import sys
-    word = sys.argv[1]
-    print (define(word))
-
 
 
 """for later
