@@ -1,10 +1,10 @@
-##
 ## geo
 ##
-import json, os, csv
+import os, csv
 
 from . import config
-from .core import TBError, proxy
+from .core import TBError, parseArgs
+from .netsource import NetSource
 from .user import UserObj
 
 class LookupZipError(TBError):
@@ -25,6 +25,7 @@ def isfloat(s):
         return True
     except:
         return False
+
 
 
 
@@ -135,13 +136,19 @@ class Location(UserObj):
 
     @classmethod
     def fromNominatim(cls, q):
-        with proxy.get(
-            'https://nominatim.openstreetmap.org/search',
-            params= {"q":q, "format":"json"}
-        ) as resp: data = resp.json()
+        class NominatimSource(NetSource):
+            baseUrl = 'https://nominatim.openstreetmap.org/search'
+            def makeUrl(self, *args, **kwargs):
+                return self.baseUrl
 
-        if not len(data):
+            def makeParams(self, q, *args, **kwargs):
+                return {'q':q, 'format': 'json'}
+
+        resp = NominatimSource(q)
+
+        if not len(resp.content):
             raise LookupLocationError(q)
+        data = resp.content
         return cls(
              data[0]['lat'],
             data[0]['lon'],
@@ -172,4 +179,5 @@ class Location(UserObj):
             return cls.fromShelter(' '.join(parts[1:]))
 
         return cls.fromNominatim(str)
+
 
