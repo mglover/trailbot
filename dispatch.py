@@ -20,6 +20,12 @@ class AmbiguousAction(TBError):
     msg+= "\n\n%s"
 
 
+def tbhelp(helpmsg):
+    def fxn(cmd, *args, **kwargs):
+        cmd._help = helpmsg
+        return cmd
+    return fxn
+
 class TBRequest(object):
     def __init__(self, frm, cmd, args):
         self.frm = frm
