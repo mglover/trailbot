@@ -95,8 +95,7 @@ def help(req):
 
 from .wx import wx
 from .word import define
-
-
+from .location import where
 
 @tbroute('register')
 @tbhelp(
@@ -196,20 +195,6 @@ def whoami(req):
         return "You are @%s" % req.user.handle
     else:
         return "You are not registered"
-
-
-@tbroute('where')
-@tbhelp(
-"""where -- lookup a location
-
-You can say something like:
-  'where Empire State Building'
-  'where Denver, CO'
-  'where Pinnacle Bank, Durango, Colorado'
-""")
-def where(req):
-    loc = Location.fromInput(req.args, req.user)
-    return loc.toSMS()
 
 
 @tbroute('drive')
