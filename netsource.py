@@ -3,6 +3,13 @@ from urllib.parse import urljoin
 
 import config
 
+from core import TBError
+
+class ConnectionError(TBError):
+    msg = "%s failed to respond"
+class ResponseError(TBError):
+    msg = "%s returned an error"
+
 class TBSession (requests.Session):
     def __init__(self):
         super().__init__()
@@ -20,6 +27,14 @@ class TBSession (requests.Session):
             "Referer": "http://oldskooltrailgoods.com/trailbot",
             "Connection": "keep-alive"
         }
+
+class TestSessionConnectionError(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def get(self, *args, **kwargs):
+            raise requests.ConnectionError("Mock Connection Failure")
+
 proxy = TBSession()
 
 
@@ -33,7 +48,16 @@ class NetSource (object):
     def makeParams(self):
         raise NotImplementedError
 
-    def __init__(self, *args, **kwargs):
+    def makeContent(self, *arge, **kwargs):
+        raise NotImplementedError
+
+    def toSMS(self, *args, **kwargs):
+        if self.err:
+            return self.err
+        else:
+            return self.makeResponse(self.content, *args, **kwargs)
+
+    def __init__(self, *args, raiseOnError=False, **kwargs):
         url =self.makeUrl(*args, **kwargs)
         params = self.makeParams(*args, **kwargs)
         self.err = None
@@ -42,11 +66,13 @@ class NetSource (object):
         try:
             with proxy.get(url, params=params) as resp:
                 if not resp.ok:
-                    self.err = f"{self.name} failed to respond"
+                    if raiseOnError: raise ResponseError(self.name)
+                    self.err = f"{self.name} returned an error"
                 else:
                     self.content = resp.json()
 
         except requests.ConnectionError:
+            if raiseOnError: raise ConnectionError(self.name)
             self.err = f"Couldn't connect to {self.name}"
         except requests.JSONDecodeError:
             self.err = f"Couldn't understand the response from {self.name}"

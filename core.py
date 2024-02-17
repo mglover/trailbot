@@ -1,7 +1,5 @@
-from requests import Session
-
-from . import config
-
+def success(msg):
+    return "TrailBot: Success: %s" % msg
 
 class TBError(Exception):
     msg = "TBError: '%s'"
@@ -10,6 +8,43 @@ class TBError(Exception):
     def __str__(self):
         return self.msg % self.args
 
+
+class TBMessage(object):
+    def __init__(self, msg, **kwargs):
+        self.msg = msg
+        self.kwargs = kwargs
+
+    def __str__(self):
+        return self.msg
+
+    def asTwiML(self):
+        resp = '<Message'
+        if 'to' in self.kwargs:
+            resp+= ' to="%s">' % self.kwargs['to']
+        else:
+            resp+='>'
+        resp += self.msg[:1500]
+        resp += "</Message>"
+        return resp
+
+class TBResponse(object):
+    def __init__(self):
+        self.msgs = []
+
+    def __len__(self):
+        return len(self.msgs)
+
+    def addMsg(self, msg, **kwargs):
+        self.msgs.append(TBMessage(msg, **kwargs))
+
+    def asTwiML(self):
+        assert len(self.msgs) > 0
+        resp = '<?xml version="1.0" encoding="UTF-8"?>'
+        resp+= "<Response>"
+        for m in self.msgs:
+            resp+=m.asTwiML()
+        resp+= "</Response>"
+        return str(resp)
 
 def parseArgs(args, keywords):
     """ search the request for values separated by keywords 
@@ -51,21 +86,3 @@ def parseArgs(args, keywords):
     return values
 
 
-class TBSession (Session):
-    def __init__(self):
-        super().__init__()
-        try:
-            self.proxies = {
-                'http': config.PROXY,
-                'https': config.PROXY
-             }
-        except AttributeError: 
-            self.proxies = None
-        self.verify = False
-        self.headers = {
-            "User-Agent": "TrailBot 1.4",
-            "Referer": "http://oldskooltrailgoods.com/trailbot",
-            "Connection": "keep-alive"
-        }
-
-proxy = TBSession()

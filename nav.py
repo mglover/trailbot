@@ -114,7 +114,7 @@ class Route(NetSource):
         )
         return self.baseUrl+path
 
-    def toSMS(self):
+    def makeResponse(self, *args, **kwargs):
         r0 = self.content['routes'][0]
         get_steps = self.params['steps'] == 'true'
 
@@ -152,8 +152,8 @@ def getStartEnd(req):
         [(k, Location.fromInput(v, req.user))
             for k,v in parts
             if len(v.strip())
-    ])
-
+        ]
+    )
     if '' in locs and 'to' not in locs:
         locs['to'] = locs['']
     elif '' in locs and 'from' not in locs:
