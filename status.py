@@ -66,4 +66,3 @@ def status(req):
             resp.addMsg(tmpl, to=pnum)
         resp.addMsg(success("update sent to %d followers" % len(resp)))
         return resp
-
