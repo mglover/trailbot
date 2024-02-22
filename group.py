@@ -185,13 +185,18 @@ class Group(object):
 
 @tbroute('group')
 @needsreg("to use chat groups")
+@tbhelp(
+"""
+group: 
+"""
+)
 def group(req):
     flags = req.args.split()
     if len(flags) < 1:
         return "Err? What group do you want to create? say 'group #tag'"
     tag = flags.pop(0)
-    Group.create(tag, req.user, *flags)
-    return success("Group '%s' created")
+    g = Group.create(tag, req.user, *flags)
+    return success("Group '%s' created" % g.tag)
 
 @tbroute('ungroup')
 @needsreg("to use chat groups")
@@ -200,7 +205,7 @@ def ungroup(req):
         return "Err? You need to give me a group to remove. Say 'ungroup #tag'"
     g = Group.fromTag(req.args, req.user)
     g.destroy()
-    return success("Group '%s' removed")
+    return success("Group '%s' removed" % g.tag)
 
 @tbroute('invite')
 @needsreg("to use chat groups")
@@ -216,7 +221,7 @@ def invite(req):
     to_user = User.lookup(handle)
     g.invite(to_user)
     resp.addMsg(f"@{req.user.handle} has invited you to {tag}." 
-        + "say 'join {tag}' to join",
+        + f"say 'join {tag}' to join",
         to=to_user.phone)
     resp.addMsg(success("%s invited to %s" % (handle, tag)))
     return resp
