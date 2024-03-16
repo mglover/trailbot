@@ -50,4 +50,3 @@ class NetSource (object):
             self.err = f"Couldn't connect to {self.name}"
         except requests.JSONDecodeError:
             self.err = f"Couldn't understand the response from {self.name}"
-
