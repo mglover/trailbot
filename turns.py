@@ -20,15 +20,50 @@ def durationFromSeconds(sec):
     min = int(sec%3600/60)
     return '%dhr, %dmin' % (hours, min)
 
-def turnFromStep(step):
-    m= step['maneuver']
-    return' '.join([
-        m['type'],
-        m['modifier'],
-        step.get('ref', ''),
-        step.get('exit', ''),
-        distanceFromMeters(step.get('distance'))
-    ])
+def turnFromStep(step, last_step=None):
+    typ = step['maneuver']['type']
+    mod =  step['maneuver']['modifier']
+    nam = step.get('ref', 'unnamed road')
+    dist = distanceFromMeters(step.get('distance'))
+
+    if step.get('name'):
+        nam+= " (%s)" % step['name']
+
+    if typ == 'arrive':
+        msg =  "Reach destination"
+
+    if typ == 'depart':
+        msg = "Start on %s" % (nam)
+
+    elif typ == 'new name':
+        msg = "Continue on %s" % nam
+
+    elif typ == 'turn':
+        msg = "Turn %s on %s" % (mod, nam)
+
+    elif typ == 'fork':
+         msg = "At the fork, go %s on %s" % (mod, nam)
+
+    elif typ == 'off ramp':
+        msg = "Take a %s onto the off ramp" % mod
+        if step.get('exits'):
+            msg+=" for exit %s" % step['exits']
+
+    elif typ == 'on ramp':
+        msg = "Turn %s onto the on ramp" % mod
+
+    elif typ == 'merge':
+        msg = "Merge %s onto %s" % (mod, nam)
+
+    else:
+        msg=' '.join([typ, mod, nam])
+
+    if step.get('destinations'):
+        msg+=" toward %s" % step['destinations']
+
+    msg+= " for %s" % dist
+
+    return msg
 
 def turnsFromRoute(route, start=None, end=None):
     r0 = route['routes'][0]

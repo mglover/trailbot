@@ -474,12 +474,14 @@ def sms_reply():
         elif cmd in ('driving', 'biking'):
             """driving|biking  [ from ] <loc_a> to <loc_b>
             """
+            if cmd == 'driving': profile='car'
+            elif cmd == 'biking': profile='bike'
             if args.startswith('from'):
                 args=args[4:]
             a,b = args.split(' to ')
             loc_a = Location.fromInput(a)
             loc_b = Location.fromInput(b)
-            return twiML(turns(loc_a, loc_b, cmd))
+            return twiML(turns(loc_a, loc_b, profile))
         else:
             msg ="I don't know how to do %s. \n" % cmd
             msg+="msg 'help' for a list of commands, "
