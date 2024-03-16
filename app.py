@@ -4,7 +4,7 @@ from flask.views import View
 import os, json
 from datetime import datetime
 
-import config,smswx
+import config,trailbot
 from db import getdb
 from gallery import getGallery, getPreview
 
@@ -13,14 +13,14 @@ app.TESTING=config.ADMIN
 
 try:
     admin=config.ADMIN
-    wx=config.WX
+    tb=config.WX
 except NameError:
     admin=False
-    wx=True
+    tb=True
 
-if wx:
-    import smswx
-    app.register_blueprint(smswx.bp, url_prefix='/wx')
+if tb:
+    import trailbot
+    app.register_blueprint(trailbot.bp, url_prefix='/wx')
 
 if admin:
     import pricing
