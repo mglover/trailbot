@@ -6,7 +6,7 @@ for a given zip code, lat/lon, place name,or AT shelter name
 and return the 3 day weather forecast from NWS as TwiML
 """
 
-from flask import Flask, request, redirect, Blueprint
+from flask import Flask, request, Response, redirect, abort,Blueprint
 import csv, os, urllib, json
 
 import config
@@ -340,8 +340,26 @@ def status_update(user, status):
 ## ui
 ##
 
+@bp.errorhandler(401)
+def auth_reqd(error):
+    return Response(
+        "Authorization Required", 
+        401, 
+        {'WWW-Authenticate': 'Basic realm TrailBot'}
+    )
+
+def authenticate(request):
+    username="twilio"
+    password="BananaPudding"
+    if not request.authorization \
+      or request.authorization.username != username \
+      or request.authorization.password != password:
+        abort(401)
+
+
 @bp.route("/fetch")
 def sms_reply():
+    authenticate(request)
     frm = request.args.get('From')
     sms = request.args.get('Body')
     if not frm or not sms:
