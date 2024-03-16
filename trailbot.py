@@ -174,7 +174,7 @@ def sms_reply():
             return twiResp(tmsg)
 
         elif cmd == 'where':
-            loc = Lo,cation.fromInput(args, user)
+            loc = Location.fromInput(args, user)
             return twiML(loc.toSMS())
 
         elif cmd == 'addr':
