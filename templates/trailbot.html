@@ -1,0 +1,202 @@
+{%set title="TrailBot"%}
+{% extends 'layout.html' %}
+{% block main %} 
+
+<div class="didactic">
+<p>Because I'm Old Skool, I hike with a flip phone.  Super-rugged, 
+insane battery life, but a barely primitive web browser (and no data 
+plan).  Great text messaging.
+
+<p> This is 95% fine.  But on the AT, I was having to ask other hikers 
+for the weather forecast every day. I looked for a service that would 
+send me forecasts by text, but never found one. So visiting my brother 
+for a week off-trail, I wrote the first version of TrailBot, named 
+WeatherBot. WeatherBot knew the names and locations of all the shelters 
+along the AT, and how to get a 3-day <a href="#wx">weather report</a> 
+for them.
+
+<p>WeatherBot learned more ways to look up locations, and became 
+TrailBot when my weekly <a href="#st">group text updates</a> got 
+too big and I added those features.
+
+<h3>How to use TrailBot</h3>
+
+<p>You can text TrailBot at:
+
+<address class="big" >
+    <a href="tel:+16815401024">681-540-1024</a>
+</address>
+
+
+<p>The first word of your message is the <b>command</b>. 
+
+If you text TrailBot the command 'help', like this:
+
+<code>help</code>
+
+TrailBot will say:
+
+<code class="b">
+   This is TrailBot. I understand these commands:
+   <br>help, wx, status, sub, unsub, reg, unreg.
+   <br>If you know someone's handle, you can send them a message 
+    by starting the message with @handle
+   <br>To view the full documentation, 
+        visit oldskooltrailgoods.com/trailbot
+</code>
+
+<h3 id="wx">Weather Reports</h2>
+
+
+<p>Send the command 'wx' and the location you wand the report for, like 
+this:
+
+<code>wx Silver City, NM</code>
+
+TrailBot will look up that location, request a report from the National 
+Weather Service, and send you a condensed 3 day forecast:
+
+<code class="b">
+    Silver City, NM
+    <br>
+    30 May 19:15 pm MDT
+    <br>
+    Tonight: partly cloudy, with a low ~55. SW wend 7-17 mpg becoming 
+    NW after midnight. Winds could cust as hight as 23 mph.
+    <br>
+    <br>Wed: Sunny, with a hight near 78. N NWt wind 6-11 mph 
+    SW 16-21 mph in the morning. Winds could gust as high as 26 
+mph.
+</code>
+
+And so on for two more days. These are the official forecasts, with some 
+abbreviations applied.
+
+<p>TrailBot understands 
+  City, ST (don't forget the comma!):
+  <code>wx Washington, DC,</code>
+  latitude/longitude pairs (no comma!):
+  <code>wx 38.9413 -78.1911</code>
+  ZIP codes:
+  <code>wx 17020</code>
+  and, back to it's roots,AT shelternames:
+  <code>wx Low Gap</code>
+
+
+<h3>Status Updates</h2>
+
+<p>Without TrailBot, there are two ways I can send a group text 
+  from my phone: send an MMS group message, but then everyone on the 
+  list sees everyone else's responses to my updates (and their phone 
+  numbers), or send a plain SMS text message to each member of group 
+  individually. I like people's privacy too much for the first one, and 
+  the second can take a long time and be unreliable, especially as 
+  groups get bigger. 
+
+
+<h4>Posting Status Updates</h4>
+
+<p>To post updates on TrailBot, you have to register a handle:
+
+<code>reg @MajorTom</code>
+
+TrailBot will say:
+
+<code class="b">Success: @MajorTom registered"</code>
+
+Now you can post your first update:
+
+<code>status I'm stepping through the door</code>
+
+TrailBot will say:
+
+<code class="b">Success: update sent to 0 followers</code>
+
+<b>NOTE:</b> status updates are limited to <a href="#460">460 
+characters</a> in length
+
+
+<p>Now, people can ask TrailBot about your latest status:
+
+<code>status @MajorTom</code>
+
+and TrailBot will say:
+
+<code class="b">@MajorTom: I'm stepping through the door</code>
+
+Or, most usefully, people can subscribe to receive your updates
+
+
+<h4>Subscribing to Updates</h4>
+
+If you know someone's handle, you can subscribe to their updates::
+
+<code>sub @MajorTom</code>
+
+TrailBot will say:
+
+<code class="b">
+    Success: subscribed to @MajorTom. Unsubscribe at any time by
+    sending 'unsub @MajorTom.'
+</code>
+
+Now whenever MajorTom posts an update, you'll get a message like this:
+
+<code class="b">I'm floating in the most peculiar way</code>
+
+And like TrailBot says, you can stop receiving updates at any time:
+<code>unsub @MajorTom</code>
+
+
+<h4>Direct Messages</h4>
+
+<p>To send direct messages to someone, you need to register:
+
+<code>reg @GroundControl</code>
+
+now you can use their handle to send them a message or reply to their 
+update:
+
+<code>@MajorTom Take yr protein pills and put yr helmet on!</code>
+
+and TrailBot will send them:
+
+<code class="b">
+@GroundControl:Take yr protein pills and put yr helmet on!</code>
+
+
+<h4>More about handles and registering</h4>
+
+<p>Handles are limited to 16 characters. They aren't case sensitive, but 
+your handle will always use the capitalization you registered with.  
+
+<p>When you register a handle, TrailBot will remember your last status 
+update, and the phone numbers of your subscribers.
+
+<p>You can always unregister your handle:
+
+<code>unreg @MajorTom</code>
+
+TrailBot will immediately delete all of the information it has about 
+you and say:
+
+<code class="b">Success: @MajorTom unregistered</code>
+
+(Twilio, the service that provides TrailBot's connection to the phone 
+network, keeps logs of all messages for [a long time].  Text messages 
+are 
+not private, and there's nothing I can do...)
+
+<h4 id="460">The 460 character limit</h4>
+
+<p>SMS messages are sent in batches of 160 characters, known as a 
+segment. This is why Twitter had their 140 character limit for a long 
+time: they started out as a group text messaging app. Yes, I copied 
+their idea.
+
+<p>460 characters is three segments (160*3=480) minus space for a 
+16-character handle, an '@', a space or a colon. and two characters left 
+over.
+
+</div>
+{% endblock %}

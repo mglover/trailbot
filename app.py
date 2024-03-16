@@ -40,9 +40,9 @@ def favicon():
 
 
 static('index', '/')
-for s in ('bcard', 'smswx', 'footnotes', 'molding', 
-    'patterning', 'shoecare', 'weatherbot', 'lessons', 
-'turnshoe_syllabus'): static(s)
+for s in ('footnotes', 'molding', 
+    'patterning', 'shoecare', 'weatherbot', 'trailbot', 'lessons', 
+    'turnshoe_syllabus'): static(s)
 
 @app.route('/welted')
 def welted():
