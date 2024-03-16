@@ -50,8 +50,10 @@
   code {
     background: #224;
   }
+  code.b {
+    background: #172707;
+  }
 }
-
 body {
     font-size: 14pt;
     margin: 1% 2%;
@@ -73,7 +75,11 @@ h3 {
 address {
   margin: 1em 0;
 }
-code {
+address.big {
+    text-align: center;
+    font-size: 150%
+}
+code,code.b {
   margin-left: 2em;
   width: 50%;
   display: block;
@@ -83,6 +89,13 @@ code {
 
 }
 
+ul {
+  list-style-type: none;
+}
+ul li {
+  padding: 0;
+  margin: 0.5em 1em;
+}
 #mast,#content{
   padding: 1em;
 }
@@ -201,6 +214,9 @@ ul.menu {
 }
 p.didactic,didactic .p  {
     margin-bottom: 1em;
+}
+.didactic h3 {
+  padding-top: 1.5em;
 }
 .didactic img {
   max-width: 90%;
