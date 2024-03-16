@@ -1,9 +1,9 @@
 ##
 ## status/registration
 ##
-import config
 import os, json, shutil
-from core import *
+from . import config
+from .core import *
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15

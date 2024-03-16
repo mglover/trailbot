@@ -1,8 +1,8 @@
 ##
 ## weatherbot
 ##
-from core import proxy
 import requests
+from .core import proxy
 
 def wx_parse(wxjson, days=3):
     """Create a human-readable weather report from NWS JSON

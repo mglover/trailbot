@@ -3,9 +3,9 @@
 ##
 import json, os, csv
 
-import config
-from core import TBError, proxy
-from user import UserObj
+from . import config
+from .core import TBError, proxy
+from .user import UserObj
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"

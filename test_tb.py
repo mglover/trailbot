@@ -1,17 +1,18 @@
 #!/usr/bin/python
-import unittest
+import unittest, os, sys
 from base64 import b64encode
 from bs4 import BeautifulSoup
-
-import trailbot
 from flask import Flask
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from trailbot import tb
 
 
 class TBTest(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.app.testing = True
-        self.app.register_blueprint(trailbot.bp)
+        self.app.register_blueprint(tb.bp)
 
         self.cli = self.app.test_client()
         self.cred = b64encode(b"twilio:BananaPudding").decode('utf-8')
