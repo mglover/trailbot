@@ -2,7 +2,7 @@
 smswx.py
 
 receive sms requests via twilio
-for a given zip code, lat/lon, or AT shelter name
+for a given zip code, lat/lon, place name,or AT shelter name
 and return the 3 day weather forecast from NWS as TwiML
 """
 
@@ -235,7 +235,7 @@ class User(object):
         for f in os.listdir(cls.dbpath):
             if fxn(f):
                 return cls(f)
-        return None
+        raise HandleUnknownError
 
     @classmethod
     def register(cls, phone, handle):
@@ -337,25 +337,24 @@ def sms_reply():
             u = User.register(frm, args)
             return twiML("Success:  @%s registered."%u.handle)
         elif cmd in ('unregister', 'unreg'):
-            u = User.lookup(frm)
-            if not u: raise NotRegisteredError
+            try:
+                u = User.lookup(frm)
+            except HandleUnknownError:
+                raise NotRegisteredError
             u.unregister()
             return twiML("Success: @%s unregistered."%u.handle)
         elif cmd in ('subscribe', 'sub'):
             u = User.lookup(args)
-            if not u: raise HandleUnknownError(args)
             u.subscribe(frm)
             return twiML("Success: subscribed to @%s. Unsubscribe at any time by sending 'unsub @%s'" % (u.handle, u.handle))
         elif cmd in ('unsubscribe', 'unsub'):
             u = User.lookup(args)
-            if not u: raise HandleUnknownError(args)
             u.unsubscribe(frm)
             return twiML("Success: unsubscribed from @%s" % u.handle)
         elif cmd in ('status', 'st'):
             if args[0].startswith('@'):
                 # this is a status request
                 u = User.lookup(args)
-                if not u: raise HandleUnknownError(args)
                 if u.status:
                     return twiML("@%s: %s" % (u.handle, u.status))
                 else:
@@ -365,6 +364,15 @@ def sms_reply():
                 u = User.lookup(frm)
                 return status_update(u, args)
 
+        elif cmd.startswith('@'):
+            u = User.lookup(cmd)
+            try:
+                fu = User.lookup(frm)
+                fh = fu.handle
+            except HandleUnknownError:
+                fh = frm
+            msg = twiMsg('@'+fh+": "+args, to=u.phone)
+            return twiResp(msg)
         else:
             return twiML("Unknown command %s" % cmd)
 
