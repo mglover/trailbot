@@ -233,5 +233,10 @@ class TBTest(unittest.TestCase):
         res = self.req1("where @test1")
         self.assertStartsWith(res, "Location not found:")
 
+    def test_forget_nouser(self):
+        res = self.req1("forget panama")
+        self.assertStartsWith(res, 
+            "You must register a @handle to use saved data")
+
 if __name__ == '__main__':
     unittest.main()
