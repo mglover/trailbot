@@ -100,7 +100,7 @@
   .slideshow .detail {
     background:#3f2b18;
   }
-  .slideshow.shoes {
+  .slideshow.float {
     background:#3f2b18;
   }
 }
@@ -228,13 +228,6 @@ ol.instructions {
   display: inline-block;
   padding: 1% 1%;
 }
-.slideshow.goods .detail {
-  width:95%;
-  padding: 1em;
-}
-.slideshow.shoes {
-  padding: 1em 10vw;
-}
 .slideshow .photos {
   display: block;
   align: center;
@@ -253,6 +246,14 @@ ol.instructions {
   max-width: 60vw;
   padding: 0.3em;
 }
-.slideshow.goods img {
+.slideshow.clear .detail {
+  width:95%;
+  padding: 1em;
+}
+.slideshow.clear img {
   max-height: 40vh;
 }
+.slideshow.float {
+  padding: 1em 10vw;
+}
+

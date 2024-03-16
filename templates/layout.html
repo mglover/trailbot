@@ -9,7 +9,7 @@
 {% macro static(fn) %}
   {{ url_for('static', filename=fn) }}
 {% endmacro %}
-{% macro showprod(style, products) %}
+{% macro showprod(products, style) %}
   {% if products: %}
   <dl class="slideshow {{style}}">
   {% for row in products: %}
@@ -19,7 +19,7 @@
     {%set descrip = row[2] %}
     {%set pics = row[3:] %}
 
-    {%if name%}<dt class="name">{{name}}</dt>{%endif%}
+    {%if name and name[0] != '#'%}<dt class="name">{{name}}</dt>{%endif%}
 
     <dd class="detail">
       <div class="pics">
