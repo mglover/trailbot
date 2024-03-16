@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, url_for, send_from_directory
 from flask.views import View
 
-import os
+import os, json
 from datetime import datetime
 
 import config,smswx
@@ -89,7 +89,7 @@ def goods():
 def welted():
     gallery, title = getGallery('welted')
     return render_template('welted.html', title=title,
-        gallery=galery)
+        gallery=gallery)
 
 @app.route('/turnshoes')
 def turnshoes():
