@@ -247,6 +247,7 @@ def sms_reply():
             locs = dict(
                 [(k, Location.fromInput(v, user))
                     for k,v in parts
+                    if len(v.strip())
             ])
 
             if '' in locs and 'to' not in locs:
