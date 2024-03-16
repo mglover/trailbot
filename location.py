@@ -33,8 +33,10 @@ class Location(object):
         self.orig = orig
         self.match = match
 
+    def __repr__(self):
+        return str(self)
     def __str__(self):
-        return "%s %s" % (self.lat, self.lon)
+        return "(%s,%s)" % (self.lat, self.lon)
 
     def toOSRM(self):
         return "%s,%s" % (self.lon, self.lat)
