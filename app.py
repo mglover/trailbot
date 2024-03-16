@@ -81,14 +81,15 @@ def gallery(gname):
 
 @app.route('/goods')
 def goods():
-    products = getdb('goods')
-    return render_template('goods.html', products=products)
+    gallery, title = getGallery('goods')
+    return render_template('goods.html', title=title,
+        gallery=gallery)
 
 @app.route('/welted')
 def welted():
     gallery, title = getGallery('welted')
     return render_template('welted.html', title=title,
-        gallery=gallery)
+        gallery=galery)
 
 @app.route('/turnshoes')
 def turnshoes():
