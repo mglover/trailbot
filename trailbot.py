@@ -124,9 +124,12 @@ def sms_reply():
             return twiML(msg)
 
         elif cmd =='wx':
-            if not  len(args):
+            if len(args):
+                loc = Location.fromInput(args, user)
+            elif user:
+                loc = Location.lookup("here", user)
+            if not loc:
                 return twiML("Weather report for where?")
-            loc = Location.fromInput(args, user)
             return twiML(wxFromLocation(loc))
 
         ## registration/subscription
