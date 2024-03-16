@@ -20,9 +20,6 @@ class TBSession (requests.Session):
             "Referer": "http://oldskooltrailgoods.com/trailbot",
             "Connection": "keep-alive"
         }
-
-
-
 proxy = TBSession()
 
 
@@ -36,7 +33,6 @@ class NetSource (object):
     def makeParams(self):
         raise NotImplementedError
 
-
     def __init__(self, *args, **kwargs):
         url =self.makeUrl(*args, **kwargs)
         params = self.makeParams(*args, **kwargs)
@@ -48,9 +44,11 @@ class NetSource (object):
                 print("url '%s', params '%s'" %(url, params))
                 if not resp.ok:
                     self.err = f"{self.name} failed to respond"
-                self.content = resp.json()
+                else:
+                    self.content = resp.json()
 
+        except requests.ConnectionError:
+            self.err = f"Couldn't connect to {self.name}"
         except requests.JSONDecodeError:
-            self.err = f"Couldn't understand the response from {self.name}" + resp.text
-
+            self.err = f"Couldn't understand the response from {self.name}"
 
