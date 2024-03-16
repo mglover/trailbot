@@ -2,39 +2,44 @@
 {% extends 'layout.html' %}
 {% block main %}
 <div class="storytime">
-<p>I've been making handmade leather <a href="{{ 
-url_for('turnshoes')}}">shoes</a> since 2008:
 
+<p>
+I've been making handmade leather <a href="{{ 
+url_for('turnshoes')}}">shoes</a> since 2008:
+</p>
 <img  src="{{ static('trailshoe.jpg') }}">
 
+<p>
 In the spring of 2020, I made these <a href="{{ 
 url_for('welted') }}">hiking boots</a>.
+</p>
 
 <img  src="{{ static('before.jpg') }}">
 
-
+<p>
 Since then, those boots and I have hiked 
 <a href="{{url_for('footnotes', _anchor='trace')}}">2,500 miles</a> together.I've resoled 
 the boots four times, one time on trail (at the Burney Mountain Guest 
 Ranch in California).  I still wear them every day to work.  Check out 
 that patina:
+</p>
 
 <img class="squeezit" src="{{ static('after.jpg') }}">
-
 
 <p>
 I picked up the trail name "Old Skool" along the way -- I think the 
 boots helped win that name, but the real credit goes to my pack:
+</p>
 
 <img src="{{static('oldskool.jpg')}}">
 
-
+<p>
 Over the past ten years, I've also designed lots of other small useful 
 <a href="{{ url_for('goods')}}">leather goods</a> that I've taken on my 
 travels:
+</p>
 
 <img src="{{ static('goods.jpg') }}">
-
 
 <p>
 Because I'm Old Skool, I'm taking orders by email and text only.  
