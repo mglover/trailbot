@@ -3,42 +3,40 @@
 
 {% block shoemain %} 
 
-<p>
-In 2019, I took a week-long backpacking trip on the Pacific Crest Trail in Oregon in 2019, wearing turnshoes like these:
+<div class="didactic">
+{{image('hybrid.jpg', class="tinyfloat")}}
 
-{{image('hybrid.jpg')}}
+<p>
+In 2019, I took a week-long backpacking trip on the Pacific Crest Trail 
+in Oregon, wearing turnshoes like these.
 
 <p>
 My hiking boots are built out of the <a 
-href="{{url_for('lessons')}}">lessons</a> of that trip and of my 
-original prototypes.</a> .  They keep the 
-soft, comfortable feel of a turnshoe, but with 
-a much longer life and a heavier sole.  Features:
+href="{{url_for('lessons')}}">lessons</a> of that trip and of the
+original prototypes that followed.  They keep the soft, 
+comfortable feel of a turnshoe, but with much longer life and a 
+more supportive sole.  
+<p>
+Features:
+
 <ul>
   <li>All-around <a href="{{footnote('welted')}}">welted</a> 
     construction.
-  <li>Zero drop from heel to toe,
-  <li>Hand-stitched uppers cut from 6oz top grain vegetable tanned 
-    ("vegtan") leather, treated with a <a 
-    href="{{footnote('recipe')}}">traditional blend</a> of waxes and 
-    oils for long life and water resistance. 
-  <li>13oz vegtan insole,  
+  <li><a href="{{footnote('zerodrop')}}">Zero drop</a> from heel to 
+    toe.
+  <li>Hand-stitched 6oz <a href="{{footnote('recipe')}}">hand-waxed</a> 
+    vegtan leather uppers. 
+  <li>13oz vegtan insole, 
   <li>EVA or cork midsole,
   <li>Non-skid Vibram outsole in a variety of thickness, density, and 
     tread pattern options.
-</ul><p>
-Soles last between 500-800 miles, and can be replaced by me, or by any 
-competent cobbler or shoe repair store. 
-</p><p>
-All-leather insole and upper construction will last for years with 
-proper <a href="{{url_for('shoecare')}}">care and feeding</a>, and even 
-after three years and three thousand miles, the insides of my boots 
-smell like...leather.   
-</p><p>
-Weight is 30-36oz/pair: similar to commercially made lightweight hiking 
-boots and about 50% heavier than trail runners. In prolonged wet 
-weather, well-oiled, they wet through more slowly than trail runners 
-and dry out about as fast.
+  <li>Weight around 32oz/pair.
 </ul>
+
+<p>
+Soles last between 500-800 miles, and can be replaced by me or by any 
+competent cobbler.
+</p>
+</div>
 
 {% endblock %}
