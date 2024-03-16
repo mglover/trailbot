@@ -59,6 +59,12 @@ def status_update(user, status):
     return twiResp(''.join(msgs))
 
 
+@bp.errorhandler(500)
+def code_fail(error):
+    return twiML(
+"""I'm sorry, something has gone wrong with my programming.
+Try again?  That works sometimes.  I'll let the boss know what happened!"""
+   )
 
 @bp.errorhandler(401)
 def auth_reqd(error):
@@ -228,6 +234,10 @@ def sms_reply():
             if cmd == 'drive': profile='car'
             elif cmd == 'bike': profile='bike'
 
+            if user:
+                here = Location.lookup("here", user)
+                there = Location.lookup("there", user)
+
             parts = turns.parseRequest(args, ('to', 'from'))
             locs = dict(
                 [(k, Location.fromInput(v, user))
@@ -238,10 +248,6 @@ def sms_reply():
                 locs['to'] = locs['']
             elif '' in locs and 'from' not in locs:
                 locs['from'] = locs['']
-
-            if user:
-                here = Location.lookup("here", user)
-                there = Location.lookup("there", user)
 
             if 'from' not in locs and here: locs['from'] = here
             if 'to' not in locs and there: locs['to'] = there
@@ -280,6 +286,9 @@ def sms_reply():
             else:
                 user.unshareObj(nam, spec)
                 return twiML("Success. Unshared %s with %s" % (nam, spec))
+
+        elif cmd == "500":
+            abort(500)
 
         else:
             msg ="I don't know how to do %s. \n" % cmd
