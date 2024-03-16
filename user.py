@@ -10,6 +10,7 @@ HANDLE_MIN = 2
 HANDLE_MAX = 15
 STATUS_MIN = 1
 STATUS_MAX = 300
+NAM_MAX   = 8
 
 class AlreadySubscribedError(TBError):
     msg = "Already subscribed to @%s"
@@ -39,20 +40,28 @@ class DatumDoesNotExistError(TBError):
     msg = "No saved data for %s"
 class DatumEmptyError(TBError):
     msg = "No data to save for %s"
+class DatumNameTooLong(TBError):
+    msg = "Name '%s' is to long. Max "+str(NAM_MAX)+" characters"
+class DatumNameInvalidChars(TBError):
+    msg = "Name '%s' must contain letters and numbers only""
 
 
 class UserDatum(object):
     def __init__(self, user, nam, bytes=None):
         self.user = user
         self.bytes = bytes
+        if len(nam) > NAM_MAX:
+            raise DatumNameTooLong(nam)
+        if not nam.isalnum():
+            raise DatumNameInvalid(nam)
+
         self.nam = nam
         self.path = os.path.join(self.user.dbfile('saved'), self.nam)
-
-    def save(self):
-        if not os.path.exists(self.savdb):
+        if not os.path.exists(self.user.dbfile('saved')):
             os.mkdir(self.savdb)
 
-        if self.value:
+    def save(self):
+        if self.bytes:
             datafd = open(self.path, "w")
             datafd.write(self.bytes)
         else:
@@ -67,7 +76,7 @@ class UserDatum(object):
             return self.bytes
 
     @classmethod
-    def unsave(cls, user, nam):
+    def erase(cls, user, nam):
         self = cls(usr, '', nam)
         if os.path.exists(self.path):
             os.unlink(self.path)
@@ -177,11 +186,11 @@ class User(object):
 
     def getBytes(self, nam):
         datum = UserDatum(self, nam)
-        datum.load()
+        return datum.load()
 
-    def saveDytes(self, nam, bytes):
-        data = UserDatum(self, nam, bytes)
-        data.save()
+    def saveBytes(self, nam, bytes):
+        datum = UserDatum(self, nam, bytes)
+        datum.save()
 
     def eraseBytes(self, nam):
         userDatum.erase(self, nam)

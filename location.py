@@ -40,8 +40,8 @@ class Location(object):
         return "%s,%s" % (self.lon, self.lat)
 
     def toSMS(self):
-        return "Location %s\nhas coordinates %s %s" % (
-            self.orig, self.lat, self.lon) 
+        return "%s\n(full name: %s)\ncoordinates: %s %s" % (
+            self.orig, self.match, self.lat, self.lon)
 
     def toJson(self):
         return json.dumps({
@@ -143,21 +143,22 @@ class Location(object):
     @classmethod
     def fromInput(cls, str, user=None):
         parts = str.split()
-        if user:
-            jsdata = user.getBytes(str)
+        if user and len(parts)==1:
+            jsdata = user.getBytes(parts[0])
         else:
             jsdata = None
+
         if jsdata:
             return cls.fromJson(jsdata)
-
         elif len(parts)==1 \
             and len(parts[0])==5 and parts[0].isdigit():
             return cls.fromZip(str)
-
         elif len(parts) == 2 and \
             isfloat(parts[0]) and isfloat(parts[1]):
                 return cls(parts[0], parts[1])
-        elif str.find(',') > -1:
+        elif len(parts) == 2 \
+            and parts[0].endswith(',') \
+            and len(parts[1]) == 2:
             return cls.fromCitystate(str)
         elif parts[0]=='trail:at':
             return cls.fromShelter(' '.join(parts[1:]))
