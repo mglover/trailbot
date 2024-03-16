@@ -49,6 +49,10 @@ def news():
 def molding():
     return render_template('molding.html')
 
+@app.route('/shoecare')
+def newshoes():
+    return render_template('shoecarea.html')
+
 @app.route('/goods')
 def goods():
     products = getdb('goods')
