@@ -5,18 +5,18 @@
 
 
 <h4>Components</h4>
-{{ form.begin(components) }}
-{{ form.dbtable(components.cols, components.rows) }}
+{{ form.begin(components.table) }}
+{{ form.dbtable(components) }}
 <input type=submit name="{{components.dbnam}}" value="Update Components">
 {{ form.end() }}
 <hr/>
 
 <h4>Products</h4>
 <a href="{{url_for('new')}}">New Product</a>
-{{ form.begin(pricing) }}
-{% for pnam, rows in pricing.groupByProduct().items() %}
-  <h4>{{pnam}}: {{pricing.total(rows)}}</h4>
-  {{ form.dbtable(pricing.cols, rows) }}
+{{ form.begin(pricing.table) }}
+{% for pnam, rows in pricing.groupBy("Product").items() %}
+  <h4>{{pnam}}: {{rows.total()}}</h4>
+  {{ form.dbtable(rows) }}
   <input type=submit name="{{pricing.dbnam}}" value="Update Products">
 {% endfor %}
 {{ form.end() }}

@@ -15,54 +15,8 @@ macro end() %}
   </form>
 {% endmacro 
 %}
-{% 
-macro cell(n,v,c) %}
-  {% if 'hidden' in c.tags: %}
-    <input type="hidden" name="{{n}}" value="{{v}}"/>
-  {% else : %}
-    <td>
-    {% if 'edit' in c.tags: %}
-      <input type="text" name="{{n}}" value="{{v}}"\>
-    {% elif 'computed' in c.tags: %}
-      {{v}}
-    {% else : %}
-      <input type="hidden" name="{{n}}" value="{{v}}"/>
-      {{v}}
-    {% endif %}
-    </td>
-  {% endif %}  
-{% endmacro 
-%}
 {%
-macro header(cols) %}
-  <tr>
-  {% for c in cols %}
-    {%if 'hidden' not in c.tags :%}
-        <th>{{c.name}}</th>
-    {%endif%}    
-  {% endfor %}
-  </tr>
-
-{% endmacro
-%}
-{% 
-macro row(cols, row) %}
-  <tr>
-  {% for c in range(cols|length): %}
-    {% set nam = "%i,%i"%(form.idx, c) %}
-    {{ cell(nam, row[c], cols[c]) }}
-  {% endfor %}
-  </tr>
-  {% set form.idx = form.idx + 1 %}
-{% endmacro 
-%}
-{% 
-macro dbtable (cols, rows) %}
-<table class="db">
-  {{ header(cols) }}
-  {% for r in range(rows|length): %}
-    {{ row(cols, rows[r]) }}
-  {% endfor %}
-</table>
+macro dbtable (view) %}
+  {{ view.formTable()|safe }}
 {% endmacro %}
 
