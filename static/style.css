@@ -87,13 +87,6 @@ code {
   border-radius: 3px;
 
 }
-ul.flat {
-  list-style-type: none;
-  padding: 0.5em 0;
-}
-ul.flat li {
-  padding: 0.2em 0;
-}
 
 #mast {
   max-width: 60em;
@@ -193,7 +186,7 @@ ul.menu {
   margin: 1em auto;;
   font-size: 110%;
 }
-p.didactic  {
+p.didactic,didactic .p  {
     margin-bottom: 1em;
 }
 .didactic img {
@@ -213,6 +206,13 @@ p.didactic  {
 }
 .didactic dd {
   margin: 0 0 1em 2em;
+}
+.didactic ul {
+  list-style-type: none;
+  padding: 0.5em 0;
+}
+.didactic ul li {
+  padding: 0.2em 0;
 }
 
 .slideshow{
