@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, url_for, send_from_directory
 from flask.views import View
 
-import os.path
+import os, json
 
 import config,smswx
 from db import getdb
@@ -38,10 +38,25 @@ def favicon():
 
 
 static('index', '/')
-for s in ('bcard', 'smswx', 'footnotes', 'news', 'molding', 'shoecare',
-    'weatherbot', 'lessons', 'turnshoe_syllabus'): static(s)
+for s in ('bcard', 'smswx', 'footnotes', 'molding', 
+    'patterning', 'shoecare', 'weatherbot', 'lessons', 
+'turnshoe_syllabus'): static(s)
 
 
+@app.route('/news')
+def news():
+    newsdir = os.path.join(config.DB_ROOT, 'news')
+    news = os.listdir(newsdir)
+    news.sort(reverse=True)
+    articles = []
+    for n in news:
+        f = os.path.join(newsdir, n)
+        data = json.load(open(f))
+        data['created'] = os.stat(f).st_ctime
+        data['updated'] = os.stat(f).st_mtime
+        articles.append(data)
+
+    return render_template('news.html', articles=articles)
 
 @app.route('/goods')
 def goods():
