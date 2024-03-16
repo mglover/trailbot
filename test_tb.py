@@ -72,6 +72,7 @@ class TBTest(unittest.TestCase):
     def assertError(self, res):
         return self.assertStartsWith(res, "Err?")
 
+class TestHelp(TBTest):
     def test_help(self):
         res = self.req1("help")
 
@@ -87,6 +88,7 @@ class TBTest(unittest.TestCase):
         res = self.req1("wh")
         self.assertStartsWith(res, "I know how to do several things")
 
+class testReg(TBTest):
     def test_reg(self):
         res = self.req1("whoami")
         self.assertEqual("You are not registered", res)
@@ -102,6 +104,7 @@ class TBTest(unittest.TestCase):
         res = self.req1("unreg")
         self.assertSuccess(res)
 
+class testSub(TBTest):
     def test_sub(self):
         self.reg1()
         res = self.req2("sub @test3")
@@ -115,6 +118,7 @@ class TBTest(unittest.TestCase):
         self.assertStartsWith(res, "You're not subscribed")
         self.assertStartsWith(self.req2("sub @test1"), "Success")
 
+class testStatus(TBTest):
     def test_status(self):
         self.reg1()
         self.req1("status hello")
@@ -147,6 +151,7 @@ class TBTest(unittest.TestCase):
         res = self.req2("status @test1")
         self.assertEqual(res, "No status for test1")
 
+class TestDM(TBTest):
     def test_dm(self):
         self.reg1()
         self.reg2()
@@ -154,6 +159,7 @@ class TBTest(unittest.TestCase):
         self.assertEqual(str(resp.msgs[0]), "@test1: what's up")
         self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
 
+class TestWhere(TBTest):
     def test_where_nom(self):
         self.reg1()
         res = self.req1("where Empire State Building")
@@ -167,6 +173,7 @@ class TBTest(unittest.TestCase):
         res = self.req1("where 97214")
         self.assertStartsWith(res, "97214")
 
+class TestAddr(TBTest):
     def test_here(self):
         self.reg1()
         res = self.req1("here portland, or")
@@ -196,6 +203,21 @@ class TBTest(unittest.TestCase):
         resp = self.req2("where @test1.here")
         self.assertStartsWith(resp, "silver city, nm")
 
+    def test_forget(self):
+        self.reg1()
+        self.assertSuccess(self.req1("addr home New York City"))
+        res = self.req1("where home")
+        self.assertStartsWith(res, "New York City")
+        self.assertSuccess(self.req1("forget home"))
+        res = self.req1("where @test1")
+        self.assertStartsWith(res, "Location not found:")
+
+    def test_forget_nouser(self):
+        res = self.req1("forget panama")
+        self.assertStartsWith(res, 
+            "You must register a @handle to use saved data")
+
+class TestWx(TBTest):
     def test_wx(self):
         res = self.req1("wx seattle")
         self.assertStartsWith(res, "Downtown Seattle WA")
@@ -216,6 +238,7 @@ class TBTest(unittest.TestCase):
         res  = self.req1("wx")
         self.assertEqual("Weather report for where?", res)
 
+class TestNav(TBTest):
     def test_drive(self):
         res = self.req1("drive from seattle to portland, or")
         self.assertStartsWith(res, "Turn directions courtesy OSRM")
@@ -237,19 +260,6 @@ class TBTest(unittest.TestCase):
     def test_drive_no_there(self):
         self.assertError(self.req1("drive from olympia, wa"))
 
-    def test_forget(self):
-        self.reg1()
-        self.assertSuccess(self.req1("addr home New York City"))
-        res = self.req1("where home")
-        self.assertStartsWith(res, "New York City")
-        self.assertSuccess(self.req1("forget home"))
-        res = self.req1("where @test1")
-        self.assertStartsWith(res, "Location not found:")
-
-    def test_forget_nouser(self):
-        res = self.req1("forget panama")
-        self.assertStartsWith(res, 
-            "You must register a @handle to use saved data")
 
 if __name__ == '__main__':
     unittest.main()
