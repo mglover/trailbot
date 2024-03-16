@@ -15,8 +15,23 @@
     <li><a href="{{ url_for('weatherbot') }}">WeatherBot</a></li>
   </ul>
 {% endmacro %}
-{% macro showprod(products, style) %}
-  {% if products: %}
+{% macro showGallery(gallery) %}
+    {% for item in gallery: %}
+        {% set has_link = item|length > 2 and item[2] %}
+        {% if has_link: %}
+            <a href="{{item[2]}}">
+        {% endif %}
+        <div class="photo">
+            <img src="{{static(item[0])}}">
+            <span class="caption">{{item[1]}}</span>
+        {% if has_link: %}
+            </a>
+        {% endif %}
+        </div>
+    {% endfor %}
+{% endmacro %}
+{% macro showprod(gallery, style) %}
+  {% if gallery: %}
   <dl class="slideshow {{style}}">
   {% for row in products: %}
 
