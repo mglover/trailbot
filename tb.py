@@ -119,7 +119,7 @@ def wx(req):
         return "Weather report for where?"
     return wxFromLocation(loc)
 
-@tbroute('reg')
+@tbroute('register')
 @tbhelp(
 """reg -- register a TrailBot @handle
 
@@ -134,14 +134,14 @@ def reg(req):
     msg+= "\nsay 'help' for help"
     return msg
 
-@tbroute('unreg')
+@tbroute('unregister')
 def unreg(req):
     if not req.user:
         raise NotRegisteredError
     req.user.unregister()
     return "Success: @%s unregistered." % req.user.handle
 
-@tbroute('sub')
+@tbroute('subscribe')
 def sub(req):
     subu = User.lookup(req.args)
     subu.subscribe(req.frm)
@@ -166,7 +166,7 @@ def sub(req):
 
     return resp
 
-@tbroute('unsub')
+@tbroute('unsubscribe')
 def unsub(req):
     subu = User.lookup(req.args)
     subu.unsubscribe(req.frm)
@@ -259,7 +259,7 @@ def forget(req):
     msg ="Success: '%s' forgotten" % req.args
     return msg
 
-@tbroute('addr', 'here', 'there')
+@tbroute('address', 'here', 'there')
 @needsreg("to use saved data")
 def saveloc(req):
     if req.cmd == 'addr':
