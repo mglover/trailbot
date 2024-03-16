@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>Old Skool Trail Goods : {% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div id="mast">
+  <div id="masthead">
+    {% block masthead %} Old Skool Trail Goods{% endblock %}
+  </div>
+  <hr>
+  {% block menus %}
+  <ul id="menu">
+    <li><a href="{{ url_for('/') }}">Home</a></li>
+    <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
+    <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
+    <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
+    <li><a href="{{ url_for('smswx') }}">AT Weather SMS</a></li>
+  </ul>
+ {%endblock%}
+</div>
+<div id="content">
+{% block main %} {% endblock %}
+</div>
+<div id="footer">
+{% block footer %} 
+<address>
+<a href="email:info@oldscooltrailgoods.com">info@oldskooltrailgoods.com</a>
+<a href="tel:+19713364571">971-336-4571</a>
+</address>
+<div>&copy; 2022 Old Skool Trail Goods</div>
+{% endblock %}
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends 'layout.html' %}
+{% block title %} Shoes and Boots {% endblock %}
+{% block main %} 
+
+<h2>Hiking Boots</h2>
+<div class="section">
+
+<img class="head" src={{static('before.jpg')}}>
+
+<p>My hiking boots are made from 6oz top-grain vegetable tanned leather 
+for the uppers, hand-waxed with a <a 
+href="{{url_for('secret_recipe')}}">traditional blend</a> of waxes
+and oils for long life and water resistance.  The uppers are welted to a 
+13oz vegtan leather insole and stitch to a non-skid Vibram outsole.
+
+</p><p>Welted shoe construction became common in the the 18th century, 
+and 
+remains popular today for sturdy, long-wearing results.  Cowboy 
+boots, hiking boots, and dress shoes all use welted soles.  The 
+upper is stitched on rightside out, sandwiched between a thick leather 
+insole and a thin strip of leather -- the welt.  The outsole -- 
+traditionally thick, compressed leather -- is stitched to the welt.
+
+</p><p>
+Prices for hiking boots vary depending on your exact needs, but most 
+shoes cost between $600-700.
+</p>
+
+All of my shoes are custom made, based off of  a <a href="{{ 
+url_for('molding') }} ">mold</a> of the feet that will be wearing them..  
+
+</div>
+
+
+
+{% endblock %}

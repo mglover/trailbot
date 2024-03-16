@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% block title %}Home{% endblock %}
+{% block main %}
+
+<h2>Inspired and tested by the trail</h2>
+<div class="section">
+
+<p>I've been making handmade leather <a href="{{ 
+url_for('turnshoes')}}">shoes</a> since 2008:
+
+<img class="inline" src="{{ static('trailshoe.jpg') }}">
+
+In the spring of 2020, I made these <a href="{{ 
+url_for('welted') }}">hiking boots</a>.
+
+<img class="inline" src="{{ static('before.jpg') }}">
+
+
+Since then, those boots and I have hiked 2,500 miles together: Santiam, 
+Ore. to South Lake Tahoe, Cali. on the Pacific Crest Trail, Denver to 
+Leadville on the Colorado Trail, and Springer Mtn., Ga. to 
+Bennington, VT on the Appalachan Trail. They've been resoled four times,
+and are still going strong (yes, those are the same shoes! check out 
+that patina!):
+
+<img class="inline" src="{{ static('after.jpg') }}">
+
+I've also designed a series of small <a href="{{ url_for('goods') 
+}}">leather goods</a> that I've taken on my travels:
+
+<img class="inline" src="{{ static('goods.jpg') }}">
+
+<p>
+I'm Old Skool, so I'm taking orders by email and text only.  
+</p>
+ 
+
+</p>
+</div>
+
+{% endblock %}
+
