@@ -1,0 +1,11 @@
+{% set title="Add product" %}
+{% extends 'layout.html' %}
+{% import 'form_macros.html' as form %}
+{% block main %}
+<a href="{{url_for('index')}}">Edit Products</a>
+{{ form.begin(products, action="append") }}
+Product Name: <input name="pnam">
+{{ form.dbtable(products.cols, [products.blankrow()]) }}
+
+{{ form.end() }}
+{% endblock %}

@@ -224,3 +224,14 @@ ul li {
   padding: 1em 10vw;
 }
 
+table.pricing {
+  margin: auto  
+  display: inline;
+  padding: 1em;
+}
+.pricing td {
+  width: 20%;
+}
+.pricing input {
+  width: 4em;
+}

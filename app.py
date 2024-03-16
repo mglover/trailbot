@@ -29,7 +29,8 @@ if admin:
     import pricing
     app.add_url_rule('/pricing',view_func=pricing.index,
         methods=['POST','GET'])
-
+    app.add_url_rule('/pricing_new',view_func=pricing.new,
+        methods=['POST','GET'])
 
 app.add_url_rule('/', view_func=BasicView.as_view('/', 'index'))
 for r in ['molding', 'smswx', 'footnotes']:

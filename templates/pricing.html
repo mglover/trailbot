@@ -1,23 +1,8 @@
 {% set title="Pricing Calculator" %}
 {% extends 'layout.html' %}
-{% block css %}
-table {
-  margin: auto  
-  display: inline;
-  padding: 1em;
-td {
-  width: 20%;
-}
-input {
-  width: 4em;
-}
-{% endblock %}
-{% block js %}
-
-{% endblock %}
+{% import 'form_macros.html' as form %}
 {% block main %}
 
-{% import 'form_macros.html' as form %}
 
 <h4>Components</h4>
 {{ form.begin(components) }}
@@ -27,6 +12,7 @@ input {
 <hr/>
 
 <h4>Products</h4>
+<a href="{{url_for('new')}}">New Product</a>
 {{ form.begin(pricing) }}
 {% for pnam, rows in pricing.groupByProduct().items() %}
   <h4>{{pnam}}: {{pricing.total(rows)}}</h4>
