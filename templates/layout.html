@@ -1,45 +1,10 @@
-{% macro menus() %}
-  <ul class="menu">
-    <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
-    <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
-    <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
-    <li><a href="{{ url_for('weatherbot') }}">WeatherBot</a></li>
-  </ul>
-{% endmacro %}
-{% macro static(fn) %}
-  {{ url_for('static', filename=fn) }}
-{% endmacro %}
-{% macro showprod(products, style) %}
-  {% if products: %}
-  <dl class="slideshow {{style}}">
-  {% for row in products: %}
-
-    {%set name = row[0] %}
-    {%set price = row[1] %}
-    {%set descrip = row[2] %}
-    {%set pics = row[3:] %}
-
-    {%if name and name[0] != '#'%}<dt class="name">{{name}}</dt>{%endif%}
-
-    <dd class="detail">
-      <div class="pics">
-        {% for p in pics %}
-        <div class="pic"><img src="{{ static(p) }}"></div>
-        {% endfor %}
-      </div>
-      <div class="caption">
-        {{descrip}}
-        <span class="price">${{price}}</span>
-    </dd>
-  {% endfor %}
-  </dl>
-  {% endif %}
-{% endmacro %}
+{% from 'macros.jinja' import menus, static,showprod %}
 <!DOCTYPE html>
 <html>
 <head>
 <title>Old Skool Trail Goods : {{title}}</title>
 <link rel="stylesheet" href="/static/style.css">
+<link rel="icon" href="/static/logo.svg">
 <style>
 {% block css %}{% endblock %}
 </style>
@@ -49,10 +14,16 @@
 </head>
 <body>
 <div id="mast">
-  <div id="masthead">{% block masthead %}
-    <a href="{{url_for('index')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
-  {% endblock %}</div>
-  {{ menus() }}
+  <div id="masthead">
+    <svg id="mastlogo" viewBox="3 -3 86 99">>
+      <use xlink:href="{{url_for('static', filename='logo.svg', 
+          _external=True)}}#logo"/>
+    </svg>
+    <div id="mastlabel">
+      <a href="{{url_for('index')}}">Old&nbsp;Skool Trail&nbsp;Goods</a>
+    </div>
+  </div>
+  <div id="mastmenu"{{ menus() }}</div>
 </div>
 <div id="content">
   <h2>{{title}}</h2>
