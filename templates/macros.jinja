@@ -17,15 +17,17 @@
 {% macro showGallery(items) %}
   {% for item in items: %}
     {% if 'link' in item: %}
-      <a href="{{item['link']}}">
-    {% else %}
-      <a href="{{ static(item['photo']) }}">
+        {% set a=item['link'] %}
+    {% else: %}
+        {% set a=static(item['photo']) %}
     {% endif %}
-        <div class="photo">
-          <img src="{{static(item['photo'])}}">
-          <span class="caption">{{item['caption']}}</span>
-        </div>
+
+    <div class="photo">
+      <a href="{{a}}">
+        <img src="{{static(item['photo'])}}">
+        <span class="caption">{{item['caption']}}</span>
       </a>
+    </div>
     {% endfor %}
 {% endmacro %}
 
