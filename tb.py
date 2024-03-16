@@ -130,7 +130,7 @@ You can say something like:
 """)
 def reg(req):
     u = User.register(req.frm, req.args)
-    msg = "Trailbot:  msg = "Success: @%s registered."%u.handle
+    msg = "Trailbot:  msg = Success: @%s registered."%u.handle
     msg+="\n\nTo set your first status update,"
     msg+="\n say 'status Your First Status'"
     msg+="\nTo unregister, say"
@@ -181,7 +181,7 @@ def sub(req):
         msg+="\nSay 'reg @YourNewHandle' to register"
         msg+="\nThen you can say '@%s Yo! sup?'" % subu.handle
 
-     msg+="\nFor help, say 'help'"
+    msg+="\nFor help, say 'help'"
 
     if subu.status:
         msg+="\n\nCurrent status for @%s follows." % subu.handle
