@@ -108,7 +108,7 @@ def coordsFromCitystate(citystate):
         raise LookupLocationError(citystate)
     if len(maybes) > 1:
         raise LookupMultipleError(
-            citystate, [', '.join(r[0],r[2],r[1]) for r in maybes])
+            citystate, [', '.join(r[0:2]) for r in maybes])
     return maybes[0][3], maybes[0][4],
 
 ##
@@ -331,11 +331,24 @@ def sms_reply():
         args= ""
 
     try:
+        if cmd == 'help':
+            msg = "This is TrailBot."
+            msg+= "\nI understand these commands:"
+            msg+= "\nwx, sub, unsub, reg, unreg, status."
+            msg+= "\n If you know another person's handle,"
+            msg+= " you can send them a message by starting"
+            msg+= " the message with @handle"
+            msg+= "\nTo view the full documentation, visit"
+            msg+= " oldskooltrailgoods.com/trailbot"
+            return twiML(msg)
+
         if cmd in ('wx', 'weather'):
             return wx(args)
+
         elif cmd in ('register', 'reg'):
             u = User.register(frm, args)
             return twiML("Success:  @%s registered."%u.handle)
+
         elif cmd in ('unregister', 'unreg'):
             try:
                 u = User.lookup(frm)
@@ -343,14 +356,25 @@ def sms_reply():
                 raise NotRegisteredError
             u.unregister()
             return twiML("Success: @%s unregistered."%u.handle)
+
         elif cmd in ('subscribe', 'sub'):
             u = User.lookup(args)
             u.subscribe(frm)
-            return twiML("Success: subscribed to @%s. Unsubscribe at any time by sending 'unsub @%s'" % (u.handle, u.handle))
+            msg = "Success: subscribed to @%s.\n" % u.handle
+            msg+=" Unsubscribe at any time by sending 'unsub @%s'." % u.handle
+            try:
+                f = User.lookup(frm)
+            except HandleUnknownError:
+                msg+="\nTo reply to @%s," %u.handle
+                msg+="you'll need to register your own handle"
+                msg+="by sending 'register @YourHandle'"
+                return twiML(msg)
+
         elif cmd in ('unsubscribe', 'unsub'):
             u = User.lookup(args)
             u.unsubscribe(frm)
             return twiML("Success: unsubscribed from @%s" % u.handle)
+
         elif cmd in ('status', 'st'):
             if args[0].startswith('@'):
                 # this is a status request
@@ -373,8 +397,13 @@ def sms_reply():
                 fh = frm
             msg = twiMsg('@'+fh+": "+args, to=u.phone)
             return twiResp(msg)
+
         else:
-            return twiML("Unknown command %s.\n  To reply to a message, start your message with @handle, like this:\n @mg I hope you get the goat off the roof" % cmd)
+            msg ="I don't know how to do %s. \n" % cmd
+            msg+="msg 'help' for a list of commands, "
+            msg+="or visit oldskooltrailgoods.com/trailbot "
+            msg+="to view the full documentation."
+            return twiML(msg)
 
     except TBError as e:
         return twiML(str(e))
