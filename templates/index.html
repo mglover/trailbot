@@ -1,46 +1,40 @@
+{% set title="Inspired and tested by the trail" %}
 {% extends 'layout.html' %}
-{% block title %}Home{% endblock %}
 {% block main %}
-
-<h2>Inspired and tested by the trail</h2>
-<div class="section">
-
+<div class="storytime">
 <p>I've been making handmade leather <a href="{{ 
 url_for('turnshoes')}}">shoes</a> since 2008:
 
-<img class="inline" src="{{ static('trailshoe.jpg') }}">
+<img  src="{{ static('trailshoe.jpg') }}">
 
 In the spring of 2020, I made these <a href="{{ 
 url_for('welted') }}">hiking boots</a>.
 
-<img class="inline" src="{{ static('before.jpg') }}">
+<img  src="{{ static('before.jpg') }}">
 
 
-Since then, those boots and I have hiked 2,500 miles together: 
-<ul class="sleek">
-<li>Santiam, Ore. to South Lake Tahoe, Cali. on the Pacific Crest Trail,
-<li>Denver to Leadville on the Colorado Trail, and 
-<li>Springer Mtn., Ga. to Bennington, VT on the Appalachan Trail. 
-</ul>
+Since then, those boots and I have hiked 
+<a href="{{url_for('location')}}">2,500 miles</a> together.I've resoled 
+the boots four times, one time on trail (at the Burney Mountain Guest 
+Ranch in California).  I still wear them every day to work.  Check out 
+that patina:
+
+<img class="squeezit" src="{{ static('after.jpg') }}">
+
 
 <p>
 I picked up the trail name "Old Skool" along the way -- I think the 
 boots helped win that name, but the real credit goes to my pack:
 
-<img class="inline" src="{{static('oldskool.jpg')}}">
+<img src="{{static('oldskool.jpg')}}">
 
-<p>
-I've resoled the boots four times, one time on trail, at the Burney 
-Mountain Guest Ranch in California.  I still wear them every day to 
-work.  Check out that patina:
-
-<img class="inline" src="{{ static('after.jpg') }}">
 
 Over the past ten years, I've also designed lots of other small useful 
 <a href="{{ url_for('goods')}}">leather goods</a> that I've taken on my 
 travels:
 
-<img class="inline" src="{{ static('goods.jpg') }}">
+<img src="{{ static('goods.jpg') }}">
+
 
 <p>
 Because I'm Old Skool, I'm taking orders by email and text only.  

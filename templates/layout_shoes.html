@@ -1,15 +1,23 @@
 {% extends 'layout.html' %}
 <h2>{% block shoetitle %} {% endblock %}</h2>
 {% block main %}
-<div class="section">
 {% block shoemain %}
-</div>
 {% endblock %}
+
+{{ showprod('shoes', products) }}
+
+
 </div>
 
-<p>
+<p>Photos and pricing are for some of the many design variations.
+</p><p>
+All of my shoes are custom made.  The first step in placing an order is 
+to contact me and discuss the style and details of <b>your</b> shoes.
+</p><p>
+The second step is taking or having a <a href="{{ url_for('molding') }} 
+">mold</a> taken of the feet that will be wearing the shoes.
+</p><p>
 
-I don't use lasts in my shoemaking or build to standard shoes sizes. All of my shoes are custom made, based off of  a <a href="{{ 
-url_for('molding') }} ">mold</a> of the feet that will be wearing them.  Taking or having someone take this mold of your foot is the first step in placing an order!
+</p>
 
 {% endblock %}
