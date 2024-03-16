@@ -167,14 +167,15 @@ class User(object):
             raise AlreadySubscribedError(self.handle)
         else:
             self.subs.append(phone)
-        self.save()
+            self.save()
 
     def unsubscribe(self, phone):
-        if phone not in self.subs:
-            raise NotSubscribedError(self.handle)
-        else:
+        if phone in self.subs:
             self.subs.remove(phone)
-        self.save()
+            self.save()
+        else:
+           raise NotSubscribedError(self.handle)
+
 
     def setStatus(self, status):
         if len(status) > STATUS_MAX:
