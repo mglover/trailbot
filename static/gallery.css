@@ -36,14 +36,12 @@ h2 {
 .gallery {
     background:#3f2b18;
     padding: 0;
-    margin: 1em;
+    width: 100%;
     display: inline-flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
     align-items: flex-start;
-    z-index: 0;
-    width: 100%;
 }
 .gallery .photo {
     margin: 3vw;
@@ -55,6 +53,7 @@ h2 {
     max-width: 16em;
     border: 2px solid black;
     padding: 0;
+    width: 100%;
 }
 .gallery .photo span {
     margin-top: 5px;
