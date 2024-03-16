@@ -33,6 +33,7 @@ h2 {
 .gallery {
     background:#3f2b18;
     padding: 0;
+    margin: 1em;
     display: inline-flex;
     flex-direction: row;
     flex-wrap: wrap;
