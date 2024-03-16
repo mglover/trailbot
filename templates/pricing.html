@@ -2,24 +2,33 @@
 {% extends 'layout.html' %}
 {% block main %}
 
-<h4>Components</h4>
-{{ form.begin(components.table)|safe }}
+{{ form.begin(components.table, title="Components", hideable=True)|safe }}
 {{ form.table(components.rows, components.cols)|safe }}
 {{ form.submit("Update Components")|safe }}
 {{ form.end()|safe }}
+
 <hr/>
-{{html}}
-<h4>Products</h4>
+{{ form.begin(subassembly.table, title="Subassemblies", hideable=True)|safe }}
+{% for snam, grp in subassembly.groupBy("Subassembly").items() %}
+    {% if grp.rows|length > 1: %}
+      {{ form.table(grp.rows, subassembly.cols, title=snam, 
+        footer=grp.footer())|safe }}
+    {% endif %}
+{% endfor %}
+{{ form.submit("Update Subassemblies")|safe }}
+{{ form.end()|safe }}
+
+<hr/>
 
 <form method="GET" action="{{url_for('pricing.new')}}">
 Add Product, Name: <input name="pnam"></form>
 <input type="submit" value="Add">
 </form>
 
-{{ form.begin(pricing.table)|safe }}
+
+{{ form.begin(pricing.table, title="Products",hideable=True)|safe }}
 {% for pnam, grp in pricing.groupBy("Product").items() %}
-  <h4>{{pnam}}: {{grp.total()}}</h4>
-  {{ form.table(grp.rows,pricing.cols, footer=grp.footer())|safe }}
+  {{ form.table(grp.rows,pricing.cols, title=pnam, footer=grp.footer())|safe }}
   {{ form.submit("Update Products")|safe }}
 {% endfor %}
 {{ form.end()|safe }}

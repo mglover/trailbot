@@ -1,5 +1,5 @@
 from flask import request, redirect, render_template,url_for, Blueprint
-from db import Column, Component, Product, usd
+from db import Column, Component, Product, Subassembly, usd
 from dbhtml import Form
 
 bp = Blueprint('pricing', __name__, url_prefix='/pricing')
@@ -62,15 +62,19 @@ class PricingView(View):
 @bp.route('/', methods=('GET','POST'))
 def index():
     Component.load()
+    Subassembly.load()
+    Subassembly.enableComponents()
     Product.load()
 
     if request.method == 'POST':
         Component.updateFromPostData(request.form)
         Product.updateFromPostData(request.form)
 
+#    Subassembly.disableComponents()
     return render_template('pricing.html',
         form=Form,
         components=View.fromTable(Component),
+        subassembly=PricingView.fromTable(Subassembly),
         pricing=PricingView.fromTable(Product))
 
 @bp.route('/new', methods=('GET', 'POST'))

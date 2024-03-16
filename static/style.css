@@ -255,14 +255,24 @@ ul li {
 .db h4 {
   width: 20em;
   margin: auto;
-  text-align: center;
+  float: left;
+}
+.db input.collapsor {
+  float: right;
+}
+.collapsor + .db {
+    display: none;
+}
+.collapsor:checked + .db {
+    display: block;
 }
 .db form {
-  width: 40em;
+  max-width: 40em;
   margin: auto;
 }
 .db table {
-  align: width: 40em;
+  width: 100%;
+  max-width: 40em;
   margin: auto;
   border: 2px solid white;
 }

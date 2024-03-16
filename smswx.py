@@ -105,7 +105,7 @@ def isfloat(s):
         return False
 
 
-@bp.route("/")
+@bp.route("/fetch")
 def sms_reply():
     frm = request.args.get('From')
     sms = request.args.get('Body')
