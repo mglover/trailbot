@@ -28,7 +28,8 @@
 }
 @media screen {
   body, #masthead a {
-    color: #ad821d;
+   color: #98761d; 
+/*   color: #ad821d; */
   }
   body {
     background: #000;;
@@ -36,7 +37,7 @@
   #mast {
     background: #172707;
   }
-  a {
+  a,hr {
     color: #6b6231;
     font-weight: bold;
   }
@@ -48,12 +49,6 @@
   }
   code {
     background: #224;
-  }
-  .slideshow .detail {
-    background:#3f2b18;
-  }
-  .slideshow.float {
-    background:#3f2b18;
   }
 }
 
@@ -114,19 +109,30 @@ code {
 #mastmenu {
    clear: both;
 }
-.menu li {
-  display: inline-block;
+#mastmenu hr{
+    width: 50vw;
+}
+ul.menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0;
+
+}.menu li {
+  list-style-type: none;
   font-size: 110%;
   margin: 0 1em;
+}
+.menu.secondmenu li {
+    font-size: inherit;
 }
 .menu {
   text-align: center;
   margin: 0 auto;
 }
-ul.menu {
-  display: inline;
-  margin: 0;
-}
+
+
 #content {
   max-width: 60em;
   padding: 1em 3em;

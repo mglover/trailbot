@@ -4,9 +4,6 @@
     layout of images, etc.
 */
 
-body {
-    margin: 0;
-}
 
 span {
     display: block;
@@ -33,7 +30,8 @@ h2 {
     height: 100%;
 }
 
-#slideshow {
+.gallery {
+    background:#3f2b18;
     padding: 0;
     display: inline-flex;
     flex-direction: row;
@@ -43,17 +41,18 @@ h2 {
     z-index: 0;
     width: 100%;
 }
-#slideshow .photo {
+.gallery .photo {
     margin: 3vw;
 }
-#slideshow .photo img {
+.gallery .photo img {
     display: block;
     margin: auto;
     max-height: 45vh;
     max-width: 16em;
     border: 2px solid black;
+    padding: 0;
 }
-#slideshow .photo span {
+.gallery .photo span {
     margin-top: 5px;
     padding: 0;
     max-width: 13em;
