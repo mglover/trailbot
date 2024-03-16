@@ -14,47 +14,18 @@
     <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
   </ul>
 {% endmacro %}
-{% macro showGallery(gallery) %}
-    {% for item in gallery: %}
-        {% set has_link = item|length > 2 and item[2] %}
-        {% if has_link: %}
-            <a href="{{item[2]}}">
+{% macro showGallery(items) %}
+    {% for item in items: %}
+        {% if 'link' in item: %}
+            <a href="{{item['link']}}">
         {% endif %}
         <div class="photo">
-            <img src="{{static(item[0])}}">
-            <span class="caption">{{item[1]}}</span>
-        {% if has_link: %}
+            <img src="{{static(item['photo'])}}">
+            <span class="caption">{{item['caption']}}</span>
+        {% if 'link' in item: %}
             </a>
         {% endif %}
         </div>
     {% endfor %}
-{% endmacro %}
-{% macro showprod(gallery, style) %}
-  {% if gallery: %}
-  <dl class="slideshow {{style}}">
-  {% for row in products: %}
-
-    {%set name = row[0] %}
-    {%set price = row[1] %}
-    {%set descrip = row[2] %}
-    {%set pics = row[3:] %}
-
-    {%if name and name[0] != '#'%}<dt class="name">{{name}}</dt>{%endif%}
-
-    <dd class="detail">
-      <div class="pics">
-        {% for p in pics %}
-        <div class="pic"><img src="{{ static(p) }}"></div>
-        {% endfor %}
-      </div>
-      <div class="caption">
-        {{descrip}}
-        {% if price: %}
-          <span class="price">${{price}}</span>
-        {% endif %}
-    </dd>
-  {% endfor %}
-  </dl>
-  {% endif %}
 {% endmacro %}
 

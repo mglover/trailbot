@@ -1,3 +1,4 @@
+{% set title=args['title'] %}
 {% from 'macros.jinja' import showGallery %}
 {% extends 'layout.html' %}
 {% block js %}
@@ -21,8 +22,11 @@
 {% block main %}
 
 <div id="gallerymain">
+    {% if 'slug' in args: %}
+        <p class="slug">{{args['slug']}}</p>
+    {% endif %}
     <div class="gallery">
-        {{showGallery(gallery)}}
+        {{showGallery(args['items'])}}
     </div>
 </div>
 

@@ -17,16 +17,17 @@ def getPreview(gname):
     if gdata.get('hidden', False):
         return  None
     first_photo = gdata['items'][0][0]
-    caption = gdata['title']
-    link = url_for('gallery', gname=gname)
-    return (first_photo,caption, link)
+    return  {
+        'photo': gdata['items'][0][0], 
+        'caption': gdata['title'],
+        'link': url_for('gallery', gname=gname)
+    }
 
 def getGallery(gname):
     try:
         gdata = getData(gname)
     except FileNotFoundError:
         abort(404)
-    title = gdata['title']
     gallery = []
     for item in gdata['items']:
         if len(item) < 2:
@@ -35,6 +36,7 @@ def getGallery(gname):
             if p:
                 gallery.append(p)
         else:
-            gallery.append((item[0], item[1], ''))
-    return (gallery, title)
+            gallery.append({'photo':item[0], 'caption':item[1]})
+    gdata["items"][:] = gallery
+    return gdata
 
