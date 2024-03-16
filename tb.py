@@ -89,15 +89,15 @@ def help(req):
         else:
             return f"Sorry, I don't know anything else about {hcmd}"
     else:
-        msg = "This is TrailBot, you asked for help?"
-        msg+= "\nI understand these commands:"
-        msg+= "\nwx, sub, unsub, reg, unreg, status."
+        ## This case is handled by Twilio upstream
+        msg = "Hi, this is TrailBot!"
+        msg+= "\nI understand these <commands>:"
+        msg+= "\nwx, weather, drive, sub, unsub, reg, unreg, status."
 
-        msg+= "\n If you know another person's @handle,"
-        msg+= " you can send them a direct message "
-        msg+= " by starting your message with @handle"
+        msg+= "\n\nSay 'help <command>' for more info"
+        msg+="\nSay 'help @' for direct messaging help"
 
-        msg+= "\nTo view the full documentation, visit"
+        msg+= "\n\nTo view the full documentation, visit"
         msg+= " oldskooltrailgoods.com/trailbot"
     return msg
 
@@ -119,6 +119,7 @@ def wx(req):
         return "Weather report for where?"
     return wxFromLocation(loc)
 
+
 @tbroute('register')
 @tbhelp(
 """register -- register a TrailBot @handle
@@ -134,14 +135,15 @@ def reg(req):
     msg+= "\nsay 'help' for help"
     return msg
 
+
 @tbroute('unregister')
 @tbhelp(
 """unregister -- delete your TrailBot @handle
 
 Say: 'unregister' or 'unreg'
 
-WARNING: this will immediately delete all of your 
-subscriptionsand saved data.  There is no undo!
+WARNING: this will immediately delete all of your
+saved data.  There is no undo!
 """)
 def unreg(req):
     if not req.user:
@@ -149,12 +151,13 @@ def unreg(req):
     req.user.unregister()
     return "Success: @%s unregistered." % req.user.handle
 
+
 @tbroute('subscribe')
 @tbhelp(
 """sub(scribe) -- subscribe to a @handle's status updates
 
-Say: 'subscribe @SomeBody'
-To unsubscribe, say: 'unsubscribe @SomeBody'
+Say: 'subscribe @handle'
+Related help: 'unsubscribe'
 """)
 def sub(req):
     subu = User.lookup(req.args)
@@ -180,20 +183,27 @@ def sub(req):
 
     return resp
 
+
 @tbroute('unsubscribe')
+@tbhelp(
+"""unsub(scribe) -- unsubcribe from status updates for a @handle
+
+Say: 'unsub @handle'
+""")
 def unsub(req):
     subu = User.lookup(req.args)
     subu.unsubscribe(req.frm)
     return "Success: unsubscribed from @%s" % subu.handle
 
+
 @tbroute('status')
 @tbhelp(
 """status -- check or set a status update
 
-To check a @handle's status, say: 'status @handle'
+To check @handle's status, say: 'status @handle'
 
 To set your status, say something like:
-'status Wow what a week! Monday was just...'
+'status Wow what a week!'
 """)
 def status(req):
     if not req.args:
@@ -218,6 +228,7 @@ def status(req):
         resp.addMsg("Success: update sent to %d followers" % len(resp))
         return resp
 
+
 @tbroute('whoami')
 def whoami(req):
     if req.user:
@@ -225,80 +236,57 @@ def whoami(req):
     else:
         return "You are not registered"
 
+
 @tbroute('where')
 @tbhelp(
 """where -- lookup a location
 
 You can say something like:
-'where Empire State Building'
-'where Denver, CO'
-'where Portland, Maine'
-'where Pinnacle Bank, Durango'
-'where 1600 Pennsylania Ave, Washington, DC'
-
+  'where Empire State Building'
+  'where Denver, CO'
+  'where Pinnacle Bank, Durango, Colorado'
 """)
 def where(req):
     loc = Location.fromInput(req.args, req.user)
     return loc.toSMS()
 
-class NavMissingFrom(TBError):
-    msg = "Err? You have to tell me where you're starting from."
-    msg+="\nsay 'drive from StartLocation to EndLocation'"
-    msg+="\nor say 'here StartLocation'"
-    msg+= "\nthen say 'drive to EndLocation'"
 
-class NavMissingTo(TBError):
-    msg = "Err? You have to tell me where you're going to."
-    msg+="\nsay 'drive toEndLocation from StartLocation'"
-    msg+="\nor say 'there EndLocation'"
-    msg+="\nthen say 'drive from StartLocation'"
+@tbroute('drive')
+@tbhelp(
+"""drive -- get turn-by-turn directions
 
-def getStartEnd(req):
-    if req.user:
-        here = Location.lookup("here", req.user)
-        there = Location.lookup("there", req.user)
-    else:
-        here = None
-        there = None
+You can say something like:
+  'drive to San Francisco from Washington, DC'
 
-    parts = nav.parseRequest(req.args, ('to', 'from'))
-    locs = dict(
-        [(k, Location.fromInput(v, req.user))
-            for k,v in parts
-            if len(v.strip())
-    ])
+Related help: 'here', 'there'
+""")
+def drive(req):
+    loc_a, loc_b = nav.getStartEnd(req)
+    route = nav.Route(loc_a, loc_b, steps=True)
+    return route.toSMS()
 
-    if '' in locs and 'to' not in locs:
-        locs['to'] = locs['']
-    elif '' in locs and 'from' not in locs:
-        locs['from'] = locs['']
 
-    if 'from' not in locs and here: locs['from'] = here
-    if 'to' not in locs and there: locs['to'] = there
+@tbroute('distance')
+@tbhelp(
+"""distance -- get the road distance and travel time
 
-    if not 'from' in locs:
-        raise NavMissingFrom
+Say something like:
+  'distance from Empire State Building to Battery Park'
 
-    if not 'to' in locs:
-        raise NavMissingTo
+Related help: 'here', 'there'
+""")
+def distance(req):
+    loc_a, loc_b = nav.getStartEnd(req)
+    route = nav.Route(loc_a, loc_b, steps=False)
+    return route.toSMS()
 
-    return (locs['from'], locs['to'])
-
-@tbroute('drive', 'bike', 'distance')
-def tbt(req):
-    if req.cmd == 'drive': profile='car'
-    elif req.cmd == 'bike': profile='bike'
-    else: profile="car"
-
-    loc_a, loc_b = getStartEnd(req)
-
-    if req.cmd == 'distance':
-        msg = nav.distance(loc_a, loc_b, profile)
-    else:
-        msg = nav.fromLocations(loc_a, loc_b, profile)
-    return msg[:1500]
 
 @tbroute('forget')
+@tbhelp(
+"""forget -- delete saved data
+
+Related help: 'addr', 'here', 'there'
+""")
 @needsreg("to use saved data")
 def forget(req):
     req.user.eraseObj(req.args)
@@ -306,7 +294,16 @@ def forget(req):
     msg ="Success: '%s' forgotten" % req.args
     return msg
 
+
 @tbroute('address', 'here', 'there')
+@tbhelp(
+"""addr(ess) -- save any location
+here -- save your current location
+there -- save your destination
+
+Say something like:
+  'addr mom 123 E Main St, City, State'
+""")
 @needsreg("to use saved data")
 def saveloc(req):
     if req.cmd == 'addr':
@@ -315,6 +312,7 @@ def saveloc(req):
         nam = req.cmd
         q = req.args
     loc = Location.fromInput(q, req.user)
+
     req.user.saveObj(nam.lower(), loc)
 
     msg= "Success. '%s' is set to:" % nam
@@ -322,27 +320,47 @@ def saveloc(req):
     msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
     return msg
 
-@tbroute('share','unshare')
-@needsreg('to share data')
-def sharing(req):
-    parts = req.args.split()
-    if len(parts) == 1:
-        nam = parts[0]
-        spec = '*'
-    elif len(parts) == 3:
-        if  parts[1] != 'with':
-            return "Err?  say '%s thing with @handle'" % cmd
-        else:
-            nam, _, spec = parts
+@tbroute('share')
+@tbhelp(
+"""share -- share saved data with others
 
-    if req.cmd == 'share':
-        req.user.shareObj(nam, spec)
-        return "Success. Shared %s with %s" % (nam, spec)
-    else:
-        req.user.unshareObj(nam, spec)
-        return "Success. Unshared %s with %s" % (nam, spec)
+Say something like:
+  'share here with @handle
+  'share there' to share 'there' with everyone
+""")
+@needsreg('to share data')
+def share(req):
+    vals = dict(parseArgs(req.args, {'with'}))
+    nam = vals['']
+    spec = vals.get('with', '*')
+
+    req.user.shareObj(nam, spec)
+    return "Success. Shared %s with %s" % (nam, spec)
+
+@tbroute('unshare')
+@tbhelp(
+"""
+unshare -- stop sharing saved data with others
+
+Say something like:
+  'unshare there'
+""")
+@needsreg('to share data')
+def unshare(req):
+    vals = dict(parseArgs(req.args, {'with'}))
+    nam = vals['']
+    spec = vals.get('with', '*')
+
+    req.user.unshareObj(nam, spec)
+    return "Success. Unshared %s with %s" % (nam, spec)
 
 @tbroute(re.compile('^@.*$'))
+@tbhelp(
+"""direct messaging
+
+Say:
+  '@handle Your Message Goes Here'
+""")
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)

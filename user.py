@@ -36,7 +36,7 @@ class StatusTooShortError(TBError):
 class StatusTooLongError(TBError):
     msg = "Status is too long. Max. "+str(STATUS_MAX)+" characters"
 class DatumDoesNotExistError(TBError):
-    msg = "No saved data for %s"
+    msg = "No saved data for '%s'"
 class DatumEmptyError(TBError):
     msg = "No data to save for %s"
 class DatumNameTooLong(TBError):
@@ -295,10 +295,14 @@ class User(object):
 
     def shareObj(self, nam, spec):
         obj = UserObj.lookup(nam, self)
+        if not obj:
+            raise DatumDoesNotExistError(nam)
         obj.share(spec)
         self.saveObj(nam, obj, preserve_meta=False)
 
     def unshareObj(self, nam, spec):
         obj = UserObj.lookup(nam, self)
+        if not obj:
+            raise DatumDoesNotExistError(nam)
         obj.unshare(spec)
         self.saveObj(nam, obj, preserve_meta=False)
