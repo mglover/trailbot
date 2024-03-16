@@ -19,15 +19,21 @@ class DictionarySource (NetSource):
 
 
 def define(word):
+    if not word: return "Which word should I define?"
     res = DictionarySource(word)
     if res.err: return res.err
     elif res.content:
-        d0 = res.content[0]
-        return "From %s: %s: %s" % (
-            DictionarySource.name,
-            d0["hwi"]["hw"],
-            d0['shortdef'][0]
-        )
+        try:
+            d0 = res.content[0]
+            if type(d0) is not dict:
+                return "No match for '%s' from %s" % (word, res.name)
+            return "From %s: %s: %s" % (
+                res.name,
+                d0["hwi"]["hw"],
+                d0['shortdef'][0]
+            )
+        except (IndexError, KeyError, TypeError) as e:
+            raise ValueError(e, res.content)
 
 
 
