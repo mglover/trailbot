@@ -185,9 +185,11 @@ ul.flat li {
 
 .didactic {
   max-width: 40em;
-  margin: auto;
-  margin--bottom: 1em;
+  margin: 1em auto;;
   font-size: 110%;
+}
+p.didactic  {
+    margin-bottom: 1em;
 }
 .didactic img {
   max-width: 90%;
