@@ -2,13 +2,13 @@
 ## status/registration
 ##
 import config
-import os, json
+import os, json, shutil
 from core import *
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
 STATUS_MIN = 1
-STATUS_MAX = 300
+STATUS_MAX = 460
 NAM_MAX   = 10
 
 class AlreadySubscribedError(TBError):
@@ -60,7 +60,7 @@ class UserDatum(object):
         self.bytes = bytes
         if len(nam) > NAM_MAX:
             raise DatumNameTooLong(nam)
-        if not not user or nam.isalnum():
+        if not user or not nam.isalnum():
             raise DatumDoesNotExistError(nam)
 
         self.nam = nam
@@ -228,9 +228,7 @@ class User(object):
 
     def unregister(self):
         upath = os.path.join(self.dbpath,self.userdir)
-        for f in os.listdir(upath):
-            os.unlink(self.dbfile(f))
-        os.rmdir(upath)
+        shutil.rmtree(upath)
 
     def dbfile(self, fname):
         return os.path.join(self.dbpath, self.userdir, fname)
