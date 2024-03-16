@@ -1,0 +1,14 @@
+Trailbot:  msg = Success: @{{u.handle}} registered.
+
+To set your first status update,
+ say 'status Your First Status'
+
+To unregister, say
+  'unregister'
+
+To opt-out of receiving private messages, say
+  'block *' to stop all private messages
+ or say
+   'block @handle' to stop messages from a specific @handle
+
+For help, say 'help'
