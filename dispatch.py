@@ -7,6 +7,18 @@ routes = []
 class EmptyRequest(TBError):
     msg = "No request"
 
+class UnknownAction(TBError):
+    msg ="I don't know how to do %s. \n"
+    msg+="msg 'help' for a list of commands, "
+    msg+="or visit oldskooltrailgoods.com/trailbot "
+    msg+="to view the full documentation."
+
+
+class AmbiguousAction(TBError):
+    msg = "I know how to do several things that start with '%s'."
+    msg+= "\nDid you mean one of these?"
+    msg+= "\n\n%s"
+
 
 class TBRequest(object):
     def __init__(self, frm, cmd, args):
@@ -75,19 +87,22 @@ class TBResponse(object):
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
         for spec in specs:
-            spec_re = re.compile('^'+spec+'$')
-            routes.append((spec_re, cmd))
+            routes.append((spec, cmd))
         return cmd
     return fxn
 
+def matchesSpec(search, spec):
+    assert type(search) in (str, re.Pattern)
+    return \
+        type(spec) == re.Pattern \
+            and spec.match(search) \
+        or type(spec) == str \
+            and spec.startswith(search) \
 
 def getAction(search_cmd):
-    for spec_re, cmd in routes:
-        if spec_re.match(search_cmd): return cmd
-    return None
-
-def dispatch(req):
-    cmd = getAction(req.cmd)
-    if not cmd:
-        return None
-    return cmd(req)
+    m = [(spec,cmd) for spec, cmd in routes
+        if matchesSpec(search_cmd, spec)]
+    if len(m) == 0: raise UnknownAction(search_cmd)
+    if len(m) > 1:
+        raise AmbiguousAction(search_cmd, '\n'.join([i[0] for i in m]))
+    return m[0][1]

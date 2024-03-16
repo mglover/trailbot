@@ -83,6 +83,10 @@ class TBTest(unittest.TestCase):
         res = self.req1("blurgl fop")
         self.assertStartsWith(res, "I don't know how")
 
+    def test_ambiguous(self):
+        res = self.req1("wh")
+        self.assertStartsWith(res, "I know how to do several things")
+
     def test_reg(self):
         res = self.req1("whoami")
         self.assertEqual("You are not registered", res)
