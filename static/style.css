@@ -29,6 +29,9 @@
     font-size: 250%;
     padding: .5em;
   }
+  #masthead a {
+    color: #ca3;
+}
   #mast hr {
     display: none;
   }    
@@ -93,7 +96,7 @@ div.photos {
 
 img.head {
   max-width: 33%;
-  max-heght: 33%;
+  max-height: 50%;
   padding-bottom: 1em;
 }
 

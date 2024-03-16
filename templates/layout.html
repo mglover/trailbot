@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Old Skool Trail Goods : {% block title %}{% endblock %}</title>
@@ -6,12 +7,11 @@
 <body>
 <div id="mast">
   <div id="masthead">
-    {% block masthead %} Old Skool Trail Goods{% endblock %}
+    {% block masthead %}<a href="{{url_for('/')}}">Old Skool Trail Goods</a>{% endblock %}
   </div>
   <hr>
   {% block menus %}
   <ul id="menu">
-    <li><a href="{{ url_for('/') }}">Home</a></li>
     <li><a href="{{ url_for('welted') }}">Hiking Boots</a></li>
     <li><a href="{{ url_for('turnshoes') }}">Turnshoes</a></li>
     <li><a href="{{ url_for('goods') }}">Leather Goods</a></li>
