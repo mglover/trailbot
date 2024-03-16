@@ -44,6 +44,16 @@ for s in ('bcard', 'smswx', 'footnotes', 'molding',
     'patterning', 'shoecare', 'weatherbot', 'lessons', 
 'turnshoe_syllabus'): static(s)
 
+@app.route('/welted')
+def welted():
+    print("hello!")
+    return render_template('welted.html', args=getGallery('welted'))
+
+@app.route('/turnshoes')
+def turnshoes():
+    return render_template('turnshoes.html', args=getGallery('turnshoes'))
+
+
 
 @app.route('/news')
 def news():
@@ -61,6 +71,8 @@ def news():
 
 @app.route('/gallery')
 def gallery_list():
+    return render_template('gallery.html',args=getGallery('index'))
+
     gdir = os.path.join(config.DB_ROOT, 'galleries')
     gallery = []
     dirls = os.listdir(gdir)
@@ -80,15 +92,6 @@ def gallery(gname):
 @app.route('/goods')
 def goods():
     return render_template('goods.html', args=getGallery('goods'))
-
-@app.route('/welted')
-def welted():
-    return render_template('welted.html', args=getGallery('welted'))
-
-@app.route('/turnshoes')
-def turnshoes():
-    return render_template('turnshoes.html', args=getGallery('turnshoes'))
-
 
 if __name__ == '__main__':
     app.run(debug=False)
