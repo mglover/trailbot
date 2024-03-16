@@ -97,9 +97,21 @@ def tbroute(*specs):
         return cmd
     return fxn
 
-def dispatch(req):
+def tbhelp(helpmsg):
+    def fxn(cmd, *args, **kwargs):
+        cmd._help = helpmsg
+        print("fxn %s has help %s" % (cmd, help))
+        return cmd
+
+    return fxn
+
+def getAction(search_cmd):
     for spec_re, cmd in routes:
-        if spec_re.match(req.cmd): return cmd(req)
+        if spec_re.match(search_cmd): return cmd
     return None
 
-
+def dispatch(req):
+    cmd = getAction(req.cmd)
+    if not cmd:
+        return None
+    return cmd(req)
