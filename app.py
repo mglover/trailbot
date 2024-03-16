@@ -1,11 +1,12 @@
-from flask import Flask, abort, request, render_template, url_for, send_from_directory
+from flask import Flask, request, render_template, url_for, send_from_directory
 from flask.views import View
 
-import os, json
+import os
 from datetime import datetime
 
 import config,smswx
 from db import getdb
+from gallery import getGallery, getPreview
 
 app = Flask(__name__)
 app.TESTING=config.ADMIN
@@ -60,45 +61,6 @@ def news():
     return render_template('news.html', articles=articles)
 
 
-def getData(gname):
-    try:
-        gfile = os.path.join(config.DB_ROOT, 'galleries', gname)
-        gdata = json.load(open(gfile))
-    except FileNotFoundError:
-        abort(404)
-    return gdata
-
-def getPreview(gname):
-    try:
-        gdata = getData(gname)
-    except  json.JSONDecodeError:
-        return None
-    if gdata.get('hidden', False):
-        return  None
-    first_photo = gdata['items'][0][0]
-    caption = gdata['title']
-    link = url_for('gallery', gname=gname)
-    return (first_photo,caption, link)
-
-
-@app.route('/gallery/<gname>')
-def gallery(gname):
-    gdata = getData(gname)
-    title = gdata['title']
-    gallery = []
-    for item in gdata['items']:
-        if len(item) < 2:
-            # this is a link to another gallery
-            p = getPreview(item[0])
-            if p:
-                gallery.append(p)
-        else:
-            gallery.append((item[0], item[1], ''))
-
-    return render_template('gallery.html', gallery=gallery,
-        title=gdata['title'])
-
-
 @app.route('/gallery')
 def gallery_list():
     gdir = os.path.join(config.DB_ROOT, 'galleries')
@@ -109,6 +71,13 @@ def gallery_list():
 
     return render_template('gallery.html', gallery=gallery,
         title="Photo Galleries", click="link")
+
+
+@app.route('/gallery/<gname>')
+def gallery(gname):
+    gallery, title  = getGallery(gname)
+    return render_template('gallery.html', gallery=gallery,
+        title=title)
 
 @app.route('/goods')
 def goods():
