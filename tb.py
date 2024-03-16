@@ -12,7 +12,7 @@ import os, re, requests
 
 from . import config
 from .core import *
-from .dispatch import dispatch, tbroute, TBResponse, getAction
+from .dispatch import dispatch, tbroute, tbhelp, TBResponse, getAction
 
 from .location import Location
 from . import word
@@ -71,20 +71,12 @@ def needsreg(reason):
     return fxn
 
 
-def tbhelp(helpmsg):
-    def fxn(cmd, *args, **kwargs):
-        cmd._help = helpmsg
-        return cmd
-    return fxn
-
 ##
 ## actions
 ##
 
-
 def success(msg):
     return "TrailBot: Success: %s" % msg
-
 
 @tbroute('help')
 def help(req):
