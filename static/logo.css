@@ -1,0 +1,34 @@
+/* interactive logo */
+@keyframes logrotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+#bg {
+  fill: transparent;
+}
+#logo {
+  fill: transparent;
+}
+#pack {
+  stroke: #ca3;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+#logo:hover{
+  animation: logrotate 0.5s 0s infinite linear;
+  fill: #224;
+}
