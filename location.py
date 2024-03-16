@@ -147,7 +147,7 @@ class Location(UserObj):
         return cls(
             data[0]['lat'],
             data[0]['lon'],
-            orig=q, 
+            orig=q,
             match=data[0]["display_name"]
         )
 
@@ -160,20 +160,18 @@ class Location(UserObj):
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
             if len(parts[0])==5 and parts[0].isdigit():
-               obj =  cls.fromZip(str)
+               return cls.fromZip(str)
 
-        elif len(parts) == 2 and \
+        if len(parts) == 2 and \
             isfloat(parts[0]) and isfloat(parts[1]):
-                obj = cls(parts[0], parts[1])
+                return cls(parts[0], parts[1])
 
-        elif len(parts)>=2 and parts[-2].endswith(',') \
+        if len(parts)>=2 and parts[-2].endswith(',') \
             and len(parts[-1].lstrip()) == 2:
-            obj = cls.fromCitystate(str)
+            return cls.fromCitystate(str)
 
-        elif parts[0]=='trail:at':
-            obj = cls.fromShelter(' '.join(parts[1:]))
+        if parts[0]=='trail:at':
+            return cls.fromShelter(' '.join(parts[1:]))
 
-        else:
-            obj =  cls.fromNominatim(str)
-        obj.owner = user.handle
-        return obj
+        return cls.fromNominatim(str)
+

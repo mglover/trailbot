@@ -144,7 +144,10 @@ class UserObj(object):
             target = requser
             #nam = nam
 
-        datum = UserDatum(target, nam)
+        try:
+            datum = UserDatum(target, nam)
+        except (DatumDoesNotExistError,DatumNameTooLong):
+            return None
         bytes = datum.load()
         if not bytes:
             return None
