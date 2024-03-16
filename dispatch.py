@@ -60,7 +60,7 @@ class TBMessage(object):
             resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
-        resp += self.msg
+        resp += self.msg[:1500]
         resp += "</Message>"
         return resp
 
@@ -82,7 +82,7 @@ class TBResponse(object):
         for m in self.msgs:
             resp+=m.asTwiML()
         resp+= "</Response>"
-        return str(resp)[:1500]
+        return str(resp)
 
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
