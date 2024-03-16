@@ -1,6 +1,6 @@
 @media print {
   body {
-    font-size: 24pt;
+    font-size: 14pt;
   }
   #mast,#footer,#footmenu {
     display: none;
@@ -15,13 +15,14 @@
   .instructions ul {
     padding: 0 2em;
   }
-  .instructions ul li { 
+  .instructions li ul li { 
     margin: 0.5em 0; 
   }
   .instructions li {
     page-break-inside: avoid;
   }
   .instructions img {
+    align: left;
     margin: 1em;  
   }
 }
@@ -115,7 +116,7 @@ ul {
   padding-bottom: 1em;
 }
 ul li {
-  margin: 0.2em 0;
+  padding: 0.2em 0;
 }
 
 .main {
@@ -125,16 +126,29 @@ ul li {
   font-weight: bold;
 }
 
-.instructions {
-  max-width: 50em;
+ol.instructions {
+  list-style-type: arabic;
+  max-width: 40em;
   margin: auto;
+  font-size: 110%;
+}
+.instructions img {
+  max-width: 90%;
+  padding: 1em;
+  align: center;
 }
 .instructions > li {
   font-weight: bold;
+  padding: 1em 0;
 }
-.instructions ul {
+.instructions li ul {
   font-weight: normal;
-  margin-left: 1em;
+  padding: 1em 1em;
+}
+.instructions li ul li {
+  list-style-type: none;
+  padding: 0;
+  padding-bottom: 0.5em;
 }
 .storytime {
   text-align: center;
