@@ -59,6 +59,9 @@ def status_update(user, status):
     return twiResp(''.join(msgs))
 
 
+##
+## error/auth hooks
+##
 @bp.errorhandler(500)
 def code_fail(error):
     return twiML(
@@ -91,64 +94,46 @@ To register a handle, choose @YourNewHandle
 and say 'reg @YourNewHandle"""
 
 
-@bp.route("/fetch")
-def sms_reply():
-    authenticate(request)
-    frm = request.args.get('From')
-    sms = request.args.get('Body')
-    if not frm or not sms:
-        return twiML("No request")
+def help(args, frm, user):
+    msg = "This is TrailBot, you asked for help?"
+    msg+= "\nI understand these commands:"
+    msg+= "\nwx, sub, unsub, reg, unreg, status."
 
-    user = User.lookup(frm, raiseOnFail=False)
+    msg+= "\n If you know another person's @handle,"
+    msg+= " you can send them a direct message "
+    msg+= " by starting your message with @handle"
 
-    try:
-        cmd,args = sms.split(maxsplit=1)
-    except ValueError:
-        cmd = sms
-        args= ""
+    msg+= "\nTo view the full documentation, visit"
+    msg+= " oldskooltrailgoods.com/trailbot"
+    return twiML(msg)
 
-    cmd = cmd.lower()
 
-    try:
-        if cmd.startswith('help'):
-            msg = "This is TrailBot, you asked for help?"
-            msg+= "\nI understand these commands:"
-            msg+= "\nwx, sub, unsub, reg, unreg, status."
+def wx(args, frm, user):
+    if len(args):
+        loc = Location.fromInput(args, user)
+    elif user:
+        loc = Location.lookup("here", user)
+    if not loc:
+        return twiML("Weather report for where?")
+    return twiML(wxFromLocation(loc))
 
-            msg+= "\n If you know another person's @handle,"
-            msg+= " you can send them a direct message "
-            msg+= " by starting your message with @handle"
 
-            msg+= "\nTo view the full documentation, visit"
-            msg+= " oldskooltrailgoods.com/trailbot"
-            return twiML(msg)
-
-        elif cmd =='wx':
-            if len(args):
-                loc = Location.fromInput(args, user)
-            elif user:
-                loc = Location.lookup("here", user)
-            if not loc:
-                return twiML("Weather report for where?")
-            return twiML(wxFromLocation(loc))
-
-        ## registration/subscription
-
-        elif cmd.startswith('reg'):
+def reg(args, frm, user):
             u = User.register(frm, args)
-            msg = "Success:  @%s registered."%u.handle
+            msg = "Success: @%s registered."%u.handle
             msg+="\n\nTo set your first status update,"
             msg+="\n say 'status Your First Status'"
             msg+= "\nsay 'help' for help"
             return twiML(msg)
 
-        elif cmd.startswith('unreg'):
+def unreg(args, frm, user):
             if not user:
                 raise NotRegisteredError
             user.unregister()
             return twiML("Success: @%s unregistered."%user.handle)
 
-        elif cmd.startswith('sub'):
+
+def sub(args, frm, user):
             subu = User.lookup(args)
             subu.subscribe(frm)
             msg = "Success: subscribed to @%s." % subu.handle
@@ -167,12 +152,13 @@ def sms_reply():
             else:
                 return twiML(msg)
 
-        elif cmd.startswith('unsub'):
+
+def unsub(args, frm, user):
             subu = User.lookup(args)
             subu.unsubscribe(frm)
             return twiML("Success: unsubscribed from @%s" % subu.handle)
 
-        elif cmd =='status':
+def status(args, frm, user):
             if not args:
                 msg = "Err? say status Your new status to set your status"
                 msg+= "\nor status @handle to get another user's status"
@@ -188,56 +174,19 @@ def sms_reply():
                 # this is a status update
                 return status_update(user, args)
 
-        elif cmd == 'whoami':
+def whoami(args, frm, user):
             if user:
                 return twiML("You are @%s" % user.handle)
             else:
                 return twiML("You are not registered")
 
-        elif cmd.startswith('@'):
-            if not user:
-                raise RegistrationRequired("to send direct messages")
-            dstu = User.lookup(cmd)
-            tmsg= twiMsg('@%s: %s'%(user.handle, args ), 
-                to=dstu.phone)
-            return twiResp(tmsg)
-
-        ## direction/location
-
-        elif cmd == 'where':
+def where(args, frm, user):
             loc = Location.fromInput(args, user)
             return twiML(loc.toSMS())
 
-        elif cmd  in('addr', 'here','there','home'):
-            if not user:
-                raise RegistrationRequired("to use saved locations")
-
-            if cmd == 'addr':
-                nam, q = args.split(maxsplit=1)
-            else:
-                nam = cmd
-                q = args
-            loc = Location.fromInput(q, user)
-            user.saveObj(nam.lower(), loc)
-
-            msg= "Success. '%s' is set to:" % nam
-            msg+="\n"+loc.toSMS()
-            msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
-            return twiML(msg)
-
-
-        elif cmd == 'forget':
-            if not user:
-                raise RegistrationRequired("to use saved data")
-
-            user.eraseObj(args)
-
-            msg ="Success: '%s' forgotten" % args
-            return twiML(msg)
-
-        elif cmd in ('drive', 'bike'):
-            if cmd == 'drive': profile='car'
-            elif cmd == 'bike': profile='bike'
+def tbt(args, frm, user, mode=None):
+            if mode == 'drive': profile='car'
+            elif mode == 'bike': profile='bike'
 
             if user:
                 here = Location.lookup("here", user)
@@ -272,8 +221,33 @@ def sms_reply():
             msg = turns.fromLocations(locs['from'], locs['to'], profile)
             return twiML(msg[:1500])
 
+def forget(args, frm, user):
+            if not user:
+                raise RegistrationRequired("to use saved data")
 
-        elif cmd in ('share', 'unshare'):
+            user.eraseObj(args)
+
+            msg ="Success: '%s' forgotten" % args
+            return twiML(msg)
+
+def saveloc(args, frm, user, cmd=None):
+            if not user:
+                raise RegistrationRequired("to use saved locations")
+
+            if cmd == 'addr':
+                nam, q = args.split(maxsplit=1)
+            else:
+                nam = cmd
+                q = args
+            loc = Location.fromInput(q, user)
+            user.saveObj(nam.lower(), loc)
+
+            msg= "Success. '%s' is set to:" % nam
+            msg+="\n"+loc.toSMS()
+            msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
+            return twiML(msg)
+
+def sharing(args, frm, user, cmd=None):
             if not user:
                 raise RegistrationRequiredError('to share data')
             parts = args.split()
@@ -293,8 +267,65 @@ def sms_reply():
                 user.unshareObj(nam, spec)
                 return twiML("Success. Unshared %s with %s" % (nam, spec))
 
+def dm(args, frm, user, handle=None):
+            if not user:
+                raise RegistrationRequired("to send direct messages")
+            dstu = User.lookup(handle)
+            tmsg= twiMsg('@%s: %s'%(user.handle, args ),
+                to=dstu.phone)
+            return twiResp(tmsg)
+
+
+
+@bp.route("/fetch")
+def sms_reply():
+    authenticate(request)
+    frm = request.args.get('From')
+    sms = request.args.get('Body')
+    if not frm or not sms:
+        return twiML("No request")
+
+    user = User.lookup(frm, raiseOnFail=False)
+
+    try:
+        cmd,args = sms.split(maxsplit=1)
+    except ValueError:
+        cmd = sms
+        args= ""
+
+    cmd = cmd.lower()
+
+    try:
+        if cmd.startswith('help'):
+            return help(args, frm,user)
+        elif cmd == 'forget':
+            return forget(args, frm, user)
+        elif cmd in ('drive', 'bike'):
+            return tbt(args, frm, user, mode=cmd)
+        elif cmd in ('addr', 'here', 'there'):
+            return saveloc(args, frm, user, cmd=cmd)
+        elif cmd in ('share', 'unshare'):
+            return sharing(args, frm, user, cmd=cmd)
+        elif cmd.startswith('@'):
+            return dm(args, frm, user, handle=cmd)
         elif cmd == "500":
             abort(500)
+        elif cmd =='wx':
+            return wx(args, frm,user)
+        elif cmd.startswith('reg'):
+            return reg(args, frm, user)
+        elif cmd.startswith('unreg'):
+            return unreg(args, frm, user)
+        elif cmd.startswith('sub'):
+            return sub(args, frm, user)
+        elif cmd.startswith('unsub'):
+            return unsub(args, frm ,user)
+        elif cmd =='status':
+            return status(args, frm, user)
+        elif cmd == 'whoami':
+            return whoami(args, frm, user)
+        elif cmd == 'where':
+            return where(args, frm, user)
 
         else:
             msg ="I don't know how to do %s. \n" % cmd
