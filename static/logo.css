@@ -1,18 +1,26 @@
 /* interactive logo */
 @keyframes logrotate {
-  0% {
-    transform: rotate(0deg);
-  }
-  25% {
+  2% {
     transform: rotate(5deg);
   }
-  50% {
+  4% {
     transform: rotate(0deg);
   }
-  75% {
+  6% {
     transform: rotate(-5deg);
   }
-  100% {
+  8% {
+    transform: rotate(0deg);
+  10%
+    transform: rotate(5deg);
+  }
+  12% {
+    transform: rotate(0deg);
+  }
+  14% {
+    transform: rotate(-5deg);
+  }
+  16% {
     transform: rotate(0deg);
   }
 }
@@ -29,6 +37,6 @@
   stroke-linecap: round;
 }
 #logo:hover{
-  animation: logrotate 0.5s 0s infinite linear;
+  animation: logrotate 2s linear 1s infinite running;
   fill: #224;
 }
