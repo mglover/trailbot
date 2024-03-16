@@ -7,19 +7,18 @@
 insane battery life, but a barely primitive web browser (and no data 
 plan).  Great text messaging.
 
-<p> This is 95% fine.  But on the AT, I was having to ask other hikers 
-for the weather forecast every day. I looked for a service that would 
-send me forecasts by text, but never found one. So, visiting my brother 
-for a week off-trail, I wrote the first version of TrailBot, named 
-WeatherBot. WeatherBot knew the names and locations of all the shelters 
-along the AT, and how to get a 3-day <a href="#wx">weather report</a> 
-for them.
+<p> This is 95% fine.  But I still find myself in town trying to
+find wifi or a computer to do things that most people can do with
+their smartphone.  
 
-<p>WeatherBot learned more ways to look up locations, and became 
-TrailBot when my weekly <a href="#st">group text updates</a> got 
-too big and I added those features.
+<p>TrailBot is learning to do those things.
 
-<h3>How to use TrailBot</h3>
+<p>TrailBot knows how to:<ul>
+  <li>fetch a <a href="#wx">weather report</a>,
+  <li>give turn-by-turn <a href="#driving">driving directions</a>,
+  <li>manage those <a href="#groups">group messages</a> you send to 
+    friends and family on the road.
+</ul>
 
 <p>You can text TrailBot at:
 
@@ -28,16 +27,17 @@ too big and I added those features.
 </address>
 
 
-<p>The first word of your message is the <b>command</b>. 
+<h3>First Things First</h3>
+<p>The first word of your message is the <b>&lt;command&gt;</b>. 
 
-If you text TrailBot the command 'help', like this:
+If you text TrailBot the &lt;command&gt; 'help', like this:
 
 <code>help</code>
 
 TrailBot will say:
 
 <code class="b">
-   This is TrailBot. I understand these commands:
+   This is TrailBot. I understand these &lt;command&gt;s:
    <br>help, wx, status, sub, unsub, reg, unreg.
    <br>If you know someone's @handle, you can send them a message 
     by starting the message with their @handle
@@ -45,11 +45,42 @@ TrailBot will say:
         visit oldskooltrailgoods.com/trailbot
 </code>
 
+You can text:
+<code>help &lt;command&gt;</code>
+
+And TrailBot will send back detailed help for &lt;command&gt;.
+
+<h3 id="loc">Locations</h3>
+
+<p>TrailBot can look up these 'simple' location formats on its own:
+  City, ST (don't forget the comma!):
+  <code>wx Washington, DC,</code>
+  latitude/longitude pairs (no comma!):
+  <code>wx 38.9413 -78.1911</code>
+  ZIP codes:
+  <code>wx 17020</code>
+  and, back to it's roots, AT shelternames:
+  <code>wx Low Gap</code>
+
+You can use any of those anywhere a location is needed.  If you want 
+to use a more 'complex' location (e.g.: street addresses, well-known 
+place names), TrailBot has to ask for help.
+
+<p>
+
+
 <h3 id="wx">Weather Reports</h2>
 
+<p class="intro">The National Weather Service (NWS) providess 7 day 
+weather forecasts in a machine readable format.  Not long after I 
+started the AT, I was tired of having to find other hikers to ask for 
+the weather forecast. Spending a few days off-trail to visit my brother, I 
+hooked together the list of AT shelter locations with the NWS website. 
+This is the first thing TrailBot learned how to do.
 
-<p>Send the command 'wx' and the location you want the report for, like 
-this:
+<p> The &lt;command&gt; for weather reports is 'wx'
+
+<p>'wx' <a href="#loc">location</a> like this:
 
 <code>wx Silver City, NM</code>
 
@@ -71,22 +102,42 @@ Weather Service, and send you a condensed 3 day forecast:
 
 And so on for two more days. 
 
-<p>TrailBot understands 
-  City, ST (don't forget the comma!):
-  <code>wx Washington, DC,</code>
-  latitude/longitude pairs (no comma!):
-  <code>wx 38.9413 -78.1911</code>
-  ZIP codes:
-  <code>wx 17020</code>
-  and, back to it's roots, AT shelternames:
-  <code>wx Low Gap</code>
 
+<h3 id="driving">Driving Directions (BETA)</h3>
 
-<h3>Status Updates</h2>
+<p class="intro">The <a href="http://project-osrm.org">Open Source 
+Routing Machine (OSRM)</a> offers a free service providing road and trail 
+routing instructions.  TrailBot uses OSRM to give  turn-by-turn 
+directions for any two <a href="#loc">locations</a> it knows about.
+
+<p> The &lt;command&gt; for driving directions is 'drive'
+
+<p>Send 'drive <a href="#loc">locaction</a> to <a 
+    href="#loc">location</a>', like this:
+
+<code>drive Tulsa, OK to Denver, CO</code>
+
+<p>TrailBot will think for a moment, and respond:
+
+<code class="b">
+    Turn directions courtesy OSRM
+    <br>from Tulsa, OK
+    <br>to Denver, CO
+    <br>693 miles: 11hr, 53min
+    <br>via I 70, US 40, I 70
+    <br>
+    <br>Start on South Boulder Avenue for 123 yards
+    <br>Turn left on West 1st Street for 560 yards
+    <br>[... and so on ...]
+    <br>Reach Destination
+</code>
+</code> 
+<h3 id="groups">Status Updates</h2>
 
 <h4>Why?</h4>
 
-<p>Without TrailBot, there are two ways I can send a group texts 
+<p class="intro">Without TrailBot, there are two ways I can send a 
+group texts 
   from my phone: send an MMS group message, but then everyone on the 
   list sees everyone else's responses to my updates (and their phone 
   numbers), or send a plain SMS text message to each member of group 
@@ -131,7 +182,7 @@ Or, most usefully, people can subscribe to receive your updates
 
 <h4>Subscribing to Updates</h4>
 
-If you know someone's <a href="#handlers">@handle</a>, you can 
+If you know someone's <a href="#handles">@handle</a>, you can 
 subscribe to their updates:
 
 <code>sub @MajorTom</code>
