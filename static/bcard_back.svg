@@ -112,8 +112,8 @@
 
     <rect id="bottom_color"
       x="0" y="300"
-      width="225"
-      height="75" 
+      width="224"
+      height="74" 
       mask="url(#bottom)"/>>
   </g>
   </g>
