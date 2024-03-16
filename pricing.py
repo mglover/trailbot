@@ -52,8 +52,12 @@ class PricingView(View):
         row.data = (pnam,compo,cnt,ea,subt)
         return row
 
+    def footer(self):
+        return ('Total','','',usd(self.total()))
+
     def total(self):
         return sum([x.data[4] for x in self.rows])
+
 
 @bp.route('/', methods=('GET','POST'))
 def index():
@@ -78,6 +82,8 @@ def new():
         Product.updateFromPostData(request.form)
         Product.save()
         redirect(url_for('pricing.index'))
+        return
+
     pnam = request.args.get('pnam')
 
     product = View(Product, [Product(data={"Product":pnam})]*6)

@@ -236,8 +236,11 @@ table.db {
 .db td {
   padding: 0 0.5em 0 1em;
 }
+.db th.Component {
+  min-width:14em;
+}
 .db .int {
-  max-width: 2em;
+  width: 2em;
 }
 .db .usd {
   max-width: 4em;
@@ -250,6 +253,11 @@ table.db {
 .db .usd input {
   width: 4em;
   text-align: right;
+}
+.db tfoot td {
+  padding-top: 0.5em;
+  border-top: 1px solid #ca3;
+  font-weight: bold;
 }
 .submit {
   margin: auto;
