@@ -224,8 +224,9 @@ class StatusTooLongError(TBError):
     msg = "Status is too long. Max. "+str(STATUS_MAX)+" characters"
 
 class User(object):
-    # user data is stored in subdirectories of users
-    # in files named phone@handle
+    """user data is stored in subdirectories of users
+       in files named phone@handle """
+
     dbpath = os.path.join(config.DB_ROOT,'users')
 
     @classmethod
@@ -333,25 +334,27 @@ def sms_reply():
         args= ""
 
     try:
-        if cmd == 'help':
-            msg = "This is TrailBot."
+        if cmd.startswith('help'):
+            msg = "This is TrailBot, you asked for help?"
             msg+= "\nI understand these commands:"
             msg+= "\nwx, sub, unsub, reg, unreg, status."
+
             msg+= "\n If you know another person's handle,"
-            msg+= " you can send them a message by starting"
-            msg+= " the message with @handle"
+            msg+= " you can send them a direct message "
+            msg+= " by starting your message with @handle"
+
             msg+= "\nTo view the full documentation, visit"
             msg+= " oldskooltrailgoods.com/trailbot"
             return twiML(msg)
 
-        if cmd in ('wx', 'weather'):
+        elif cmd =='wx':
             return wx(args)
 
-        elif cmd in ('register', 'reg'):
+        elif cmd.startswith('reg'):
             u = User.register(frm, args)
             return twiML("Success:  @%s registered."%u.handle)
 
-        elif cmd in ('unregister', 'unreg'):
+        elif cmd.startswith('unreg'):
             try:
                 u = User.lookup(frm)
             except HandleUnknownError:
@@ -359,25 +362,19 @@ def sms_reply():
             u.unregister()
             return twiML("Success: @%s unregistered."%u.handle)
 
-        elif cmd in ('subscribe', 'sub'):
+        elif cmd.startswith('sub'):
             u = User.lookup(args)
             u.subscribe(frm)
             msg = "Success: subscribed to @%s.\n" % u.handle
             msg+=" Unsubscribe at any time by sending 'unsub @%s'." % u.handle
-            try:
-                f = User.lookup(frm)
-            except HandleUnknownError:
-                msg+="\nTo reply to @%s," %u.handle
-                msg+="you'll need to register your own handle"
-                msg+="by sending 'register @YourHandle'"
-                return twiML(msg)
+            return twiML(msg)
 
-        elif cmd in ('unsubscribe', 'unsub'):
+        elif cmd.startswith('unsub'):
             u = User.lookup(args)
             u.unsubscribe(frm)
             return twiML("Success: unsubscribed from @%s" % u.handle)
 
-        elif cmd in ('status', 'st'):
+        elif cmd =='status':
             if args[0].startswith('@'):
                 # this is a status request
                 u = User.lookup(args)
@@ -394,11 +391,14 @@ def sms_reply():
             u = User.lookup(cmd)
             try:
                 fu = User.lookup(frm)
-                fh = fu.handle
             except HandleUnknownError:
-                fh = frm
-            msg = twiMsg('@'+fh+": "+args, to=u.phone)
-            return twiResp(msg)
+                msg= "You have to register a handle"
+                msg+=" before you can send a direct message."
+                msg+="\nchoose YourNewHandle, and send"
+                msg+="'reg @YourNewHandle' to register"
+            tmsg= twiMsg('@%s: %s'%(fu.handle,' '.join(args) ), 
+                to=u.phone)
+            return twiResp(tmsg)
 
         else:
             msg ="I don't know how to do %s. \n" % cmd
