@@ -7,6 +7,7 @@ import json, os, csv
 
 import config
 from core import *
+from user import User
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"
@@ -144,9 +145,13 @@ class Location(object):
 
     @classmethod
     def fromUserData(cls, str, user):
-        jsdata = user.getBytes(str)
-        if jsdata: return cls.fromJson(jsdata)
-        else: return None
+        if str.startswith('@'):
+            target = User.lookup(str)
+            loc = target.getObj('here', cls)
+        else:
+            loc = user.getObj(str, cls)
+        if not loc: raise LookupLocationError(str)
+        return loc
 
     @classmethod
     def fromInput(cls, str, user=None):

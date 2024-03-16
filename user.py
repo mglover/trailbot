@@ -4,7 +4,6 @@
 import config
 import os, json
 from core import *
-from location import Location
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
@@ -44,7 +43,8 @@ class DatumNameTooLong(TBError):
     msg = "Name '%s' is to long. Max "+str(NAM_MAX)+" characters"
 class DatumNameInvalidChars(TBError):
     msg = "Name '%s' must contain letters and numbers only"
-
+class DatumNameInvalid(TBError):
+    msg = "Name '%s' not found"
 
 class UserDatum(object):
     def __init__(self, user, nam, bytes=None):
@@ -185,12 +185,14 @@ class User(object):
         self.status = status
         self.save()
 
-    def getBytes(self, nam):
+    def getObj(self, nam, cls):
         datum = UserDatum(self, nam)
-        return datum.load()
+        bytes = datum.load()
+        if not bytes: return None
+        return cls.fromJson(bytes)
 
-    def saveBytes(self, nam, bytes):
-        datum = UserDatum(self, nam, bytes)
+    def saveObj(self, nam, obj):
+        datum = UserDatum(self, nam, obj.toJson())
         datum.save()
 
     def eraseBytes(self, nam):
