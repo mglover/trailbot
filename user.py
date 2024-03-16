@@ -79,9 +79,9 @@ class UserDatum(object):
         if not os.path.exists(self.path):
             return None
         else:
-            datafd = open(self.path)
-            self.bytes = datafd.read()
-            return self.bytes
+            with open(self.path) as datafd:
+               self.bytes = datafd.read()
+               return self.bytes
 
     @classmethod
     def erase(cls, user, nam):
@@ -239,7 +239,8 @@ class User(object):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
         try:
-            self.status = open(self.dbfile('status')).read()
+            with open(self.dbfile('status')) as stfd:
+                self.status = stfd.read()
         except FileNotFoundError:
             self.status = None
         try:
@@ -255,7 +256,8 @@ class User(object):
         with open(self.dbfile('subs'), 'w') as sfd:
             sfd.write('\n'.join(self.subs))
         if self.status:
-            open(self.dbfile('status'),'w').write(self.status)
+           with  open(self.dbfile('status'),'w') as stfd:
+                stfd.write(self.status)
 
     def subscribe(self, phone):
         if phone in self.subs:
