@@ -55,10 +55,7 @@
     font-weight: bold;
     font-style: normal;
   }
-  .slideshow .detail {
-    background:#3f2b18;
-  }
-  .slideshow.shoes {
+  .slideshow .detail,.slideshow.shoes {
     background:#3f2b18;
   }
 }
@@ -111,6 +108,29 @@ h2 {
   white-space: pre;
 }
 
+.footnotes {
+  max-width: 50vw;
+  margin: auto;
+  padding-bottom: 2em;
+}
+.footnotes dt {
+  font-size: 110%;
+  font-weight: bold;
+  padding-top: 1em;
+}
+.footnotes dd {
+  margin: 0;
+  padding: 0 2em;;
+}
+.footnotes ul {
+  list-style-type: none;
+  padding: 1em 0;
+  margin: 0;
+}
+.footnotes ul li {
+  margin: 0;
+  padding: 0;
+}
 .slideshow{
   text-align: center;
   align: center;
@@ -170,12 +190,4 @@ ul {
 }
 ul li { 
   margin: 0.5em 0; 
-}
-ul.sleek {
-  list-style-type: none;
-  padding: 0 4em;
-  margin: 0 1em;
-}
-ul.sleek li {
-  margin: 0;
 }
