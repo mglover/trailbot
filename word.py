@@ -3,6 +3,8 @@ from .netsource import NetSource
 from .dispatch import tbroute, tbhelp
 from urllib.parse import urljoin
 
+from .db.TWL06 import twl as twl_mod
+
 class DictionarySource (NetSource):
     # dictionary and thesaurus access
     # via Merriam-Webster dictionaryapi.com
@@ -40,6 +42,8 @@ class DictionarySource (NetSource):
 You can say something like:
   'word Hello'
   'word brontosaurus'
+
+Related commands: twl
 """)
 def define(req):
     w = req.args
@@ -47,15 +51,17 @@ def define(req):
     return DictionarySource(w).toSMS()
 
 
+@tbroute('twl')
+@tbhelp(
+"""twl -- look up word in Tournament Word List
 
-"""for later
+Say 'twl word' or 'twl asdf'
 
-class ThesauruSource(NetSource):
-    baseUrl = ""
-    apiKey="ca821a6d-e983-49ee-82dc-1ec99a13c5ac"
-
-
-def synonym(word):
-    pass
-
-"""
+Related commands: word
+""")
+def twl(req):
+    w = req.args
+    if twl_mod.check(w):
+        return f"YES. '{w}' is a valid word"
+    else:
+        return f"NO. '{w}' is not a valid word"
