@@ -1,0 +1,235 @@
+<html>
+<head>
+<style>
+body {
+    margin: 0;
+}
+
+span {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+}
+
+#slideshow {
+    background: #c0af98;
+    padding: 3%;
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 0;
+}
+#slideshow .photo {
+    margin: 12vh;
+}
+#slideshow img {
+    max-height: 25vh;
+    width: 100%;
+    max-width: 20vw;
+    border: 2px solid black;
+    box-shadow: 5px 5px 2px grey;
+}
+#slideshow .photo span {
+    margin-top: 5px;
+}
+
+#overlay {
+    position: fixed;
+    top: 5vh;
+    left: 5%;
+    height: 80vh;
+    width: 80%;
+    padding: 2%;
+    background: #c0af98;
+    border: 3px solid black;
+    display: none;
+    z-index: 100;
+}
+#overlay img {
+    display: block;
+    max-height: 70vh;
+    max-width: 70%;
+    margin: auto;
+}
+#overlay span {
+    display: block;
+    text-align: center;
+}
+#overlay .nav {
+    margin: auto;
+    max-width: 70%;
+}
+#close {
+    position: fixed;
+    top: 7vh;
+    right: 12%;
+    color: black;
+    font-family: sans;
+    padding: 0 .2em;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+#prev {
+    float: left;
+}
+#next {
+    float: right;
+}
+    
+</style>
+<script>
+window.onload = function () {
+    elOverlay = document.getElementById("overlay");
+    elBody = document.getElementById("slideshow");
+    elPrev = document.getElementById("prev");
+    elNext = document.getElementById("next");
+    elClose = document.getElementById('close');
+
+    photos = document.getElementsByClassName("photo");
+
+    function hideZoomer() {
+        elOverlay.style.display = "none";
+        elBody.style.opacity = "100%";
+    }
+
+    function showZoomer(idx) {
+        elPhoto = photos[idx];
+        elOrigImg = elPhoto.getElementsByTagName('img')[0];
+        elOrigCap = elPhoto.getElementsByTagName('span')[0];
+        elZoomImg = elOverlay.getElementsByTagName('img')[0];
+        elZoomCap = elOverlay.getElementsByClassName('cap')[0];
+        elZoomImg.src = elOrigImg.src;
+        elZoomCap.innerHTML = elOrigCap.innerHTML;
+        elBody.style.opacity = "50%";
+        elOverlay.style.display = "block";
+
+        if ( idx > 1) {
+            elPrev.onclick = function(e) {
+                e.stopPropagation();
+                console.log("prev", idx);
+                hideZoomer();
+                showZoomer(idx - 1);
+            }
+            elPrev.style.display = "inline";
+        }  else {
+            elPrev.style.display = "none";
+        }
+        if ( idx < photos.length-1 ) {
+            elNext.onclick = function(e) {
+                e.stopPropagation();
+                console.log("next", idx);
+                hideZoomer();
+                showZoomer(idx + 1);
+            }
+            elNext.style.display = "inline";
+        } else {
+            elNext.style.display = "none";
+        }
+    }
+
+    function addZoomer (idx) {
+        elPhoto = photos[idx];
+        elPhoto.onclick = function (e) {
+            e.stopPropagation();
+            console.log('photo click', idx);
+            showZoomer(idx);
+        }
+    }
+
+    for (i=0;i<photos.length;i++) {
+        addZoomer(i);
+    }
+    
+    elClose.onclick = function(e) {
+        e.stopPropagation();
+        console.log('close');
+        hideZoomer();
+    }
+        
+    elBody.onclick = function () {
+        console.log('body click');
+        hideZoomer();
+    }        
+}
+</script>
+</head>
+<body>
+<div id="overlay">
+    <div id="close">X</div>
+    <div class="photo">
+        <img/>
+        <span class="cap"></span>
+        <div class="nav">
+            <button id="prev">Prev</button>
+            <button id="next">Next</button>
+        </div>
+    </div>
+</div>
+
+<div id="slideshow">
+  <div class="photo">
+    <img src="commonbuckeye.jpg">
+    <span class="cap">Common Buckeye</span>
+  </div>
+  <div class="photo">
+    <img src="mourningcloak.jpg">
+    <span class="cap">Mourning Cloak</span>
+  </div>
+  <div class="photo">
+    <img src="paintedlady.jpg">
+    <span class="cap">Painted Lady</span>
+  </div>
+  <div class="photo">
+    <img src="queen4.jpg">
+    <span class="cap">Queen</span>
+  </div>
+  <div class="photo">
+    <img src="redspottedpurple.jpg">
+    <span class="cap">Red Spotted Purple</span>
+  </div>
+  <div class="photo">
+    <img src="commonbuckeye.jpg">
+    <span class="cap">Common Buckeye</span>
+  </div>
+  <div class="photo">
+    <img src="mourningcloak.jpg">
+    <span class="cap">Mourning Cloak</span>
+  </div>
+  <div class="photo">
+    <img src="paintedlady.jpg">
+    <span class="cap">Painted Lady</span>
+  </div>
+  <div class="photo">
+    <img src="redspottedpurple.jpg">
+    <span class="cap">Red Spotted Purple</span>
+  </div>
+  <div class="photo">
+    <img src="mourningcloak.jpg">
+    <span class="cap">Mourning Cloak</span>
+  </div>
+  <div class="photo">
+    <img src="paintedlady.jpg">
+    <span class="cap">Painted Lady</span>
+  </div>
+  <div class="photo">
+    <img src="queen4.jpg">
+    <span class="cap">Queen</span>
+  </div>
+  <div class="photo">
+    <img src="commonbuckeye.jpg">
+    <span class="cap">Common Buckeye</span>
+  </div>
+  <div class="photo">
+    <img src="queen4.jpg">
+    <span class="cap">Queen</span>
+  </div>
+  <div class="photo">
+    <img src="redspottedpurple.jpg">
+    <span class="cap">Red Spotted Purple</span>
+  </div>
+
+
+</div>
+</body>
