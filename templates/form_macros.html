@@ -1,0 +1,60 @@
+{% 
+set formns = namespace(idx=0) 
+%}
+{% 
+macro begin(table) %}
+  <form method="POST">
+  <input type="hidden" name="db" value="{{table.dbnam}}">
+  {% set formns.idx = 0 %}
+{% endmacro 
+%}
+{% 
+macro end() %}
+  </form>
+{% endmacro 
+%}
+{% 
+macro cell(n,v,f) %}
+  {% if f.find('hidden') > -1 : %}
+    <input type="hidden" name="{{n}}" value="{{v}}"/>
+  {% else : %}
+    <td>
+    {% if f == 'edit': %}
+      <input type="text" name="{{n}}" value="{{v}}"\>
+    {% elif f.find('computed') > -1 : %}
+      {{v}}
+    {% else : %}
+      <input type="hidden" name="{{n}}" value="{{v}}"/>
+      {{v}}
+    {% endif %}
+    </td>
+  {% endif %}  
+{% endmacro 
+%}
+{% 
+macro row(cols, row) %}
+  <tr>
+  {% for c in range(cols|length): %}
+    {% set nam = "%i,%i"%(formns.idx, c) %}
+    {{ cell(nam, row[c], cols[c].tags) }}
+  {% endfor %}
+  </tr>
+  {% set formns.idx = formns.idx + 1 %}
+{% endmacro 
+%}
+{% 
+macro dbtable (cols, rows) %}
+<table class="db">
+  <tr>
+  {% for c in cols %}
+    {%if c.tags.find('hidden') <=-1 :%}<th>{{c.name}}</th>{%endif%}
+  {% endfor %}
+  </tr>
+
+  {% for r in range(rows|length): %}
+    {{ row(cols, r) }}
+  {% endfor %}
+  
+</table>
+{% endmacro %}
+
