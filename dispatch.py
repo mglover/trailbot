@@ -106,3 +106,20 @@ def getAction(search_cmd):
     if len(m) > 1:
         raise AmbiguousAction(search_cmd, '\n'.join([i[0] for i in m]))
     return m[0][1]
+
+def dispatch(request):
+    try:
+        tbreq = TBRequest.fromFlask(request)
+        act = getAction(tbreq.cmd)
+        msg = act(tbreq)
+
+    except TBError as e:
+        msg = str(e)
+
+    if type(msg) == TBResponse:
+        resp = msg
+    else:
+        resp = TBResponse()
+        resp.addMsg(msg)
+
+    return resp.asTwiML()
