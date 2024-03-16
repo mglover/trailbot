@@ -1,4 +1,5 @@
 from .netsource import NetSource
+from .dispatch import tbroute, tbhelp
 from urllib.parse import urljoin
 
 class DictionarySource (NetSource):
@@ -18,23 +19,34 @@ class DictionarySource (NetSource):
         return params
 
 
-def define(word):
-    if not word: return "Which word should I define?"
-    res = DictionarySource(word)
+
+@tbroute('word')
+@tbhelp(
+"""word -- look up a word in a dictionary
+
+You can say something like:
+  'word Hello'
+  'word brontosaurus'
+""")
+def define(req):
+    w = req.args
+    if not w: return "Which word should I define?"
+    res = DictionarySource(w)
     if res.err:
-        raise ValueError(res)
         return res.err
     elif type(res.content) is not list:
         raise TypeError("Expected list, got %s" % type(res.content))
     else:
         if not len(res.content) or type(res.content[0]) is not dict:
-            return "No match for '%s' from %s" % (word, res.name)
+            return "No match for '%s' from %s" % (w, res.name)
         d0 = res.content[0]
         return "From %s: %s: %s" % (
             res.name,
             d0["hwi"]["hw"],
             d0['shortdef'][0]
         )
+
+
 
 """for later
 

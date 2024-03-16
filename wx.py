@@ -2,6 +2,8 @@
 ## weatherbot
 ##
 from .netsource import NetSource
+from .dispatch import tbroute, tbhelp
+from .location import Location
 
 class WxSource (NetSource):
     name = "Nat'l Wx Svc"
@@ -18,37 +20,53 @@ class WxSource (NetSource):
             'FcstType': "json"
         }
 
-def wx_parse(wxjson, days=3):
-    """Create a human-readable weather report from NWS JSON
-    """
-    if 'time' not in wxjson: return 'no data'
-    labels = wxjson['time']['startPeriodName']
+    def toSMS(self, days=3):
+        """Create a human-readable weather report from NWS JSON
+        """
+        if self.err: return self.err
 
-    rpt = "%s\n%s\n" % (
-        wxjson['location']['areaDescription'],
-        wxjson['creationDateLocal']
-    )
-    for i in range(days*2):
-        rpt+="%s: %s \n\n" % (labels[i], wxjson['data']['text'][i])
+        wxjson = self.content
+        if 'time' not in wxjson: return 'no data'
+        labels = wxjson['time']['startPeriodName']
 
-    replaces = {'A chance of': 'Chance',
-        ' percent':'%', 'around ': '~', ' to ': '-',
-        'Southeast': 'SE', 'Northeast': 'NE',
-        'Southwest': 'SW', 'Northwest': 'NW',
-        'southeast': 'SE', 'northeast': 'NE',
-        'southwest': 'SW', 'northwest': 'NW',
-        'East': 'E', 'West': 'W', 'South': 'S', 'North': 'N',
-        'Monday': 'Mon', 'Tuesday': 'Tue', 'Wednesday': 'Wed',
-        'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat',
-        'Sunday': 'Sun', 'Night': 'PM',
-        'thunderstorm': 't-storm', 'Chance of precipitation is': 'PoP'}
-    for orig,new in replaces.items():
-        rpt = rpt.replace(orig,new)
+        rpt = "%s\n%s\n" % (
+            wxjson['location']['areaDescription'],
+            wxjson['creationDateLocal']
+        )
+        for i in range(days*2):
+            rpt+="%s: %s \n\n" % (labels[i], wxjson['data']['text'][i])
 
-    return rpt[:1500]
+        replaces = {'A chance of': 'Chance',
+            ' percent':'%', 'around ': '~', ' to ': '-',
+            'Southeast': 'SE', 'Northeast': 'NE',
+            'Southwest': 'SW', 'Northwest': 'NW',
+            'southeast': 'SE', 'northeast': 'NE',
+            'southwest': 'SW', 'northwest': 'NW',
+            'East': 'E', 'West': 'W', 'South': 'S', 'North': 'N',
+            'Monday': 'Mon', 'Tuesday': 'Tue', 'Wednesday': 'Wed',
+            'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat',
+            'Sunday': 'Sun', 'Night': 'PM',
+            'thunderstorm': 't-storm', 'Chance of precipitation is': 'PoP'}
+        for orig,new in replaces.items():
+            rpt = rpt.replace(orig,new)
 
+        return rpt[:1500]
 
-def wxFromLocation(loc):
-    resp = WxSource(loc)
-    if resp.err: return resp.err
-    return wx_parse(resp.content)
+@tbroute('wx', 'weather')
+@tbhelp(
+"""wx -- get a 3 day weather report from US NWS.
+
+You can say something like:
+ 'wx New York City' or 
+ 'wx denver, co'
+""")
+def wx(req):
+    loc = None
+    if len(req.args):
+        loc = Location.fromInput(req.args, req.user)
+    elif req.user:
+        loc = Location.lookup("here", req.user)
+    if not loc:
+        return "Weather report for where?"
+    return WxSource(loc).toSMS()
+

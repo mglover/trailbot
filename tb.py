@@ -15,8 +15,6 @@ from .core import *
 from .dispatch import dispatch, tbroute, tbhelp, TBResponse, getAction
 
 from .location import Location
-from . import word
-from .wx import wxFromLocation
 from .user import User, UserDatum, NotRegisteredError
 from .group import Group
 from . import nav
@@ -93,35 +91,12 @@ def help(req):
         msg = render_template('help.txt')
     return msg
 
-@tbroute('wx', 'weather')
-@tbhelp(
-"""wx -- get a 3 day weather report from US NWS.
-
-You can say something like:
- 'wx New York City' or 
- 'wx denver, co'
-""")
-def wx(req):
-    loc = None
-    if len(req.args):
-        loc = Location.fromInput(req.args, req.user)
-    elif req.user:
-        loc = Location.lookup("here", req.user)
-    if not loc:
-        return "Weather report for where?"
-    return wxFromLocation(loc)
 
 
-@tbroute('word')
-@tbhelp(
-"""word -- look up a word in a dictionary
+from .wx import wx
+from .word import define
 
-You can say something like:
-  'word Hello'
-  'word brontosaurus'
-""")
-def define(req):
-    return word.define(req.args)
+
 
 @tbroute('register')
 @tbhelp(
