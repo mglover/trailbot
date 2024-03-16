@@ -35,7 +35,9 @@
       </div>
       <div class="caption">
         {{descrip}}
-        <span class="price">${{price}}</span>
+        {% if price: %}
+          <span class="price">${{price}}</span>
+        {% endif %}
     </dd>
   {% endfor %}
   </dl>
