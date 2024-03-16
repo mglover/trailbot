@@ -1,5 +1,6 @@
 {
     "title": "Earbuddies",
+    "toplevel": false,
     "items": [
         ["earbuddy_open2.jpg", "tuck the earbuds in the pocket"],
         ["earbuddy_open1.jpg", "wrap the wires around"],

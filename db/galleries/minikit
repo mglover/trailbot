@@ -1,5 +1,6 @@
 {
   "title": "MiniKit",
+  "toplevel": false,
   "items": [
     ["minikit_closed.jpg","A little folding tool kit"],
     ["minikit_closed2.jpg","In hand waxed vegtan"],

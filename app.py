@@ -63,9 +63,11 @@ def news():
 def gallery_list():
     gdir = os.path.join(config.DB_ROOT, 'galleries')
     gallery = []
-    for g in os.listdir(gdir):
+    dirls = os.listdir(gdir)
+    dirls.sort()
+    for g in dirls:
         p = getPreview(g)
-        if p : gallery.append(p)
+        if p and  p['toplevel']: gallery.append(p)
     args = {'items':gallery, 'title':"Photo Galleries"}
     return render_template('gallery.html', args=args)
 
