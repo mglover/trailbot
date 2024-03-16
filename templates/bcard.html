@@ -1,88 +1,128 @@
+<!DOCTYPE html>
 <html>
 <head>
 <style>
 @media print {
   body {
-    size: 2.25in 3.75in;
+    margin: 0;
+  }
+  .buttons {
+    display: none;
+  }
+  .card {
+    color: #241;
+    background: white;
+    margin: 0;
+  }
+  .revert {
+    background: white;
+  }
+  .invert {
+    background: #241;
+    color: white;
+  }
+  #logo {
+    height: 1.5in;
+  }
+  #pack {
+    stroke: white;
+  }
+  #bg{
+    fill: #241;
   }
 }
-
+@media screen {
+  .card {
+    background: #946d46;
+    color: #183808;
+  }
+  .invert {
+    background: #183808;
+    color: #946d46;
+  }
+  .revert {
+    color: #183808;
+    background: #946d46;
+  }
+  #pack {
+    stroke: #946d46;
+  }
+  #bg{
+    fill: #183808;
+  }
+}
+ul {
+  padding: 0;
+}
 .card {
-  width: 2.25in;
-  height: 3.75in;
+  width: 225px;
+  height: 375px;
   display: inline-flex;
   flex-wrap: wrap;
   flex-direction: column;
   text-align: center;
   align-content: center;
-  margin: .25in;
-  background: #946d46;
-  color: #241;
+  font-family: serif;
 }
+.invert,.revert {
+  padding: 0 25px;
+}
+.first {
+  padding-top: 25px;
+}
+.last {
+  padding-bottom: 25px;
+}
+
 #front {
   justify-content: space-between;
 }
 #back {
-  justify-content: space-around;;
-}
-.revert {
-  padding: .125in;
-}
-.invert {
-  background: #241;
-  color: #946d46;
-  padding: .125in;
+  justify-content: space-between;
 }
 
 #fn{
-  padding-top: .25in;
   font-size: 16pt;
 }
 #role {
-  font-size: 11pt;
+  font-size: 14pt;
+  font-style: italic;
 }
 .tn {
   font-weight: bold;
 }
-#about {
-  padding: 0 .125in;
-  font-size: 13pt;
-}
-#about ul {
-  margin: 12pt;
+#products {
+  font-size: 14pt;
+  margin: 6pt;
   list-style-type: none;
-  padding: 0;
+}
+#tagline {
+  padding: 0 25px;
+  font-size: 12pt;
+  margin: 6pt;
 }
 #contact {
   font-weight: bold;
-  padding-bottom: .25in;
-  font-size: 16pt;
+  font-size: 18pt;
 }
 
 .bn {
+  width: 175px;
   font-weight: bold;
   font-size: 24pt;
-  padding: 0.125in;
 }
 .tld {
-  font-size: 11pt;
+  font-size: 14pt;
 }
 #foo {
-  height: 2in;
+  height: 175px;
   stroke: transparent;
   fill: transparent;
 }
-#bg{
-  fill: #241;
-}
 #pack {
   stroke-width: 5;
-  stroke: #241;
-  stroke: #946d46;
   fill: transparent;
   stroke-linecap: round;
-  }
-.invert #pack {
 }
 </style>
 </head>
@@ -91,24 +131,25 @@
 <body>
 <div id="front" class="card">
 
-  <div id="fn" class="invert">
+  <div id="fn" class="invert first">
     Mike
     <span class="tn">"Old Skool"</span>
     Glover
     <div id="role">
       Owner, Shoemaker, and Leatherworker
-    </div>  </div>
-
-
-  <div id="about" class="revert">
-    <ul>
-      <li> Hiking Boots 
-      <li> Turnshoes 
-      <li> Leather Goods
-    </ul>
-    Custom footwear and original designs, handmade in leather.
+    </div>  
   </div>
-  <div id="contact" class="invert">
+
+  <ul id="products" class="revert">
+    <li> Hiking Boots 
+    <li> Turnshoes 
+    <li> Leather Goods
+  </ul>
+  <div id="tagline">
+     Custom footwear and original designs, handmade in leather.
+  </div>
+
+  <div id="contact" class="invert last">
     <div class="phone">971 336 4571</div>
   </div>
 
@@ -116,14 +157,15 @@
 
 <div id="back" class="card">
 
-  <div class="bn revert">Old Skool</div>
+  <div class="bn revert first">Old Skool</div>
+
   <svg id="foo" class="revert"  viewBox="2 -13 86 125">
     <use xlink:href="{{url_for('static', filename='logo.svg', 
         _external=True)}}#logo"/>
   </svg>
 
-  <div class="bn revert">
-    Trail Goods
+  <div class="revert last">
+    <div class="bn">Trail Goods</div>
     <span class="tld">.com</span>
   </div>
 
