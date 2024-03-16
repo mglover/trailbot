@@ -16,27 +16,40 @@ url_for('welted') }}">hiking boots</a>.
 <img class="inline" src="{{ static('before.jpg') }}">
 
 
-Since then, those boots and I have hiked 2,500 miles together: Santiam, 
-Ore. to South Lake Tahoe, Cali. on the Pacific Crest Trail, Denver to 
-Leadville on the Colorado Trail, and Springer Mtn., Ga. to 
-Bennington, VT on the Appalachan Trail. They've been resoled four times,
-and are still going strong (yes, those are the same shoes! check out 
-that patina!):
+Since then, those boots and I have hiked 2,500 miles together: 
+<ul class="sleek">
+<li>Santiam, Ore. to South Lake Tahoe, Cali. on the Pacific Crest Trail,
+<li>Denver to Leadville on the Colorado Trail, and 
+<li>Springer Mtn., Ga. to Bennington, VT on the Appalachan Trail. 
+</ul>
+
+<p>
+I picked up the trail name "Old Skool" along the way -- I think the 
+boots helped win that name, but the real credit goes to my pack:
+
+<img class="inline" src="{{static('oldskool.jpg')}}">
+
+<p>
+I've resoled the boots four times, one time on trail, at the Burney 
+Mountain Guest Ranch in California.  I still wear them every day to 
+work.  Check out that patina:
 
 <img class="inline" src="{{ static('after.jpg') }}">
 
-I've also designed a series of small <a href="{{ url_for('goods') 
-}}">leather goods</a> that I've taken on my travels:
+Over the past ten years, I've also designed lots of other small useful 
+<a href="{{ url_for('goods')}}">leather goods</a> that I've taken on my 
+travels:
 
 <img class="inline" src="{{ static('goods.jpg') }}">
 
 <p>
-I'm Old Skool, so I'm taking orders by email and text only.  
+Because I'm Old Skool, I'm taking orders by email and text only.  
 </p>
  
-
 </p>
 </div>
-
+<div id="footmenu">
+{{menus()}}
+</div>
 {% endblock %}
 

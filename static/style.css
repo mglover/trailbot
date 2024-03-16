@@ -35,10 +35,15 @@
   #mast hr {
     display: none;
   }    
-  #menu {
-    display: inline;
+  .menu {
+    text-align: center;
+    margin: 0 auto;
   }
-  #menu li{
+  .menu ul {
+    display: inline;
+
+  }
+  .menu li {
     display: inline-block;
     font-size: 110%;
     margin: 0 1em;
@@ -132,3 +137,14 @@ ul li {
   margin: 0.5em 0; 
 }
 
+ul.sleek {
+  list-style-type: none;
+  padding: 0 4em;
+  margin:     margin: 0 1em;
+  }
+ 0;
+}
+
+ul.sleek li {
+  margin: 0;
+}
