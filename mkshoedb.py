@@ -29,7 +29,7 @@ heel = ["Heel Stiffener"]
 eva = ["EVA Midsole"]
 cork = ["Cork Midsole"]
 
-hiker=welt+vegtan+ankle+derby+cork+heel
+hiker=welt+vegtan+ankle+derby+cork
 
 products =[
     ('#welted', mkprice(hiker), 'Welted derby ankle boot', 'before.jpg'),
