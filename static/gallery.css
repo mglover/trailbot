@@ -14,7 +14,7 @@ span {
 h2 {
     text-align: center;
     padding: 0;
-    margin: 0;
+    margin: 1em 0;
 }
 
 .hidden,#overlay.hidden {
@@ -32,9 +32,8 @@ h2 {
 
 #gallerymain .slug {
     max-width: 30em;
-    margin: auto;
+    margin: 1em auto;
     text-align: center;
-    padding: 1em 0;
 }
 .gallery {
     background:#3f2b18;
