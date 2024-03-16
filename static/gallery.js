@@ -6,7 +6,7 @@
 
 window.onload = function () {
     elOverlay = document.getElementById("overlay");
-    elBody = document.getElementById("gallerymain");
+    elBody = document.getElementById("container");
     elPrev = document.getElementById("prev");
     elNext = document.getElementById("next");
     elClose = document.getElementById('close');
