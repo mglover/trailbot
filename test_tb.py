@@ -263,8 +263,21 @@ class TestNav(TBTest):
     def test_drive_no_there(self):
         self.assertError(self.req1("drive from olympia, wa"))
 
-class TestGroupCreate(TBTest):
+class TestWord(TBTest):
+    def testGoodWord(self):
+        res = self.req1("word dog")
+        self.asssertStartsWith(res, "From Merriam-Webster's Collegiate Dictionary: dog: a carnivorous ")
 
+    def testBadWord(self):
+        res = self.req1("word xxyzx")
+        self.assertStartsWith(res, "No match found for ")
+
+    def testNoWord(self):
+        res = self.req1("word")
+        self.assertStartsWith(res, "Which word")
+
+
+class TestGroupCreate(TBTest):
     def tearDown(self):
         self.req1('ungroup #chat1')
         super().tearDown()
@@ -387,6 +400,8 @@ class TestHelpLen(unittest.TestSuite):
         for cmd,fxn in routes:
             if cmd in self.skips: continue
             self.addTest(self.mkchecklen(cmd, fxn))
+
+
 
 if __name__ == '__main__':
     unittest.main()
