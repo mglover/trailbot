@@ -74,8 +74,8 @@ def welted():
 def turnshoes():
     entry=turn
     products = [
-        ('',mkprice(entry),'Low-cut front seam','turnshoes_jpg.jpg'),
-        ("",mkprice(entry+ankle),'Front seam ankle boot','trailshoe.jpg'),
+        ('',mkprice(entry),'Low-cut Carolingian','turnshoes_jpg.jpg'),
+        ("",mkprice(entry+ankle),'Carolingian ankle boot','trailshoe.jpg'),
         ('',mkprice(entry+derby),'Low-cut derby','turnshoes_liz.jpg'),
         ]
     return render_template('turnshoes.html', title='Turnshoes',
