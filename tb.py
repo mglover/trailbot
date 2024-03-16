@@ -72,12 +72,13 @@ def help(req):
 
 @tbroute('wx')
 def wx(req):
+    loc = None
     if len(req.args):
         loc = Location.fromInput(req.args, req.user)
     elif req.user:
         loc = Location.lookup("here", req.user)
     if not loc:
-        return twiML("Weather report for where?")
+        return "Weather report for where?"
     return wxFromLocation(loc)
 
 @tbroute('reg')
@@ -171,6 +172,9 @@ def tbt(req):
     if req.user:
         here = Location.lookup("here", req.user)
         there = Location.lookup("there", req.user)
+    else:
+        here = None
+        there = None
 
     parts = turns.parseRequest(req.args, ('to', 'from'))
     locs = dict(
@@ -234,7 +238,7 @@ def saveloc(req):
 @tbroute('share','unshare')
 def sharing(req):
     if not req.user:
-        raise RegistrationRequiredError('to share data')
+        raise RegistrationRequired('to share data')
     parts = req.args.split()
     if len(parts) == 1:
         nam = parts[0]
@@ -252,6 +256,7 @@ def sharing(req):
         req.user.unshareObj(nam, spec)
         return "Success. Unshared %s with %s" % (nam, spec)
 
+@tbroute('@.*')
 def dm(req):
     if not req.user:
         raise RegistrationRequired("to send direct messages")
