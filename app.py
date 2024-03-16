@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, url_for, send_from_directory
 from flask.views import View
 
 import os, json
+from datetime import datetime
 
 import config,smswx
 from db import getdb
@@ -52,11 +53,38 @@ def news():
     for n in news:
         f = os.path.join(newsdir, n)
         data = json.load(open(f))
-        data['created'] = os.stat(f).st_ctime
-        data['updated'] = os.stat(f).st_mtime
+        data['created'] = datetime.fromtimestamp(
+            os.stat(f).st_mtime).strftime("%d %B %Y")
         articles.append(data)
 
     return render_template('news.html', articles=articles)
+
+
+def getGallery(gname):
+    try:
+        gfile = os.path.join(config.DB_ROOT, 'galleries', gname)
+        return json.load(open(gfile))
+    except FileNotFoundError:
+        abort(404)
+
+@app.route('/gallery/<gname>')
+def gallery(gname):
+    data = getGallery(gname)
+    return render_template('gallery.html', gallery=data['items'],
+        title=data['title'])
+
+@app.route('/gallery')
+def metagallery():
+    gdir = os.path.join(config.DB_ROOT, 'galleries')
+    gallery = []
+    for g in os.listdir(gdir):
+        data = getGallery(g)
+        first_photo = data['items'][0][0]
+        caption = data['title']
+        link = url_for('gallery', gname=g)
+        gallery.append({first_photo,caption, link})
+    return render_template('gallery.html', gallery=gallery,
+        title="Photo Galleries")
 
 @app.route('/goods')
 def goods():

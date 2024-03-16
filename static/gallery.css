@@ -1,0 +1,103 @@
+/*
+    gallery.css    Mike Glover <mglover@pobox.com>
+    this file ontols the look of the gallery pages (colors, size and 
+    layout of images, etc.
+*/
+
+body {
+    margin: 0;
+}
+
+span {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+}
+h2 {
+    text-align: center;
+    padding: 0;
+    margin: 0;
+}
+
+.hidden,#overlay.hidden {
+    display: none;
+}
+
+.fade {
+    opacity: 50%;
+}
+
+#gallerymain {
+    margin: 0;
+    height: 100%;
+}
+
+#slideshow {
+    padding: 3%;
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-end;
+    z-index: 0;
+    width: 100%;
+}
+#slideshow .photo {
+    margin: 7vw;
+}
+#slideshow .photo img {
+    display: block;
+    margin: auto;
+    max-height: 40vh;
+    max-width: 13em;
+    border: 2px solid black;
+}
+#slideshow .photo span {
+    margin-top: 5px;
+    padding: 0;
+    max-width: 13em;
+}
+
+#overlay {
+    position: fixed;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+    top: 5vh;
+    left: 5%;
+    height: 80vh;
+    width: 80%;
+    padding: 2%;
+    border: 3px solid black;
+    z-index: 100;
+}
+#overlay img {
+    clear: both;
+    display: block;
+    max-height: 70vh;
+    max-width: 70%;
+    margin: auto;
+}
+#overlay span {
+    display: block;
+    text-align: center;
+}
+#overlay .nav {
+    display: block;
+    margin: 0 auto;
+    max-width: 70%;
+}
+#close {
+    position: fixed;
+    top: 7vh;
+    right: 12%;
+    color: black;
+    font-family: sans;
+    padding: 0 .2em;
+    border: 2px solid black;
+    border-radius: 10px;
+}
+#close:hover {
+    background: black;
+    color: #c0af98;
+}

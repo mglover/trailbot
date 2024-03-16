@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% block js %}
+<script src="{{static('gallery.js')}}"></script>
+{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="{{static('gallery.css')}}">
+{% endblock %}
+{% block main %}
+
+<div id="overlay" class="hidden">
+    <div id="close">X</div>
+    <div class="photo">
+        <img/>
+        <span class="caption"></span>
+    </div>
+    <div class="nav">
+        <button id="prev">Prev</button>
+        <button id="next">Next</button>
+    </div>
+</div>
+<div id="gallerymain">
+    <div id="slideshow">
+    {% for item in gallery: %}
+        <div class="photo">
+            <img src="{{static(item[0])}}">
+            {% if item|length > 2: %}
+                <a href="{{item[2]}}">
+            {% endif %}
+            <span class="caption">{{item[1]}}</span>
+            {% if item|length > 2: %}
+                </a>
+            {% endif %}            
+        </div>
+    {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
