@@ -1,4 +1,4 @@
-Trailbot:  msg = Success: @{{u.handle}} registered.
+TrailBot: Success: @{{handle}} registered.
 
 To set your first status update,
  say 'status Your First Status'
