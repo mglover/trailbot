@@ -8,6 +8,12 @@
       margin: 1in;
     }
   }
+  ul {
+    padding: 0 2em;
+  }
+  ul li { 
+    margin: 0.5em 0; 
+  }
   li {
     page-break-inside: avoid;
   }
@@ -32,12 +38,28 @@
   #masthead a {
     color: #ca3;
 }
+  #footmenu {
+    text-align: center;
+  }
+  #footer {
+    max-width: 75%;
+    margin: 0 auto;
+    text-align: center;
+  }
+  #footer address{
+    display: inline;
+  }
+  #footer address a {
+    display: inline-block;
+    margin: 0.3em 2em;
+  }
   .menu {
     text-align: center;
     margin: 0 auto;
   }
-  .menu ul {
+  ul.menu {
     display: inline;
+    margin: 0;
   }
   .menu li {
     display: inline-block;
@@ -55,23 +77,11 @@
     font-weight: bold;
     font-style: normal;
   }
-  .slideshow .detail,.slideshow.shoes {
+  .slideshow .detail.slideshow.shoes {
     background:#3f2b18;
   }
 }
 
-#footer {
-  max-width: 75%;
-  margin: .5em  auto;
-  text-align: center;
-}
-#footer address{
-  display: inline;
-}
-#footer address a {
-  display: inline-block;
-  margin: 0.3em 2em;
-}
 
 h1 {
   font-size: 125%;
@@ -79,12 +89,28 @@ h1 {
 h2 {
   text-align: center;
 }
+address {
+  margin-bottom: 1em;
+}
+code {
+  background: #224;
+  margin-left: 2em;
+  width: 50%;
+  display: block;
+  padding: .5em;
+  margin: 1em;
+  border-radius: 3px;
+}
+ul {
+  padding: 0;
+  padding-bottom: 1em;
+}
+ul li {
+  margin: 0.2em 0;
+}
 
 .main {
-  padding: 0 1em;  
-}
-.main address {
-  padding-left: 2em; 
+  margin: 0 1em;  
 }
 
 .storytime {
@@ -111,12 +137,12 @@ h2 {
 .footnotes {
   max-width: 40em;
   margin: auto;
-  padding-bottom: 2em;
+  margin--bottom: 1em;
 }
 .footnotes dt {
   font-size: 110%;
   font-weight: bold;
-  padding-top: 1em;
+  margin-bottom: 1em
 }
 .footnotes dd {
   margin: 0;
@@ -124,13 +150,9 @@ h2 {
 }
 .footnotes ul {
   list-style-type: none;
-  padding: 1em 0;
   margin: 0;
 }
-.footnotes ul li {
-  margin: 0;
-  padding: 0.2em;
-}
+
 .slideshow{
   text-align: center;
   align: center;
@@ -175,19 +197,3 @@ h2 {
   font-weight: bold;
 }
 
-code {
-  background: #224;
-  margin-left: 2em;
-  width: 50%;
-  display: block;
-  padding: .5em;
-  margin: 1em;
-  border-radius: 3px;
-}
-
-ul {
-  padding: 0 2em;
-}
-ul li { 
-  margin: 0.5em 0; 
-}
