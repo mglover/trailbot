@@ -58,7 +58,7 @@ class UserDatum(object):
         self.nam = nam
         self.path = os.path.join(self.user.dbfile('saved'), self.nam)
         if not os.path.exists(self.user.dbfile('saved')):
-            os.mkdir(self.savdb)
+            os.mkdir(self.user.dbfile('saved'))
 
     def save(self):
         if self.bytes:
