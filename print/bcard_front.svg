@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   width="2.25in"
+   height="3.75in"
+   viewBox="0 0 225 375"
+   version="1.1"
+   id="svg6194"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <style>
+    #bleed {
+        fill: transparent;
+        stroke: #eee;
+        stroke-width: 25;
+        opacity: 0.5;
+    }
+
+    #revert {
+      fill:#183808;
+      fill-opacity: 1;
+      fill-rule: nonezero;
+      stroke-width: 0.75;
+      font-family:serif;
+    }
+    #mask_circle {
+        fill: white;
+    }
+    #pack_paths {
+      stroke: #000;
+      stroke-width: 4;
+      stroke: black;
+      fill: none;
+      stroke-linecap: round;
+    }
+    #tld {
+      font-size: 14pt;
+    }
+    #os,#tg {
+      font-size: 24pt;
+      font-weight: bold;
+    }
+  </style>
+
+  <defs>
+    <mask id="pack">
+      <circle id="mask_circle" cx="112.5" cy="182.5" r="87.5"/>
+      <g id="pack_paths" transform="scale(1.4),translate(35,78)">
+        <path id="t" d="M43.5,25.5 C 43 -3, 90 0, 79 43.5"/>
+        <path id="b" d="M17,66 C 13 57, 12 60, 24 40 C 37 15, 82 22, 50.2 51"/>
+        <path id="p" d="M35,71 C 45 50, 80 25, 74 50"/>
+        <path id="f" d="M38,95 L85.5,36"/>
+        <path id="c" d="M42,73.5 C 5 57, 6 75, 7 80 Q 7 85, 37 91"/>
+        <ellipse id="cf" cx="40" cy="82.5"  rx="5" ry="9" 
+            transform="rotate(15, 40, 82.5)" />
+      </g>
+    </mask>
+  </defs>
+
+  <g id="card">
+  <g id="revert">
+    <text
+       x="43"
+       y="59"
+       id="os">
+        Old Skool
+    </text>
+    <text
+       id="tg"
+       class="text"
+       x="32"
+       y="325">
+       Trail Goods
+    </text>
+    <text id="tld"
+        x="90"
+        y="345">
+        .com
+    </text>
+      <circle cx="112.5" cy="182.5" r="87.5" id="logo_circle"
+          mask="url(#pack)"/> 
+
+  </g>
+
+    <!--rect id="bleed" x="0" y="0" height="375" width="225"-->
+    }
+  </g>
+</svg>

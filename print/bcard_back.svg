@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<svg
+   width="2.25in"
+   height="3.75in"
+   viewBox="0 0 225 375"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <style>
+    #bleed {
+        fill: transparent;
+        stroke: #eee;
+        stroke-width: 50;
+        opacity: 0.5;
+    }
+
+    #revert,#invert {
+      fill: #183808;
+    }
+
+    #revert,#top,#bottom {
+      font-family: serif;
+    }
+
+    #bottom_mask,#top_mask {
+        fill: #fff
+    }
+
+    #role {
+        font-style: italic;
+        font-size: 14pt;
+    }
+    #fn,#phone {
+      font-size: 16pt;
+    }
+    #tn,#phone {
+        font-weight: bold;
+    }
+    #prod {
+        font-size: 14pt;
+    }
+    #svcs {
+      font-size: 12pt;
+    }
+  </style>
+
+  <defs>
+    <mask id="top">
+      <rect id="top_mask"
+         x="0" y="0"
+         width="225"
+         height="116"
+      />
+      <g id="fn">
+        <text x="29" y="48">
+          Mike</text>
+        <text id="tn" x="80" y="48">
+           &quot;Old Skool&quot;</text>
+        <text x="80" y="68">
+           Glover</text>
+      </g>
+
+      <g id="role">
+        <text x="40" y="90">
+          Owner, Shoemaker,</text>
+        <text x="40" y="108">
+          and Leatherworker</text>
+      </g>
+    </mask>
+
+    <mask id="bottom">
+      <rect id="bottom_mask"
+        x="0" y="310"
+        width="225" height="65"
+      />
+      <text id="phone" x="53" y="332">
+       971 336 4571</text>
+
+    </mask>
+
+
+  </defs>
+  <g id="card">
+  <g id="revert">
+    <g id="prod">
+      <text x="55" y="160">
+        Walking Boots</text>
+      <text x="72" y="180">
+        Turnshoes</text>
+      <text  x="55" y="200">
+         Leather Goods</text>
+    </g>
+
+    <g id="svcs">
+      <text x="42" y="240">
+        Custom footwear and</text>
+      <text x="58" y="259">
+        original designs,</text>
+      <text x="44" y="278">
+        handmade in leather.</text>
+    </g>
+
+  </g>
+
+  <g id="invert">
+    <rect id="top_color"
+      x="0" y="0"
+      width="225"
+      height="115" 
+      mask="url(#top)"/>
+
+    <rect id="bottom_color"
+      x="0" y="300"
+      width="225"
+      height="75" 
+      mask="url(#bottom)"/>>
+  </g>
+  </g>
+  <!--rect x="0" y="0" height="375" width="225" id="bleed" /-->
+
+</svg>
