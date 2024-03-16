@@ -7,13 +7,6 @@ routes = []
 class EmptyRequest(TBError):
     msg = "No request"
 
-class RegistrationRequired(TBError):
-    msg = \
-"""You must register a @handle %s
-
-To register a handle, choose @YourNewHandle
-and say 'reg @YourNewHandle"""
-
 
 class TBRequest(object):
     def __init__(self, frm, cmd, args):
@@ -79,16 +72,6 @@ class TBResponse(object):
         resp+= "</Response>"
         return str(resp)
 
-
-def needsreg(reason):
-    def fxn(inner):
-        def require(req, *args, **kwargs):
-            if not req.user:
-                raise RegistrationRequired(reason)
-            return inner(req, *args, **kwargs)
-        return require
-    return fxn
-
 def tbroute(*specs):
     def fxn(cmd, *args, **kwargs):
         for spec in specs:
@@ -97,13 +80,6 @@ def tbroute(*specs):
         return cmd
     return fxn
 
-def tbhelp(helpmsg):
-    def fxn(cmd, *args, **kwargs):
-        cmd._help = helpmsg
-        print("fxn %s has help %s" % (cmd, help))
-        return cmd
-
-    return fxn
 
 def getAction(search_cmd):
     for spec_re, cmd in routes:
