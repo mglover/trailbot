@@ -1,12 +1,11 @@
 {% set title="Add product" %}
 {% extends 'layout.html' %}
-{% import 'form_macros.html' as form %}
 {% block main %}
-<a href="{{url_for('index')}}">Edit Products</a>
-{{ form.begin(product, action="append") }}
-Product Name: <input name="pnam">
-{{ form.header(product.cols)}}
-{{ form.dbtable(product) }}
+<a href="{{url_for('pricing.index')}}">Edit Products</a>
+{{ form.begin(product.table, action="append")|safe }}
+Add Product: {{pnam}}
+{{ form.table(product.rows, product.cols)|safe }}
+{{ form.submit("Add Product")|safe }}
 
-{{ form.end() }}
+{{ form.end()|safe }}
 {% endblock %}

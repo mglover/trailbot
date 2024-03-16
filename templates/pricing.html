@@ -1,25 +1,28 @@
 {% set title="Pricing Calculator" %}
 {% extends 'layout.html' %}
-{% import 'form_macros.html' as form %}
 {% block main %}
 
-
 <h4>Components</h4>
-{{ form.begin(components.table) }}
-{{ form.dbtable(components) }}
-<input type=submit name="{{components.dbnam}}" value="Update Components">
-{{ form.end() }}
+{{ form.begin(components.table)|safe }}
+{{ form.table(components.rows, components.cols)|safe }}
+{{ form.submit("Update Components")|safe }}
+{{ form.end()|safe }}
 <hr/>
-
+{{html}}
 <h4>Products</h4>
-<a href="{{url_for('new')}}">New Product</a>
-{{ form.begin(pricing.table) }}
-{% for pnam, rows in pricing.groupBy("Product").items() %}
-  <h4>{{pnam}}: {{rows.total()}}</h4>
-  {{ form.dbtable(rows) }}
-  <input type=submit name="{{pricing.dbnam}}" value="Update Products">
+
+<form method="GET" action="{{url_for('pricing.new')}}">
+Add Product, Name: <input name="pnam"></form>
+<input type="submit" value="Add">
+</form>
+
+{{ form.begin(pricing.table)|safe }}
+{% for pnam, grp in pricing.groupBy("Product").items() %}
+  <h4>{{pnam}}: {{grp.total()}}</h4>
+  {{ form.table(grp.rows,pricing.cols)|safe }}
+  {{ form.submit("Update Products")|safe }}
 {% endfor %}
-{{ form.end() }}
+{{ form.end()|safe }}
 <hr/>
 
 {% endblock %}
