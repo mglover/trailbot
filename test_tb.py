@@ -4,7 +4,7 @@ from base64 import b64encode
 from bs4 import BeautifulSoup
 from flask import Flask
 
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from trailbot import tb
 
 
