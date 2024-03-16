@@ -218,7 +218,7 @@ def sms_reply():
                 nam = cmd
                 q = args
             loc = Location.fromInput(q, user)
-            user.saveObj(nam, loc)
+            user.saveObj(nam.lower(), loc)
 
             msg= "Success. '%s' is set to:" % nam
             msg+="\n"+loc.toSMS()

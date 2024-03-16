@@ -156,7 +156,7 @@ class Location(UserObj):
         parts = str.split()
 
         if len(parts)==1:
-            ud = cls.lookup(str, user)
+            ud = cls.lookup(str.lower(), user)
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
             if len(parts[0])==5 and parts[0].isdigit():
