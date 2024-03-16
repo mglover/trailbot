@@ -5,6 +5,7 @@
 from .core import TBError, parseArgs
 from .netsource import NetSource
 from .location import Location
+from .dispatch import tbroute, tbhelp
 
 class NavMissingFrom(TBError):
     msg = "Err? You have to tell me where you're starting from."
@@ -168,3 +169,34 @@ def getStartEnd(req):
         raise NavMissingTo
 
     return (locs['from'], locs['to'])
+
+
+@tbroute('drive')
+@tbhelp(
+"""drive -- get turn-by-turn directions
+
+You can say something like:
+  'drive to San Francisco from Washington, DC'
+
+Related help: 'here', 'there'
+""")
+def drive(req):
+    loc_a, loc_b = getStartEnd(req)
+    route = Route(loc_a, loc_b, steps=True)
+    return route.toSMS()
+
+
+@tbroute('distance')
+@tbhelp(
+"""distance -- get the road distance and travel time
+
+Say something like:
+  'distance from Empire State Building to Battery Park'
+
+Related help: 'here', 'there'
+""")
+def distance(req):
+    loc_a, loc_b = getStartEnd(req)
+    route = Route(loc_a, loc_b, steps=False)
+    return route.toSMS()
+

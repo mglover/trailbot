@@ -17,7 +17,6 @@ from .dispatch import dispatch, tbroute, tbhelp, TBResponse, getAction
 from .location import Location
 from .user import User, UserDatum, NotRegisteredError
 from .group import Group
-from . import nav
 
 bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
 
@@ -96,6 +95,7 @@ def help(req):
 from .wx import wx
 from .word import define
 from .location import where
+from .nav import drive, distance
 
 @tbroute('register')
 @tbhelp(
@@ -196,35 +196,6 @@ def whoami(req):
     else:
         return "You are not registered"
 
-
-@tbroute('drive')
-@tbhelp(
-"""drive -- get turn-by-turn directions
-
-You can say something like:
-  'drive to San Francisco from Washington, DC'
-
-Related help: 'here', 'there'
-""")
-def drive(req):
-    loc_a, loc_b = nav.getStartEnd(req)
-    route = nav.Route(loc_a, loc_b, steps=True)
-    return route.toSMS()
-
-
-@tbroute('distance')
-@tbhelp(
-"""distance -- get the road distance and travel time
-
-Say something like:
-  'distance from Empire State Building to Battery Park'
-
-Related help: 'here', 'there'
-""")
-def distance(req):
-    loc_a, loc_b = nav.getStartEnd(req)
-    route = nav.Route(loc_a, loc_b, steps=False)
-    return route.toSMS()
 
 
 @tbroute('forget')
