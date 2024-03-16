@@ -1,0 +1,14 @@
+{
+  "title": "Cast & Crew",
+  "slug": "Like Wilson for Tom Hanks, some valued members of my support team have names.  Introducing:",
+  "items": [
+    ["team_disco.jpg","Disco, Chief of Hydration"],
+    ["team_barbie.jpg",
+        "Barbie is always ready for a hot drink and a good time"],
+    ["team_greg.jpg","Greg, keeping it all together"],
+    ["team_nim.jpg", "Nim (say 'neem') helps keep my friends closer"],
+    ["team_henry_juliet.jpg", 
+        "Henry (in the fringe) and Juliet, the best snuggle buddies"],
+    ["team.jpg", "Team Photo!"]
+  ]
+}
