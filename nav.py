@@ -2,10 +2,7 @@
   turns.py
   comvert location pairs to turn-by-turn driving directions
 """
-
-import json
-from urllib.request import urlopen
-
+from .core import proxy
 
 def distanceFromMeters(m):
     miles = m/1609.344
@@ -87,21 +84,28 @@ def fromRoute(route, start=None, end=None):
         msg+='\n'.join([turnFromStep(s) for s in leg['steps']])
         return msg
 
-def fromLocations(loc_a, loc_b, profile):
-    host = "https://router.project-osrm.org"
+def  makeURL(loc_a, loc_b, profile):
     path = "/route/v1/%s/%s;%s" % (
         profile,
         loc_a.toOSRM(),
         loc_b.toOSRM()
     )
-    query = "steps=true&overview=false"
+    return "https://router.project-osrm.org"+path
 
-    url = "%s%s?%s" % (host, path, query)
-    resp = urlopen(url)
-    if  resp.status != 200:
-        raise ValueError(resp.status, resp.body)
+def getResponse(url, query):
+    with proxy.get(url, params=query) as resp:
+        if  resp.status_code != 200:
+            raise ValueError(resp.status, resp.body)
+        return resp.json()
 
-    route = json.load(resp)
+def fromLocations(loc_a, loc_b, profile):
+    url = makeURL(loc_a, loc_b, profile)
+    route = getResponse(url,{"steps":"true", "overview":"false"})
+    return fromRoute(route, start=loc_a.orig, end=loc_b.orig)
+
+def distance(loc_a, loc_b, profile):
+    url = makeURL(loc_a, loc_b, profile)
+    route = getResponse(url,{"steps":"false", "overview":"false"})
     return fromRoute(route, start=loc_a.orig, end=loc_b.orig)
 
 def parseRequest(req, keywords):
@@ -143,9 +147,3 @@ def parseRequest(req, keywords):
             values.append((kw.strip(), req[start:end]))
         return values
 
-if __name__ == '__main__':
-    data = json.load(open('route.json'))
-    print(turnsFromRoute(data, 
-        start="Gila Hot Springs, NM", 
-        end="Farisita, CO")
-    )

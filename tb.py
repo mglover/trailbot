@@ -241,11 +241,19 @@ def where(req):
     loc = Location.fromInput(req.args, req.user)
     return loc.toSMS()
 
-@tbroute('drive', 'bike')
-def tbt(req):
-    if req.cmd == 'drive': profile='car'
-    elif req.cmd == 'bike': profile='bike'
+class NavMissingFrom(TBError):
+    msg = "Err? You have to tell me where you're starting from."
+    msg+="\nsay 'drive from StartLocation to EndLocation'"
+    msg+="\nor say 'here StartLocation'"
+    msg+= "\nthen say 'drive to EndLocation'"
 
+class NavMissingTo(TBError):
+    msg = "Err? You have to tell me where you're going to."
+    msg+="\nsay 'drive toEndLocation from StartLocation'"
+    msg+="\nor say 'there EndLocation'"
+    msg+="\nthen say 'drive from StartLocation'"
+
+def getStartEnd(req):
     if req.user:
         here = Location.lookup("here", req.user)
         there = Location.lookup("there", req.user)
@@ -269,19 +277,25 @@ def tbt(req):
     if 'to' not in locs and there: locs['to'] = there
 
     if not 'from' in locs:
-        msg = "Err? You have to tell me where you're starting from."
-        msg+="\nsay 'drive from StartLocation to EndLocation'"
-        msg+="\nor say 'here StartLocation'"
-        msg+= "\nthen say 'drive to EndLocation'"
-        return msg
-    if not 'to' in locs:
-        msg = "Err? You have to tell me where you're going to."
-        msg+="\nsay 'drive toEndLocation from StartLocation'"
-        msg+="\nor say 'there EndLocation'"
-        msg+="\nthen say 'drive from StartLocation'"
-        return msg
+        raise NavMissingFrom
 
-    msg = nav.fromLocations(locs['from'], locs['to'], profile)
+    if not 'to' in locs:
+        raise NavMissingTo
+
+    return (locs['from'], locs['to'])
+
+@tbroute('drive', 'bike', 'distance')
+def tbt(req):
+    if req.cmd == 'drive': profile='car'
+    elif req.cmd == 'bike': profile='bike'
+    else: profile="car"
+
+    loc_a, loc_b = getStartEnd(req)
+
+    if req.cmd == 'distance':
+        msg = nav.distance(loc_a, loc_b, profile)
+    else:
+        msg = nav.fromLocations(loc_a, loc_b, profile)
     return msg[:1500]
 
 @tbroute('forget')
