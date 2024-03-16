@@ -3,9 +3,10 @@
 import os, csv
 
 from . import config
-from .core import TBError, parseArgs
+from .core import TBError
 from .netsource import NetSource
 from .user import UserObj
+from .dispatch import tbroute, tbhelp
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"
@@ -25,8 +26,6 @@ def isfloat(s):
         return True
     except:
         return False
-
-
 
 
 class Location(UserObj):
@@ -179,5 +178,19 @@ class Location(UserObj):
             return cls.fromShelter(' '.join(parts[1:]))
 
         return cls.fromNominatim(str)
+
+
+@tbroute('where')
+@tbhelp(
+"""where -- lookup a location
+
+You can say something like:
+  'where Empire State Building'
+  'where Denver, CO'
+  'where Pinnacle Bank, Durango, Colorado'
+""")
+def where(req):
+    loc = Location.fromInput(req.args, req.user)
+    return loc.toSMS()
 
 
