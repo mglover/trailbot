@@ -2,7 +2,9 @@
   nav.py
   comvert location pairs to turn-by-turn driving directions
 """
-from .core import TBError, parseArgs, proxy
+from .core import TBError, parseArgs
+from .netsource import NetSource
+from .location import Location
 
 class NavMissingFrom(TBError):
     msg = "Err? You have to tell me where you're starting from."
@@ -85,21 +87,23 @@ def turnFromStep(step, last_step=None):
     return msg
 
 
-class Route(object):
-    baseurl = "https://router.project-osrm.org"
-    source = "OSRM"
+class Route(NetSource):
+    baseUrl = "https://router.project-osrm.org"
+    name = "OSRM"
     params = {'overview': 'false', 'steps': 'false'}
 
-    def __init__(self, *locations, **params):
-        assert len(locations) == 2
-        self.locs = locations
-
+    def makeParams(self, *args, **kwargs):
         params = dict([
             (k, str(v).lower())
-            for k,v in params.items()
+            for k,v in kwargs.items()
             if type(v) in (bool,str)
         ])
         self.params.update(params)
+        return self.params
+
+    def makeUrl(self, *locations, **kwargs):
+        assert len(locations) == 2
+        self.locs = locations
         self.profile = "car"
 
         path = "/route/v1/%s/%s;%s" % (
@@ -107,23 +111,17 @@ class Route(object):
             self.locs[0].toOSRM(),
             self.locs[1].toOSRM()
         )
-        url = self.baseurl+path
-
-        with proxy.get(url, params=self.params) as resp:
-            if  resp.status_code != 200:
-                raise ValueError(resp)
-            self.route =  resp.json()
-
+        return self.baseUrl+path
 
     def toSMS(self):
-        r0 = self.route['routes'][0]
+        r0 = self.content['routes'][0]
         get_steps = self.params['steps'] == 'true'
 
         if get_steps:
             pre = "Driving directions"
         else:
              pre = "Distance"
-        pre+= " courtesy %s" % self.source
+        pre+= " courtesy %s" % self.name
 
         msg= pre + "\nfrom %s\nto %s" % (self.locs[0].orig, self.locs[1].orig)
 
@@ -140,7 +138,6 @@ class Route(object):
 
 
 
-from .location import Location
 def getStartEnd(req):
     if req.user:
         here = Location.lookup("here", req.user)
