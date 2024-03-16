@@ -51,9 +51,10 @@ class Location(object):
             'match':self.match
         })
 
+
     @classmethod
-    def fromJson(cls, json):
-        d = json.loads(json)
+    def fromJson(cls, jsdata):
+        d = json.loads(jsdata)
         return cls(
             d['lat'],
             d['lon'],
@@ -143,12 +144,11 @@ class Location(object):
     def fromInput(cls, str, user=None):
         parts = str.split()
         if user:
-            data = user.getData('location', str)
+            jsdata = user.getBytes(str)
         else:
-            data = None
-
-        if data:
-            return cls.fromJson(data)
+            jsdata = None
+        if jsdata:
+            return cls.fromJson(jsdata)
 
         elif len(parts)==1 \
             and len(parts[0])==5 and parts[0].isdigit():
