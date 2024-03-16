@@ -16,7 +16,7 @@ from .dispatch import TBRequest, TBResponse, getAction, tbroute
 from .location import Location
 from .wx import wxFromLocation
 from .user import User, UserDatum, NotRegisteredError
-from . import turns
+from . import nav
 
 bp = Blueprint('wx', __name__, '/wx')
 
@@ -101,7 +101,7 @@ def help(req):
         msg+= " oldskooltrailgoods.com/trailbot"
     return msg
 
-@tbroute('wx')
+@tbroute('wx', 'weather')
 @tbhelp(
 """wx -- get a 3 day weather report from US NWS.
 
@@ -121,10 +121,10 @@ def wx(req):
 
 @tbroute('register')
 @tbhelp(
-"""reg -- register a TrailBot @handle
+"""register -- register a TrailBot @handle
 
 You can say something like:
- 'reg @YourHandle'
+ 'register @YourHandle'
 """)
 def reg(req):
     u = User.register(req.frm, req.args)
@@ -135,6 +135,14 @@ def reg(req):
     return msg
 
 @tbroute('unregister')
+@tbhelp(
+"""unregister -- delete your TrailBot @handle
+
+Say: 'unregister' or 'unreg'
+
+WARNING: this will immediately delete all of your 
+subscriptionsand saved data.  There is no undo!
+""")
 def unreg(req):
     if not req.user:
         raise NotRegisteredError
@@ -142,6 +150,12 @@ def unreg(req):
     return "Success: @%s unregistered." % req.user.handle
 
 @tbroute('subscribe')
+@tbhelp(
+"""sub(scribe) -- subscribe to a @handle's status updates
+
+Say: 'subscribe @SomeBody'
+To unsubscribe, say: 'unsubscribe @SomeBody'
+""")
 def sub(req):
     subu = User.lookup(req.args)
     subu.subscribe(req.frm)
@@ -173,6 +187,14 @@ def unsub(req):
     return "Success: unsubscribed from @%s" % subu.handle
 
 @tbroute('status')
+@tbhelp(
+"""status -- check or set a status update
+
+To check a @handle's status, say: 'status @handle'
+
+To set your status, say something like:
+'status Wow what a week! Monday was just...'
+""")
 def status(req):
     if not req.args:
         msg = "Err? say status Your new status to set your status"
@@ -204,6 +226,17 @@ def whoami(req):
         return "You are not registered"
 
 @tbroute('where')
+@tbhelp(
+"""where -- lookup a location
+
+You can say something like:
+'where Empire State Building'
+'where Denver, CO'
+'where Portland, Maine'
+'where Pinnacle Bank, Durango'
+'where 1600 Pennsylania Ave, Washington, DC'
+
+""")
 def where(req):
     loc = Location.fromInput(req.args, req.user)
     return loc.toSMS()
@@ -220,7 +253,7 @@ def tbt(req):
         here = None
         there = None
 
-    parts = turns.parseRequest(req.args, ('to', 'from'))
+    parts = nav.parseRequest(req.args, ('to', 'from'))
     locs = dict(
         [(k, Location.fromInput(v, req.user))
             for k,v in parts
@@ -248,7 +281,7 @@ def tbt(req):
         msg+="\nthen say 'drive from StartLocation'"
         return msg
 
-    msg = turns.fromLocations(locs['from'], locs['to'], profile)
+    msg = nav.fromLocations(locs['from'], locs['to'], profile)
     return msg[:1500]
 
 @tbroute('forget')
