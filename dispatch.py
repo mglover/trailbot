@@ -117,7 +117,8 @@ def dispatch(request):
         msg = str(e)
 
     if msg is None:
-        abort(500)
+        msg = "This is TrailBot:  something strange happened, "
+        msg+= " I don't know how to respond. Try again?"
 
     if type(msg) == TBResponse:
         resp = msg
