@@ -20,7 +20,7 @@ class TBSession (Session):
                 'https': config.PROXY
              }
         except AttributeError: 
-            pass
+            self.proxies = None
         self.verify = False
         self.headers = {
             "User-Agent": "TrailBot 1.4",
