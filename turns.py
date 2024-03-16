@@ -74,7 +74,7 @@ def turnFromStep(step, last_step=None):
 
 def turnsFromRoute(route, start=None, end=None):
     r0 = route['routes'][0]
-    msg= "Turn directions from OSRM"
+    msg= "Turn directions courtesy OSRM"
     msg+="\nfrom %s\nto %s" % (start, end)
 
     msg+="\n%s: %s" % (
