@@ -44,21 +44,6 @@ def twiMsg(msg, to=None):
     resp += "</Message>"
     return str(resp)
 
-
-
-##
-## groups
-##
-def status_update(user, status):
-    user.setStatus(status)
-    msgs = []
-    tmpl = "@%s: %s" % (user.handle, status)
-    for pnum in user.subs:
-        msgs.append(twiMsg(tmpl, to=pnum))
-    msgs.append(twiMsg("Success: update sent to %d followers" % len(msgs)))
-    return twiResp(''.join(msgs))
-
-
 ##
 ## error/auth hooks
 ##
@@ -72,8 +57,8 @@ Try again?  That works sometimes.  I'll let the boss know what happened!"""
 @bp.errorhandler(401)
 def auth_reqd(error):
     return Response(
-        "Authorization Required", 
-        401, 
+        "Authorization Required",
+        401,
         {'WWW-Authenticate': 'Basic realm TrailBot'}
     )
 
@@ -92,6 +77,7 @@ class RegistrationRequired(TBError):
 
 To register a handle, choose @YourNewHandle
 and say 'reg @YourNewHandle"""
+
 
 
 def help(args, frm, user):
@@ -172,7 +158,15 @@ def status(args, frm, user):
                     return twiML("No status for %s" % u.handle)
             else:
                 # this is a status update
-                return status_update(user, args)
+                status = args
+                user.setStatus(status)
+                msgs = []
+                tmpl = "@%s: %s" % (user.handle, status)
+                for pnum in user.subs:
+                    msgs.append(twiMsg(tmpl, to=pnum))
+                msgs.append(
+                    twiMsg("Success: update sent to %d followers" % len(msgs)))
+                return twiResp(''.join(msgs))
 
 def whoami(args, frm, user):
             if user:

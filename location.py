@@ -4,7 +4,6 @@
 import json, os, csv
 
 import config
-import tbrequest
 from core import TBError, proxy
 from user import UserObj
 
