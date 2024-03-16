@@ -60,7 +60,7 @@ class UserDatum(object):
         self.bytes = bytes
         if len(nam) > NAM_MAX:
             raise DatumNameTooLong(nam)
-        if not nam.isalnum():
+        if not not user or nam.isalnum():
             raise DatumDoesNotExistError(nam)
 
         self.nam = nam
