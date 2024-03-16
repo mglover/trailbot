@@ -141,6 +141,8 @@ def wx_parse(wxjson, days=3):
         ' percent':'%', 'around ': '~', ' to ': '-',
         'Southeast': 'SE', 'Northeast': 'NE', 
         'Southwest': 'SW', 'Northwest': 'NW',
+        'southeast': 'SE', 'northeast': 'NE', 
+        'southwest': 'SW', 'northwest': 'NW',
         'East': 'E', 'West': 'W', 'South': 'S', 'North': 'N',
         'Monday': 'Mon', 'Tuesday': 'Tue', 'Wednesday': 'Wed',
         'Thursday': 'Thu', 'Friday': 'Fri', 'Saturday': 'Sat', 
@@ -177,7 +179,7 @@ def wx_by_lat_lon(lat, lon, **kwargs):
 def wx(req):
     parts = req.split()
     if len(parts) < 1:
-        return twiML("No args")
+        return twiML("Weather report for where?")
     elif len(parts)==1 and len(parts[0])==5 and parts[0].isdigit():
         lat,lon = coordsFromZip(req)
     elif len(parts) == 2 and isfloat(parts[0]) and isfloat(parts[1]):
