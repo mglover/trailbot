@@ -144,11 +144,11 @@ code {
   padding: .5em;
   margin: 1em;
 }
-ul {
+ul.flat {
   list-style-type: none;
   padding: 0.5em 0;
 }
-ul li {
+ul.flat li {
   padding: 0.2em 0;
 }
 
@@ -254,6 +254,7 @@ ul li {
 }
 .db h4 {
   width: 20em;
+  padding-top: 1em;
   margin: auto;
   float: left;
 }
