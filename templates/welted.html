@@ -1,9 +1,7 @@
-{% extends 'layout.html' %}
-{% block title %} Shoes and Boots {% endblock %}
-{% block main %} 
-
-<h2>Hiking Boots</h2>
-<div class="section">
+{% extends 'layout_shoes.html' %}
+{% block title %} Hiking Boots {% endblock %}
+{% block shoetitle %} Hiking Boots {% endblock %}
+{% block shoemain %} 
 
 <img class="head" src={{static('before.jpg')}}>
 
@@ -25,12 +23,5 @@ traditionally thick, compressed leather -- is stitched to the welt.
 Prices for hiking boots vary depending on your exact needs, but most 
 shoes cost between $600-700.
 </p>
-
-All of my shoes are custom made, based off of  a <a href="{{ 
-url_for('molding') }} ">mold</a> of the feet that will be wearing them..  
-
-</div>
-
-
 
 {% endblock %}
