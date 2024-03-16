@@ -331,7 +331,7 @@ def sms_reply():
         args= ""
 
     try:
-        if cmd == 'wx':
+        if cmd in ('wx', 'weather'):
             return wx(args)
         elif cmd in ('register', 'reg'):
             u = User.register(frm, args)
@@ -374,7 +374,7 @@ def sms_reply():
             msg = twiMsg('@'+fh+": "+args, to=u.phone)
             return twiResp(msg)
         else:
-            return twiML("Unknown command %s" % cmd)
+            return twiML("Unknown command %s.\n  To reply to a message, start your message with @handle, like this:\n @mg I hope you get the goat off the roof"" % cmd)
 
     except TBError as e:
         return twiML(str(e))
