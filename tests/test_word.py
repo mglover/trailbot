@@ -13,3 +13,11 @@ class TestWord(TBTest):
         res = self.req1("word xxyxz")
         self.assertStartsWith(res, "No match for ")
 
+class TestTWL(TBTest):
+    def testYes(self):
+        res = self.req1("twl dog")
+        self.assertStartsWith(res, 'YES')
+
+    def testNo(self):
+        res = self.req1("twl asdf")
+        self.assertStartsWith(res, "NO")
