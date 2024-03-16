@@ -7,10 +7,14 @@ from flask import Flask
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from trailbot.dispatch import TBResponse, routes
-
+from trailbot.core import TBResponse
+from trailbot.dispatch import routes
 from trailbot import tb
+from trailbot import netsource
 
+if False:
+    netsource.proxy = netsource.TestSessionConnectionError
+    # XXX expect connection failures
 
 class TBTest(unittest.TestCase):
     def setUp(self):

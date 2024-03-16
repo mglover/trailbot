@@ -16,7 +16,6 @@ class LookupLocationError(TBError):
     msg = "Location not found: %s"
 class LookupMultipleError(TBError):
     msg = "multiple matches for %s: %s"
-
 class SharingSpecError(TBError):
     msg = "Not a handle or '*': %s"
 
@@ -136,6 +135,7 @@ class Location(UserObj):
     @classmethod
     def fromNominatim(cls, q):
         class NominatimSource(NetSource):
+            name = "Nominatim"
             baseUrl = 'https://nominatim.openstreetmap.org/search'
             def makeUrl(self, *args, **kwargs):
                 return self.baseUrl
@@ -143,17 +143,18 @@ class Location(UserObj):
             def makeParams(self, q, *args, **kwargs):
                 return {'q':q, 'format': 'json'}
 
-        resp = NominatimSource(q)
-
-        if not len(resp.content):
+        res = NominatimSource(q, raiseOnError=True)
+        if not len(res.content):
             raise LookupLocationError(q)
-        data = resp.content
+        data = res.content
         return cls(
-             data[0]['lat'],
+            data[0]['lat'],
             data[0]['lon'],
             orig=q,
             match=data[0]["display_name"]
         )
+
+
 
     @classmethod
     def fromInput(cls, str, user=None):

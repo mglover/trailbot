@@ -20,11 +20,9 @@ class WxSource (NetSource):
             'FcstType': "json"
         }
 
-    def toSMS(self, days=3):
+    def makeResponse(self, *args, days=3):
         """Create a human-readable weather report from NWS JSON
         """
-        if self.err: return self.err
-
         wxjson = self.content
         if 'time' not in wxjson: return 'no data'
         labels = wxjson['time']['startPeriodName']
@@ -68,5 +66,5 @@ def wx(req):
         loc = Location.lookup("here", req.user)
     if not loc:
         return "Weather report for where?"
-    return WxSource(loc).toSMS()
+    return WxSource(loc, days=3).toSMS()
 

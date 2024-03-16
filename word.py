@@ -9,8 +9,9 @@ class DictionarySource (NetSource):
     baseUrl = "https://www.dictionaryapi.com/api/v3/references/collegiate/json/"
     apiKey = "f6a35c0b-3b80-4a29-b94c-e6e2903ab276"
 
-    def makeUrl(self, path, *args, **kwargs):
-        return urljoin(self.baseUrl, path)
+    def makeUrl(self, word, *args, **kwargs):
+        self.word = word
+        return urljoin(self.baseUrl, word)
 
 
     def makeParams(self, *args, **kwargs):
@@ -18,7 +19,18 @@ class DictionarySource (NetSource):
         params.update({'key': self.apiKey})
         return params
 
-
+    def makeResponse(self, *args, **kwargs):
+        if type(self.content) is not list:
+            raise TypeError("Expected list, got %s" % type(res.content))
+        else:
+            if not len(self.content) or type(self.content[0]) is not dict:
+                return "No match for '%s' from %s" % (self.word, self.name)
+            d0 = self.content[0]
+            return "From %s: %s: %s" % (
+                self.name,
+                d0["hwi"]["hw"],
+                d0['shortdef'][0]
+            )
 
 @tbroute('word')
 @tbhelp(
@@ -31,20 +43,7 @@ You can say something like:
 def define(req):
     w = req.args
     if not w: return "Which word should I define?"
-    res = DictionarySource(w)
-    if res.err:
-        return res.err
-    elif type(res.content) is not list:
-        raise TypeError("Expected list, got %s" % type(res.content))
-    else:
-        if not len(res.content) or type(res.content[0]) is not dict:
-            return "No match for '%s' from %s" % (w, res.name)
-        d0 = res.content[0]
-        return "From %s: %s: %s" % (
-            res.name,
-            d0["hwi"]["hw"],
-            d0['shortdef'][0]
-        )
+    return DictionarySource(w).toSMS()
 
 
 

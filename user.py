@@ -3,7 +3,7 @@
 ##
 import os, json, shutil
 from . import config
-from .core import *
+from .core import TBError
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
@@ -29,8 +29,6 @@ class PhoneExistsError(TBError):
     msg = "This phone number is already registered with the handle @%s"
 class HandleUnknownError(TBError):
     msg = "I don't know any %s"
-class NotRegisteredError(TBError):
-    msg = "You must register a @handle before you can do that. Text 'reg @handle' to register"
 class StatusTooShortError(TBError):
     msg = "Status is too short. Min. "+str(STATUS_MIN)+" characters"
 class StatusTooLongError(TBError):
@@ -50,6 +48,25 @@ class SharingAlreadyError(TBError):
     msg = "Already sharing with %s"
 class SharingNotSharedError(TBError):
     msg = "Not sharing with %s"
+
+
+class RegistrationRequired(TBError):
+    msg = \
+"""You must register a @handle %s
+
+To register a handle, choose @YourNewHandle
+and say 'reg @YourNewHandle"""
+
+
+
+def needsreg(reason):
+    def fxn(inner):
+        def require(req, *args, **kwargs):
+            if not req.user:
+                raise RegistrationRequired(reason)
+            return inner(req, *args, **kwargs)
+        return require
+    return fxn
 
 
 class UserDatum(object):

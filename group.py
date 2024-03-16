@@ -1,8 +1,9 @@
-import os, shutil
+import os, shutil, re
 
 from . import config
-from .core import TBError
-from .user import User
+from .core import success, TBResponse, TBError, parseArgs
+from .user import User, needsreg
+from .dispatch import tbroute, tbhelp
 
 class GroupAdminDenied(TBError):
     msg = "I'm sorry, only the owner of '#%s' can do that"
@@ -178,3 +179,70 @@ class Group(object):
             return [User.lookup('@'+nam) for nam in self.readers]
 
 
+
+
+## -- chat --
+
+@tbroute('group')
+@needsreg("to use chat groups")
+def group(req):
+    flags = req.args.split()
+    if len(flags) < 1:
+        return "Err? What group do you want to create? say 'group #tag'"
+    tag = flags.pop(0)
+    Group.create(tag, req.user, *flags)
+    return success("Group '%s' created")
+
+@tbroute('ungroup')
+@needsreg("to use chat groups")
+def ungroup(req):
+    if not req.args:
+        return "Err? You need to give me a group to remove. Say 'ungroup #tag'"
+    g = Group.fromTag(req.args, req.user)
+    g.destroy()
+    return success("Group '%s' removed")
+
+@tbroute('invite')
+@needsreg("to use chat groups")
+def invite(req):
+    resp = TBResponse()
+    parts = dict(parseArgs(req.args, ['to']))
+    if '' not in parts:
+        return "Err? Invite whom? Say 'invite @handle to @tag'"
+    if 'to' not in parts:
+        return "Err? Invite to what group? Say 'invite @handle to @tag"
+    handle, tag = parts[''], parts['to']
+    g = Group.fromTag(tag, req.user)
+    to_user = User.lookup(handle)
+    g.invite(to_user)
+    resp.addMsg(f"@{req.user.handle} has invited you to {tag}." 
+        + "say 'join {tag}' to join",
+        to=to_user.phone)
+    resp.addMsg(success("%s invited to %s" % (handle, tag)))
+    return resp
+
+@tbroute('join')
+@needsreg("to use chat groups")
+def join(req):
+    if not req.args:
+        return "Err? What group do you want to join?  Say 'join #tag'"
+    g = Group.fromTag(req.args, req.user)
+    g.join()
+    return success("You have joined #%s" % g.tag)
+
+@tbroute('leave')
+@needsreg("to use chat groups")
+def leave(req):
+    g = Group.fromTag(req.args, req.user)
+    g.leave()
+    return success("You have left #%s" % g.tag)
+
+@tbroute(re.compile('^#.*$'))
+@needsreg("to use chat groups")
+def chat(req):
+    resp = TBResponse()
+    g = Group.fromTag(req.cmd, req.user)
+    for r in g.getReaders():
+        resp.addMsg(f"@{g.nam}: {req.args}", to=r.phone)
+    return resp
+## --
