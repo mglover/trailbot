@@ -7,7 +7,7 @@ from flask import Flask
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from trailbot.dispatch import TBResponse
+from trailbot.dispatch import TBResponse, routes
 
 from trailbot import tb
 
@@ -73,6 +73,7 @@ class TBTest(unittest.TestCase):
         return self.assertStartsWith(res, "Err?")
 
 class TestHelp(TBTest):
+
     def test_help(self):
         res = self.req1("help")
 
@@ -88,7 +89,7 @@ class TestHelp(TBTest):
         res = self.req1("wh")
         self.assertStartsWith(res, "I know how to do several things")
 
-class testReg(TBTest):
+class TestReg(TBTest):
     def test_reg(self):
         res = self.req1("whoami")
         self.assertEqual("You are not registered", res)
@@ -104,7 +105,7 @@ class testReg(TBTest):
         res = self.req1("unreg")
         self.assertSuccess(res)
 
-class testSub(TBTest):
+class TestSub(TBTest):
     def test_sub(self):
         self.reg1()
         res = self.req2("sub @test3")
@@ -118,7 +119,7 @@ class testSub(TBTest):
         self.assertStartsWith(res, "You're not subscribed")
         self.assertStartsWith(self.req2("sub @test1"), "Success")
 
-class testStatus(TBTest):
+class TestStatus(TBTest):
     def test_status(self):
         self.reg1()
         self.req1("status hello")
@@ -260,6 +261,30 @@ class TestNav(TBTest):
     def test_drive_no_there(self):
         self.assertError(self.req1("drive from olympia, wa"))
 
+
+class TestHelpLen(unittest.TestSuite):
+    max_lengths = {}
+    skips = ['help', 'whoami']
+
+    def mkchecklen(self, mycmd, myfxn):
+        class Testcls (unittest.TestCase):
+            def runTest(s):
+                try:
+                    h = myfxn._help
+                except AttributeError:
+                    s.fail("No help for %s" % mycmd)
+                    return False
+                s.assertTrue(len(h) < self.max_lengths.get(mycmd, 160),
+                    "help text for '%s' is too long (%d > 160)"
+                    % (mycmd, len(h))
+                )
+        return Testcls()
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        for cmd,fxn in routes:
+            if cmd in self.skips: continue
+            self.addTest(self.mkchecklen(cmd, fxn))
 
 if __name__ == '__main__':
     unittest.main()
