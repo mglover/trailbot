@@ -219,7 +219,7 @@ def sms_reply():
             if not user:
                 raise RegistrationRequired("to use saved data")
 
-            user.eraseData(typ, args)
+            user.eraseObj(args)
 
             msg ="Success: '%s' forgotten" % args
             return twiML(msg)
@@ -236,8 +236,8 @@ def sms_reply():
 
 
             if user:
-                here = Location.fromUserData("here", user)
-                there = Location.fromUserData("there", user)
+                here = Location.lookup("here", user)
+                there = Location.lookup("there", user)
 
             if 'from' not in locs and here: locs['from'] = here
             if 'to' not in locs and there: locs['to'] = there
@@ -248,7 +248,7 @@ def sms_reply():
                 msg+="\nor say 'here StartLocation'"
                 msg+= "\nthen say 'drive to EndLocation'"
                 return twiML(msg)
-            if not 'true' in locs:
+            if not 'to' in locs:
                 msg = "Err? You have to tell me where you're going to."
                 msg+="\nsay 'drive toEndLocation from StartLocation'"
                 msg+="\nor say 'there EndLocation'"
@@ -256,6 +256,26 @@ def sms_reply():
             msg = turns.fromLocations(locs['from'], locs['to'], profile)
             return twiML(msg[:1500])
 
+
+        elif cmd in ('share', 'unshare'):
+            if not user:
+                raise RegistrationRequiredError('to share data')
+            parts = args.split()
+            if len(parts) == 1:
+                nam = parts[0]
+                spec = '*'
+            elif len(parts) == 3:
+                if  parts[1] != 'with':
+                    return twiML("Err?  say '%s thing with @handle'" % cmd)
+                else:
+                    nam, _, spec = parts
+
+            if cmd == 'share':
+                user.shareObj(nam, spec)
+                return twiML("Success. Shared %s with %s" % (nam, spec))
+            else:
+                user.unshareObj(nam, spec)
+                return twiML("Success. Unshared %s with %s" % (nam, spec))
 
         else:
             msg ="I don't know how to do %s. \n" % cmd

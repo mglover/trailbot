@@ -9,7 +9,7 @@ HANDLE_MIN = 2
 HANDLE_MAX = 15
 STATUS_MIN = 1
 STATUS_MAX = 300
-NAM_MAX   = 8
+NAM_MAX   = 10
 
 class AlreadySubscribedError(TBError):
     msg = "Already subscribed to @%s"
@@ -43,17 +43,25 @@ class DatumNameTooLong(TBError):
     msg = "Name '%s' is to long. Max "+str(NAM_MAX)+" characters"
 class DatumNameInvalidChars(TBError):
     msg = "Name '%s' must contain letters and numbers only"
-class DatumNameInvalid(TBError):
-    msg = "Name '%s' not found"
+
+class SharingSpecError(TBError):
+    msg = "Can't share with %s: must be handle"
+class SharingAlreadyError(TBError):
+    msg = "Already sharing with %s"
+class SharingNotSharedError(TBError):
+    msg = "Not sharing with %s"
+
 
 class UserDatum(object):
+    """ Low-level get/set/erase interface for user data
+    """
     def __init__(self, user, nam, bytes=None):
         self.user = user
         self.bytes = bytes
         if len(nam) > NAM_MAX:
             raise DatumNameTooLong(nam)
         if not nam.isalnum():
-            raise DatumNameInvalid(nam)
+            raise DatumDoesNotExistError(nam)
 
         self.nam = nam
         self.path = os.path.join(self.user.dbfile('saved'), self.nam)
@@ -77,11 +85,92 @@ class UserDatum(object):
 
     @classmethod
     def erase(cls, user, nam):
-        self = cls(usr, '', nam)
+        self = cls(user, nam)
         if os.path.exists(self.path):
             os.unlink(self.path)
         else:
             raise DatumDoesNotExistError(self.nam)
+
+
+class UserObj(object):
+    typ = None
+    def __init__(self):
+        self.owner = None
+        self.readers = []
+        self.raw = {}
+        self.rawtyp = None
+
+    def toJson(self):
+        if self.typ:
+            typ = self.typ
+            d = self.toDict()
+        else:
+            typ = self.rawtyp
+            d = self.raw
+        return json.dumps({
+            'type' : typ,
+            'owner': self.owner,
+            'readers': self.readers,
+            'data':  d
+        })
+
+    @classmethod
+    def fromJson(cls, jsbytes):
+        d = json.loads(jsbytes)
+        if cls.typ:
+            if 'data' in d:
+                obj = cls.fromDict(d['data'])
+            else:
+                obj = cls.fromDict(d)
+        else:
+            obj = cls()
+            obj.raw = d['data']
+            obj.rawtyp = d['type']
+        obj.readers = d.get('readers', [])
+        obj.owner = d.get('owner')
+        return obj
+
+    @classmethod
+    def lookup(cls, nam, requser):
+        if nam.startswith('@'):
+            parts = nam.split('.')
+            target = User.lookup(parts[0])
+
+            if len(parts) > 1:
+                nam = parts[1]
+            else:
+                nam = cls.getDefault()
+        else:
+            target = requser
+            #nam = nam
+
+        datum = UserDatum(target, nam)
+        bytes = datum.load()
+        if not bytes:
+            return None
+        obj = cls.fromJson(bytes)
+
+        # check access
+        if '*' in obj.readers: return obj
+        if not requser: return None 
+        if requser.handle == target.handle: return obj
+        if '@'+requser.handle in obj.readers: return obj
+        return None
+
+
+    def share(self, spec):
+        if spec != '*' and not spec.startswith('@'):
+            raise SharingSpecError(spec)
+        if spec in self.readers:
+            raise SharingAlreadyError(spec)
+        self.readers.append(spec)
+
+    def unshare(self, spec):
+        if spec != '*' and not spec.startswith('@'):
+            raise SharingSpecError(spec)
+        if spec not in self.readers:
+            raise SharingNotSharedError(spec)
+        self.readers.remove(spec)
 
 
 
@@ -185,15 +274,25 @@ class User(object):
         self.status = status
         self.save()
 
-    def getObj(self, nam, cls):
-        datum = UserDatum(self, nam)
-        bytes = datum.load()
-        if not bytes: return None
-        return cls.fromJson(bytes)
-
-    def saveObj(self, nam, obj):
+    def saveObj(self, nam, obj, preserve_meta=True):
+        prevobj = UserObj.lookup(nam, self)
+        if prevobj and preserve_meta:
+            obj.readers = prevobj.readers
+        # NB @handle.name doesn't get parsed here,
+        # so any attempts to modify others data will fail
         datum = UserDatum(self, nam, obj.toJson())
         datum.save()
 
-    def eraseBytes(self, nam):
-        userDatum.erase(self, nam)
+
+    def eraseObj(self, nam):
+        UserDatum.erase(self, nam)
+
+    def shareObj(self, nam, spec):
+        obj = UserObj.lookup(nam, self)
+        obj.share(spec)
+        self.saveObj(nam, obj, preserve_meta=False)
+
+    def unshareObj(self, nam, spec):
+        obj = UserObj.lookup(nam, self)
+        obj.unshare(spec)
+        self.saveObj(nam, obj, preserve_meta=False)

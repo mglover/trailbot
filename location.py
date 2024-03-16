@@ -7,7 +7,7 @@ import json, os, csv
 
 import config
 from core import *
-from user import User
+from user import UserObj
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"
@@ -18,6 +18,8 @@ class LookupLocationError(TBError):
 class LookupMultipleError(TBError):
     msg = "multiple matches for %s: %s"
 
+class SharingSpecError(TBError):
+    msg = "Not a handle or '*': %s"
 
 def isfloat(s):
     try:
@@ -27,8 +29,11 @@ def isfloat(s):
         return False
 
 
-class Location(object):
+
+class Location(UserObj):
+    typ = 'loc'
     def __init__(self, lat, lon, orig=None, match=None):
+        super().__init__()
         self.lat = lat
         self.lon = lon
         self.orig = orig
@@ -36,6 +41,24 @@ class Location(object):
 
     def __repr__(self):
         return str(self)
+
+    def toDict(self):
+        return {
+            'lat':self.lat,
+            'lon':self.lon,
+            'orig':self.orig,
+            'match':self.match
+        }
+
+    @classmethod
+    def fromDict(cls, d):
+        return cls(
+            d['lat'],
+            d['lon'],
+            orig=d['orig'],
+            match=d['match'],
+        )
+
     def __str__(self):
         return "(%s,%s)" % (self.lat, self.lon)
 
@@ -46,24 +69,9 @@ class Location(object):
         return "%s\n(full name: %s)\ncoordinates: %s %s" % (
             self.orig, self.match, self.lat, self.lon)
 
-    def toJson(self):
-        return json.dumps({
-            'lat':self.lat,
-            'lon':self.lon,
-            'orig':self.orig,
-            'match':self.match
-        })
-
-
     @classmethod
-    def fromJson(cls, jsdata):
-        d = json.loads(jsdata)
-        return cls(
-            d['lat'],
-            d['lon'],
-            orig=d['orig'],
-            match=d['match']
-        )
+    def getDefault(cls):
+        return 'here'
 
     @classmethod
     def fromZip(cls, zip):
@@ -144,33 +152,28 @@ class Location(object):
         )
 
     @classmethod
-    def fromUserData(cls, str, user):
-        if str.startswith('@'):
-            target = User.lookup(str)
-            loc = target.getObj('here', cls)
-        else:
-            loc = user.getObj(str, cls)
-        if not loc: raise LookupLocationError(str)
-        return loc
-
-    @classmethod
     def fromInput(cls, str, user=None):
         parts = str.split()
-        if user and len(parts)==1:
-            self = cls.fromUserData(str, user)
-            if self: return self
-        elif len(parts)==1 \
-            and len(parts[0])==5 and parts[0].isdigit():
-            return cls.fromZip(str)
+
+        if len(parts)==1:
+            ud = cls.lookup(str, user)
+            if ud: return ud
+            if str.startswith('@'): raise LookupLocationError(str)
+            if len(parts[0])==5 and parts[0].isdigit():
+               obj =  cls.fromZip(str)
+
         elif len(parts) == 2 and \
             isfloat(parts[0]) and isfloat(parts[1]):
-                return cls(parts[0], parts[1])
-        elif len(parts) == 2 \
-            and parts[0].endswith(',') \
-            and len(parts[1]) == 2:
-            return cls.fromCitystate(str)
-        elif parts[0]=='trail:at':
-            return cls.fromShelter(' '.join(parts[1:]))
-        else:
-            return cls.fromNominatim(str)
+                obj = cls(parts[0], parts[1])
 
+        elif len(parts)>=2 and parts[-2].endswith(',') \
+            and len(parts[-1].lstrip()) == 2:
+            obj = cls.fromCitystate(str)
+
+        elif parts[0]=='trail:at':
+            obj = cls.fromShelter(' '.join(parts[1:]))
+
+        else:
+            obj =  cls.fromNominatim(str)
+        obj.owner = user.handle
+        return obj
