@@ -41,7 +41,6 @@ class NetSource (object):
 
         try:
             with proxy.get(url, params=params) as resp:
-                print("url '%s', params '%s'" %(url, params))
                 if not resp.ok:
                     self.err = f"{self.name} failed to respond"
                 else:
