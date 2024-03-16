@@ -51,7 +51,7 @@ def molding():
 
 @app.route('/shoecare')
 def newshoes():
-    return render_template('shoecarea.html')
+    return render_template('shoecare.html')
 
 @app.route('/goods')
 def goods():
