@@ -217,7 +217,7 @@ class HandleExistsError(TBError):
 class HandleUnknownError(TBError):
     msg = "I don't know any %s"
 class NotRegisteredError(TBError):
-    msg = "You must register a handle before you can do that. Text 'reg @handle' to register"
+    msg = "You must register a @handle before you can do that. Text 'reg @handle' to register"
 class StatusTooShortError(TBError):
     msg = "Status is too short. Min. "+str(STATUS_MIN)+" characters"
 class StatusTooLongError(TBError):
@@ -238,7 +238,7 @@ class User(object):
         for f in os.listdir(cls.dbpath):
             if fxn(f):
                 return cls(f)
-        raise HandleUnknownError
+        raise HandleUnknownError(crit)
 
     @classmethod
     def register(cls, phone, handle):
@@ -250,7 +250,10 @@ class User(object):
             raise HandleTooShortError(handle)
         if not handle.isalnum():
             raise HandleBadCharsError(handle)
-        if cls.lookup('@'+handle):
+        try: cls.lookup('@'+handle)
+        except HandleUnknownError:
+            pass
+        else: 
             raise HandleExistsError(handle)
 
         userdir = '%s@%s' % (phone, handle)
@@ -287,14 +290,14 @@ class User(object):
 
     def subscribe(self, phone):
         if phone in self.subs:
-            raise AlreadySubscribedError(handle)
+            raise AlreadySubscribedError(self.handle)
         else:
             self.subs.append(phone)
         self.save()
 
     def unsubscribe(self, phone):
         if phone not in self.subs:
-            raise NotSubscribedError(handle)
+            raise NotSubscribedError(self.handle)
         else:
             self.subs.remove(phone)
         self.save()
@@ -339,7 +342,7 @@ def sms_reply():
             msg+= "\nI understand these commands:"
             msg+= "\nwx, sub, unsub, reg, unreg, status."
 
-            msg+= "\n If you know another person's handle,"
+            msg+= "\n If you know another person's @handle,"
             msg+= " you can send them a direct message "
             msg+= " by starting your message with @handle"
 
@@ -375,7 +378,11 @@ def sms_reply():
             return twiML("Success: unsubscribed from @%s" % u.handle)
 
         elif cmd =='status':
-            if args[0].startswith('@'):
+            if not args:
+                msg = "Err? send status Your new status to set your status"
+                msg+= "\nor status @handle to get another user's status"
+                return twiML(msg)
+            if args.startswith('@'):
                 # this is a status request
                 u = User.lookup(args)
                 if u.status:
@@ -392,11 +399,11 @@ def sms_reply():
             try:
                 fu = User.lookup(frm)
             except HandleUnknownError:
-                msg= "You have to register a handle"
+                msg= "You have to register a @handle"
                 msg+=" before you can send a direct message."
                 msg+="\nchoose YourNewHandle, and send"
                 msg+="'reg @YourNewHandle' to register"
-            tmsg= twiMsg('@%s: %s'%(fu.handle,' '.join(args) ), 
+            tmsg= twiMsg('@%s: %s'%(fu.handle, args ), 
                 to=u.phone)
             return twiResp(tmsg)
 
