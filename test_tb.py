@@ -2,9 +2,13 @@
 import unittest, os, sys
 from base64 import b64encode
 from bs4 import BeautifulSoup
+from urllib.parse import urlencode
 from flask import Flask
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+
+from trailbot.dispatch import TBResponse
+
 from trailbot import tb
 
 
@@ -23,28 +27,40 @@ class TBTest(unittest.TestCase):
         self.req(self.frm1, "unreg")
         self.req(self.frm2, "unreg")
 
-    def req(self, frm, args, do_auth=True, expect_status=200, **kw):
+    def req(self, frm, args,
+        do_auth=True, expect_status=200, only_first=True,
+        **kw):
         if do_auth:
             if 'headers' not in kw:
                 kw['headers'] = {}
             kw['headers']["Authorization"] = f"Basic {self.cred}"
 
-        url = f"/fetch?From={frm}&Body={args}"
-
+        url = f"/fetch?"+urlencode({"From":frm, "Body":args})
         httpres = self.cli.get(url, **kw)
         self.assertEqual(httpres.status_code, expect_status)
 
         soup = BeautifulSoup(httpres.data, "xml")
-        res = soup.find("Message").contents[0]
-        return res
+        r = soup.find("Response")
+        m = r.find_all("Message")
 
-    def req1(self, args):
-        return self.req(self.frm1, args)
-    def req2(self, args):
-        return self.req(self.frm2, args)
+        if only_first:
+            return m[0].contents[0]
+        else:
+            resp = TBResponse()
+            for mm in m:
+                resp.addMsg(mm.contents[0], to=mm.get('to'))
+            return resp
+
+    def req1(self, args, **kw):
+        return self.req(self.frm1, args, **kw)
+    def req2(self, args, **kw):
+        return self.req(self.frm2, args, **kw)
 
     def reg1(self):
-        return self.req1("reg @test1")
+        self.assertSuccess(self.req1("reg @test1"))
+
+    def reg2(self):
+        self.assertSuccess(self.req2("reg @test2"))
 
     def assertStartsWith(self, res, start):
         if not res.startswith(start):
@@ -52,6 +68,9 @@ class TBTest(unittest.TestCase):
 
     def assertSuccess(self, res):
         return self.assertStartsWith(res, "Success")
+
+    def assertError(self, res):
+        return self.assertStartsWith(res, "Err?")
 
     def test_help(self):
         res = self.req1("help")
@@ -92,7 +111,41 @@ class TBTest(unittest.TestCase):
         self.req1("status hello")
         self.assertEqual("@test1: hello", self.req2("status @test1"))
 
-    def test_where(self):
+    def test_subs_status(self):
+        self.reg1()
+        self.reg2()
+        self.assertSuccess(self.req2("sub @test1"))
+        resp = self.req1("status foo", only_first=False)
+        self.assertEqual(2, len(resp.msgs))
+        self.assertSuccess(str(resp.msgs[1]))
+        self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
+        self.assertEqual("@test1: foo", str(resp.msgs[0]))
+
+    def test_status_subs(self):
+        self.reg1()
+        self.reg2()
+        self.assertSuccess(self.req1("status foobar"))
+        resp = self.req2("sub @test1", only_first=False)
+        self.assertEqual(2, len(resp.msgs))
+        self.assertSuccess(str(resp.msgs[0]))
+        self.assertEqual("@test1: foobar", str(resp.msgs[1]))
+
+    def test_status_empty(self):
+        self.assertError(self.req1("status"))
+
+    def test_status_none(self):
+        self.reg1()
+        res = self.req2("status @test1")
+        self.assertEqual(res, "No status for test1")
+
+    def test_dm(self):
+        self.reg1()
+        self.reg2()
+        resp = self.req1("@test2 what's up", only_first=False)
+        self.assertEqual(str(resp.msgs[0]), "@test1: what's up")
+        self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
+
+    def test_where_nom(self):
         self.reg1()
         res = self.req1("where Empire State Building")
         self.assertStartsWith(res, "Empire State Building\n(full name")
@@ -110,11 +163,29 @@ class TBTest(unittest.TestCase):
         res = self.req1("here portland, or")
         self.assertSuccess(res)
 
+    def test_addr(self):
+        self.reg1()
+        self.assertSuccess(self.req1("addr buq Albuquerque, NM"))
+        res = self.req1("where buq")
+        self.assertStartsWith(res, "Albuquerque, NM")
+
+    def test_here_nouser(self):
+        res = self.req1("addr buq Albuquerque, NM")
+        self.assertStartsWith(res, "You must register")
+
     def test_where_here(self):
         self.reg1()
         self.assertSuccess(self.req1("here portland, or"))
         res = self.req1("where here")
         self.assertStartsWith(res, "portland, or")
+
+    def test_share_here(self):
+        self.reg1()
+        self.reg2()
+        self.req1("here silver city, nm")
+        self.assertSuccess(self.req1("share here with @test2"))
+        resp = self.req2("where @test1.here")
+        self.assertStartsWith(resp, "silver city, nm")
 
     def test_wx(self):
         res = self.req1("wx seattle")
@@ -125,6 +196,16 @@ class TBTest(unittest.TestCase):
         self.assertSuccess(self.req1("there seattle"))
         res = self.req1("wx there")
         self.assertStartsWith(res, "Downtown Seattle WA")
+
+    def test_wx_here(self):
+        self.reg1()
+        self.assertSuccess(self.req1("here denver, co"))
+        res = self.req1("wx")
+        self.assertStartsWith(res, "Denver CO")
+
+    def test_wx_empty(self):
+        res  = self.req1("wx")
+        self.assertEqual("Weather report for where?", res)
 
     def test_drive(self):
         res = self.req1("drive from seattle to portland, or")
@@ -137,9 +218,20 @@ class TBTest(unittest.TestCase):
         res = self.req1("drive")
         self.assertStartsWith(res, "Turn directions courtesy OSRM")
 
-    def test_share_here(self):
-        pass
+    def test_drive_no_here(self):
+        self.assertError(self.req1("drive to seattle"))
 
+    def test_drive_no_there(self):
+        self.assertError(self.req1("drive from olympia, wa"))
+
+    def test_forget(self):
+        self.reg1()
+        self.assertSuccess(self.req1("addr home New York City"))
+        res = self.req1("where home")
+        self.assertStartsWith(res, "New York City")
+        self.assertSuccess(self.req1("forget home"))
+        res = self.req1("where @test1")
+        self.assertStartsWith(res, "Location not found:")
 
 if __name__ == '__main__':
     unittest.main()
