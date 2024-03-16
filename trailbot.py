@@ -1,5 +1,5 @@
 """
-smswx.py
+trailbot.py
 
 receive sms requests via twilio
 for a given zip code, lat/lon, place name,or AT shelter name
@@ -214,6 +214,10 @@ class HandleBadCharsError(TBError):
     msg = "Handle '@%s' is invalid. Letters and numbers only!"
 class HandleExistsError(TBError):
     msg = "Handle '@%s' already exists"
+class HandleAlreadyYoursError(TBError):
+    msg = "The handle @%s is already registered to this phone number"
+class PhoneExistsError(TBError):
+    msg = "This phone number is already registered with the handle @%s"
 class HandleUnknownError(TBError):
     msg = "I don't know any %s"
 class NotRegisteredError(TBError):
@@ -230,7 +234,7 @@ class User(object):
     dbpath = os.path.join(config.DB_ROOT,'users')
 
     @classmethod
-    def lookup(cls, crit):
+    def lookup(cls, crit, raiseOnFail=True):
         if crit.startswith('@'):
             fxn = lambda x: x.lower().endswith(crit.lower())
         else:
@@ -238,23 +242,35 @@ class User(object):
         for f in os.listdir(cls.dbpath):
             if fxn(f):
                 return cls(f)
-        raise HandleUnknownError(crit)
+        if raiseOnFail:
+            raise HandleUnknownError(crit)
+        else:
+            return None
 
     @classmethod
     def register(cls, phone, handle):
         if handle.startswith('@'):
             handle = handle.lstrip('@')
+
         if len(handle) > HANDLE_MAX:
             raise HandleTooLongError(handle)
         if len(handle) < HANDLE_MIN:
             raise HandleTooShortError(handle)
         if not handle.isalnum():
             raise HandleBadCharsError(handle)
-        try: cls.lookup('@'+handle)
-        except HandleUnknownError:
-            pass
-        else: 
+
+        # both the phone and handle must be unique
+        pu = cls.lookup(phone, False)
+        hu = cls.lookup('@'+handle, False)
+
+        if pu:
+            if pu.handle != handle:
+                raise PhoneExistsError(pu.handle)
+            else:
+                raise HandleAlreadyYoursError(handle)
+        elif hu and hu.phone != phone:
             raise HandleExistsError(handle)
+
 
         userdir = '%s@%s' % (phone, handle)
         os.mkdir(os.path.join(cls.dbpath, userdir))
