@@ -1,7 +1,7 @@
 {% set title="Walking Boots" %}
-{% extends 'layout_shoes.html' %}
+{% extends 'layout.html' %}
 
-{% block shoemain %} 
+{% block main %} 
 
 <div class="didactic">
 {{image('hybrid.jpg', class="tinyfloat")}}
@@ -16,6 +16,11 @@ href="{{url_for('lessons')}}">lessons</a> of that trip and of the
 original prototypes that followed.  They keep the soft, 
 comfortable feel of a turnshoe, but with much longer life and a 
 more supportive sole.  
+</p>
+
+<div class="gallery">
+  {{showGallery(gallery)}}
+</div>
 <p>
 Features:
 
