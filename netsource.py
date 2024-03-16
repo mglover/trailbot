@@ -1,9 +1,8 @@
 import requests
 from urllib.parse import urljoin
 
-import config
-
-from core import TBError
+from . import  config
+from .core import TBError
 
 class ConnectionError(TBError):
     msg = "%s failed to respond"

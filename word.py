@@ -1,3 +1,4 @@
+from . import config
 from .netsource import NetSource
 from .dispatch import tbroute, tbhelp
 from urllib.parse import urljoin
@@ -7,7 +8,7 @@ class DictionarySource (NetSource):
     # via Merriam-Webster dictionaryapi.com
     name = "Merriam-Webster's Collegiate Dictionary"
     baseUrl = "https://www.dictionaryapi.com/api/v3/references/collegiate/json/"
-    apiKey = "f6a35c0b-3b80-4a29-b94c-e6e2903ab276"
+    apiKey = config.MWD_API_KEY
 
     def makeUrl(self, word, *args, **kwargs):
         self.word = word

@@ -9,6 +9,7 @@ and return the 3 day weather forecast from NWS as TwiML
 from flask import Flask, request, Response, redirect, abort,Blueprint,\
     render_template
 
+from . import config
 from .dispatch import dispatch
 
 bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
@@ -32,11 +33,9 @@ def code_fail(error):
 Try again?  That works sometimes.  I'll let the boss know what happened!"""
 
 def authenticate(request):
-    username="twilio"
-    password="BananaPudding"
     if not request.authorization \
-      or request.authorization.username != username \
-      or request.authorization.password != password:
+      or request.authorization.username != config.BASICAUTH_USER \
+      or request.authorization.password != config.BASICAUTH_PASS:
         abort(401)
 
 
