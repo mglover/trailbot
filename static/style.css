@@ -33,7 +33,7 @@
   body {
     margin: 1% 2%;
     background: #000;;
-    color: #ca3;
+    color: #cc9922;
     font-size: 14pt;
   }
 
@@ -62,7 +62,7 @@
     align-self: center;
   }
   #masthead a {
-    color: #ca3;
+    color: #cc9922;
   }
   #mastlogo {
     margin: 0.1em auto;
