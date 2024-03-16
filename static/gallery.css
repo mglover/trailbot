@@ -31,7 +31,10 @@ h2 {
 }
 
 #gallerymain .slug {
+    max-width: 30em;
+    margin: auto;
     text-align: center;
+    padding: 1em 0;
 }
 .gallery {
     background:#3f2b18;
