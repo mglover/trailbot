@@ -14,7 +14,7 @@ from .dispatch import dispatch
 
 bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
 
-## actions
+## commands
 from .help import help
 from .wx import wx
 from .word import define
