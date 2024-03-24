@@ -18,6 +18,7 @@ bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
 from .help import help
 from .wx import wx
 from .word import define
+from .wiki import wiki
 from .location import where
 from .nav import drive, distance
 from .userui import reg, unreg, whoami, saveloc, forget, share, unshare
