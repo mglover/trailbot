@@ -46,6 +46,8 @@ def getAction(search_cmd):
         if matchesSpec(search_cmd, spec)]
     if len(m) == 0: raise UnknownAction(search_cmd)
     if len(m) > 1:
+        for s,c in m:
+            if s == search_cmd: return c
         raise AmbiguousAction(search_cmd, '\n'.join([i[0] for i in m]))
     return m[0][1]
 
