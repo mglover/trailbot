@@ -1,5 +1,5 @@
 import wikipedia
-
+from requests.exceptions import ConnectionError
 from .dispatch import tbroute, tbhelp
 from . import netsource
 
@@ -15,6 +15,12 @@ wikipedia.requests = netsource.TBSession
 ''')
 def wiki(req):
     try:
-        return "From Wikipedia: " + wikipedia.summary(req.args)
+        return "From Wikipedia: " + \
+            wikipedia.summary(req.args, auto_suggest=False)
     except wikipedia.exceptions.DisambiguationError as e:
-        return "Wikipedia says: %s" % e
+        lines = [l for l in str(e).split('\n') if not l.startswith("All pages")]
+        ret = "Wikipedia says: %s" % '\n'.join(lines)
+        ret+= "\n\ntry again with one of those options"
+        return ret
+    except ConnectionError:
+        return "Wikipedia disconnected without answering.  Try again!"
