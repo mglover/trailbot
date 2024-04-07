@@ -22,5 +22,7 @@ def wiki(req):
         ret = "Wikipedia says: %s" % '\n'.join(lines)
         ret+= "\n\ntry again with one of those options"
         return ret
+    except wikipedia.exceptions.PageError:
+        return "Wikipedia has no information about %s" % req.args
     except ConnectionError:
         return "Wikipedia disconnected without answering.  Try again!"
