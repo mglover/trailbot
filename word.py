@@ -1,7 +1,9 @@
+import random, datetime, os
+from urllib.parse import urljoin
+
 from . import config
 from .netsource import NetSource
 from .dispatch import tbroute, tbhelp
-from urllib.parse import urljoin
 
 from .db.TWL06 import twl as twl_mod
 
@@ -35,6 +37,40 @@ class DictionarySource (NetSource):
                 d0['shortdef'][0]
             )
 
+def tournamentWordOfTheDay():
+    def randomWord():
+        word = ''
+        next = ''
+        while next != '$':
+            word += next
+            next = random.choice(twl_mod.children(word))
+        return word
+
+    dbroot = os.path.join(config.DB_ROOT, 'twotd')
+    today = datetime.date.today()
+    dbfile = os.path.join(dbroot, today.strftime("%Y%m%d"))
+
+    if os.path.exists(dbfile):
+        return open(dbfile).read()
+
+    word = randomWord()
+    while len(word) > 5:
+        word = randomWord()
+
+    lookup = DictionarySource(word)
+    if lookup.err:
+        means = lookup.err
+    else:
+        means = lookup.content
+
+    today_human = today.strftime('%A, %d %B')
+    msg = f"Tournament Word of the Day for {today_human}"
+    msg+= f"\n {word}"
+    msg+= f"\n\n{means}"
+    open(dbfile,'w').write(msg)
+    return msg
+
+
 @tbroute('word')
 @tbhelp(
 """word -- look up a word in a dictionary
@@ -43,7 +79,7 @@ You can say something like:
   'word Hello'
   'word brontosaurus'
 
-Related commands: twl
+Related commands: twl twotd
 """)
 def define(req):
     w = req.args
@@ -65,3 +101,13 @@ def twl(req):
         return f"YES. '{w}' is a valid word"
     else:
         return f"NO. '{w}' is not a valid word"
+
+
+@tbroute('twotd')
+@tbhelp(
+"""Tournament Word of the Day
+a 2-5 letter word from the tournament word list
+with a definition (when available) from Merriam-Webster
+""")
+def twotd(req):
+    return tournamentWordOfTheDay()

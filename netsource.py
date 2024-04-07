@@ -54,7 +54,11 @@ class NetSource (object):
         if self.err:
             return self.err
         else:
-            return self.makeResponse(self.content, *args, **kwargs)
+            try:
+                return self.makeResponse(self.content, *args, **kwargs)
+            except TypeError:
+                return  f"Got a bad repsonse from {self.name}"
+
 
     def __init__(self, *args, raiseOnError=False, **kwargs):
         url =self.makeUrl(*args, **kwargs)

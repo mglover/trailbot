@@ -17,13 +17,14 @@ bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
 ## commands
 from .help import help
 from .wx import wx
-from .word import define
+from .word import define, twl, twotd
 from .wiki import wiki
 from .location import where
 from .nav import drive, distance
 from .userui import reg, unreg, whoami, saveloc, forget, share, unshare
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
+
 
 ##
 ## error/auth hooks
@@ -49,6 +50,7 @@ def auth_reqd(error):
     )
 
 
+## entry point
 @bp.route("/fetch")
 def sms_reply():
         authenticate(request)
