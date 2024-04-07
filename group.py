@@ -1,4 +1,5 @@
 import os, shutil, re
+from flask import render_template
 
 from . import config
 from .core import success, TBResponse, TBError, parseArgs
@@ -181,13 +182,14 @@ class Group(object):
 
 
 
-## -- chat --
 
 @tbroute('group')
 @needsreg("to use chat groups")
 @tbhelp(
 """
-group: 
+group -- create a chat group
+
+say 'group #yourgroupname'
 """
 )
 def group(req):
@@ -200,7 +202,15 @@ def group(req):
 
 @tbroute('ungroup')
 @needsreg("to use chat groups")
-def ungroup(req):
+@tbhelp(
+"""
+ungroup -- remove a chat group
+
+say 'ungroup #yourgroupname'
+you must be the creator of the group to remove it
+"""
+)
+def ungroup(req): 
     if not req.args:
         return "Err? You need to give me a group to remove. Say 'ungroup #tag'"
     g = Group.fromTag(req.args, req.user)
@@ -247,7 +257,9 @@ def leave(req):
 def chat(req):
     resp = TBResponse()
     g = Group.fromTag(req.cmd, req.user)
+    msg = render_template(
+        'chat.txt', group=g, user=req.user, msg=req.args
+    )
     for r in g.getReaders():
-        resp.addMsg(f"@{g.nam}: {req.args}", to=r.phone)
+        resp.addMsg(msg, to=r.phone)
     return resp
-## --
