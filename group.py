@@ -68,7 +68,8 @@ class ACL(object):
         return user.handle in self.acl
 
     def __iter__(self):
-       return iter(self.acl)
+        self._load()
+        return iter(self.acl)
 
 class AllowAll(ACL):
     def __init__(self):
@@ -142,8 +143,11 @@ class Group(object):
         else:
             return None
 
+    def _isOwner(self):
+        return self.requser.handle == self.ohndl
+
     def _requireOwner(self):
-        if  self.requser.handle != self.ohndl:
+        if not self._isOwner():
             raise GroupAdminDenied(self.tag)
 
     def destroy(self):
@@ -174,7 +178,7 @@ class Group(object):
         self.bans.add(bad_user)
 
     def getReaders(self):
-        if self.requser not in self.writers:
+        if self.requser not in self.writers and not self._isOwner():
             raise GroupWriteDenied(self.tag)
         else:
             return [User.lookup('@'+nam) for nam in self.readers]
