@@ -6,7 +6,6 @@ from trailbot import config, tb
 from trailbot.user import User, HandleUnknownError
 from trailbot.group import Group, GroupUnknownError
 from trailbot.word import tournamentWordOfTheDay
-from trailbot.cron import AutoSender
 
 baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
 
