@@ -12,7 +12,9 @@ from flask import Flask, request, Response, redirect, abort,Blueprint,\
 from . import config
 from .dispatch import dispatch
 
-bp = Blueprint('wx', __name__, '/wx', template_folder='templates')
+bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
+
+from .wordbot import wordbot
 
 ## commands
 from .help import help
