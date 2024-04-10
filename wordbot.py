@@ -18,17 +18,18 @@ class WordBot():
     tag = '#twotd'
 
     def __init__(self):
+        print("%s at %d:%02d" % (self.handle, runhr, runmi))
         try:
             self.user = User.lookup(self.handle)
             assert self.phone == self.user.phone
         except HandleUnknownError:
-            self.user = User.create(self.phone, self.handle)
+            self.user = User.register(self.phone, self.handle)
 
         try:
             self.group = Group.fromTag(self.tag, self.user)
         except GroupUnknownError:
             self.group = Group.create(self.tag, self.user, 'announce')
-        print("Ready")
+        print("Ready.")
 
     def send_to_phone(self, phone, msg):
         data = {
@@ -65,8 +66,9 @@ class WordBot():
 def wordbot():
     while True:
         now = datetime.datetime.now()
+        bot = WordBot()
         if now.hour==runhr and now.minute==runmi:
             print("Sending")
-            WordBot().run()
+            bot.run()
             time.sleep(60)
         time.sleep(60)
