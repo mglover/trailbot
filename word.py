@@ -1,5 +1,7 @@
-import random, datetime, os
+import random, datetime, os, json
 from urllib.parse import urljoin
+
+from flask import render_template
 
 from . import config
 from .netsource import NetSource
@@ -38,6 +40,7 @@ class DictionarySource (NetSource):
             )
 
 def tournamentWordOfTheDay():
+    print('twotd')
     def randomWord():
         word = ''
         next = ''
@@ -50,25 +53,36 @@ def tournamentWordOfTheDay():
     today = datetime.date.today()
     dbfile = os.path.join(dbroot, today.strftime("%Y%m%d"))
 
+    print('open')
     if os.path.exists(dbfile):
-        return open(dbfile).read()
+        try:
+            data = json.load(open(dbfile))
+        except json.decoder.JSONDecodeError: 
+            data = None
 
-    word = randomWord()
-    while len(word) > 5:
-        word = randomWord()
+    if not data:
+        data = {}
 
-    lookup = DictionarySource(word)
-    if lookup.err:
-        means = lookup.err
-    else:
-        means = lookup.content
+    print('read')
+    if 'word' not in data:
+        data['word'] = randomWord()
+        while len(data['word']) > 5:
+            data['word'] = randomWord()
 
-    today_human = today.strftime('%A, %d %B')
-    msg = f"Tournament Word of the Day for {today_human}"
-    msg+= f"\n {word}"
-    msg+= f"\n\n{means}"
-    open(dbfile,'w').write(msg)
-    return msg
+    if 'lookup' not in data:
+        lookup = DictionarySource(data['word'])
+        if lookup.err:
+            data['lookup_err'] = lookup.err
+        else:
+            if 'lookup_err' in data: del data['lookup_err']
+            data['lookup'] = lookup.content
+
+    print('save')
+    if data:
+        json.dump(data, open(dbfile, 'w'))
+
+    print('return')
+    return render_template('twotd.txt', today=today, data=data)
 
 
 @tbroute('word')
