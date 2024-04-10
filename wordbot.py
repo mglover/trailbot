@@ -9,8 +9,8 @@ from trailbot.word import tournamentWordOfTheDay
 
 baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
 
-runhr = 18
-runmi = 37
+runhr = 14
+runmi = 15
 
 class WordBot():
     handle = '@WordBot'
