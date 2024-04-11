@@ -1,48 +1,32 @@
-import datetime, time, requests
+import datetime, time
 
 from flask import render_template
 
-from trailbot import config, tb
-from trailbot.user import User, HandleUnknownError
+from trailbot import tb
+from trailbot.bot import Bot
 from trailbot.group import Group, GroupUnknownError
 from trailbot.word import tournamentWordOfTheDay
 
-baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
+runhr = 16
+runmi = 16
 
-runhr = 14
-runmi = 15
-
-class WordBot():
+class WordBot(Bot):
     handle = '@WordBot'
     phone = '+078070001000'
     tag = '#twotd'
 
     def __init__(self):
+        Bot.__init__(self)
         print("%s at %d:%02d" % (self.handle, runhr, runmi))
-        try:
-            self.user = User.lookup(self.handle)
-            assert self.phone == self.user.phone
-        except HandleUnknownError:
-            self.user = User.register(self.phone, self.handle)
-
         try:
             self.group = Group.fromTag(self.tag, self.user)
         except GroupUnknownError:
             self.group = Group.create(self.tag, self.user, 'announce')
         print("Ready.")
 
-    def send_to_phone(self, phone, msg):
-        data = {
-            'Body': msg,
-            'MessagingServiceSid': config.TWILIO_MSG_SID,
-            'To': phone
-        }
-        res = requests.post(
-            baseurl_sending,
-            data=data,
-            auth=((config.TWILIO_API_USER, config.TWILIO_API_PASS))
-        )
-    # XXX check return code?
+    def trigger(self):
+        now = datetime.datetime.now()
+        return now.hour== runhr and now.minute==runmi
 
     def send_to_group(self, body):
         head = "From @%s in #%s" % (self.user.handle, self.group.tag)
@@ -64,10 +48,10 @@ class WordBot():
 
 @tb.bp.cli.command('wordbot')
 def wordbot():
+    bot = WordBot()
     while True:
         now = datetime.datetime.now()
-        bot = WordBot()
-        if now.hour==runhr and now.minute==runmi:
+        if bot.trigger():
             print("Sending")
             bot.run()
             time.sleep(60)
