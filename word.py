@@ -54,11 +54,11 @@ def tournamentWordOfTheDay():
     dbfile = os.path.join(dbroot, today.strftime("%Y%m%d"))
 
     print('open')
+    data = None
     if os.path.exists(dbfile):
         try:
             data = json.load(open(dbfile))
-        except json.decoder.JSONDecodeError: 
-            data = None
+        except: pass
 
     if not data:
         data = {}
