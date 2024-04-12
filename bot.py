@@ -24,8 +24,10 @@ class Bot(object):
             self.user = User.register(self.phone, self.handle)
 
     def send_to_phone(self, phone, msg):
+        if phone == self.phone: return
         if self._isBotPhone(phone):
-            raise ValueError("Trying to send to bot phone %s")
+            raise ValueError("Trying to send to bot phone %s" % phone)
+
         data = {
             'Body': msg,
             'MessagingServiceSid': config.TWILIO_MSG_SID,
