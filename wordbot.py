@@ -1,4 +1,4 @@
-import datetime, time
+import datetime, time, sys
 
 from flask import render_template
 
@@ -10,6 +10,10 @@ from trailbot.word import tournamentWordOfTheDay
 runhr = 16
 runmi = 16
 
+def log(msg):
+   print(msg)
+   sys.stdout.flush()
+
 class WordBot(Bot):
     handle = '@WordBot'
     phone = '+078070001000'
@@ -17,15 +21,16 @@ class WordBot(Bot):
 
     def __init__(self):
         Bot.__init__(self)
-        print("%s at %d:%02d" % (self.handle, runhr, runmi))
+        log("%s at %d:%02d" % (self.handle, runhr, runmi))
         try:
             self.group = Group.fromTag(self.tag, self.user)
         except GroupUnknownError:
             self.group = Group.create(self.tag, self.user, 'announce')
-        print("Ready.")
+        log("Ready.")
 
     def trigger(self):
         now = datetime.datetime.now()
+        #log("want %d:%02d, now %d:%02d"%(runhr,runmi,now.hour,now.minute))
         return now.hour== runhr and now.minute==runmi
 
     def send_to_group(self, body):
@@ -39,7 +44,7 @@ class WordBot(Bot):
         for user in self.group.getReaders():
             self.send_to_phone(user.phone, msg)
             i+=1
-        print('sent to %d users' % i)
+        log('sent to %d users' % i)
 
     def run(self):
         msg= tournamentWordOfTheDay()
@@ -52,7 +57,7 @@ def wordbot():
     while True:
         now = datetime.datetime.now()
         if bot.trigger():
-            print("Sending")
+            log("Sending")
             bot.run()
             time.sleep(60)
         time.sleep(60)
