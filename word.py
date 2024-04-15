@@ -40,7 +40,6 @@ class DictionarySource (NetSource):
             )
 
 def tournamentWordOfTheDay():
-    print('twotd')
     def randomWord():
         word = ''
         next = ''
@@ -53,7 +52,6 @@ def tournamentWordOfTheDay():
     today = datetime.date.today()
     dbfile = os.path.join(dbroot, today.strftime("%Y%m%d"))
 
-    print('open')
     data = None
     if os.path.exists(dbfile):
         try:
@@ -63,25 +61,25 @@ def tournamentWordOfTheDay():
     if not data:
         data = {}
 
-    print('read')
     if 'word' not in data:
         data['word'] = randomWord()
         while len(data['word']) > 5:
             data['word'] = randomWord()
 
+    lookup = DictionarySource(data['word'])
     if 'lookup' not in data:
-        lookup = DictionarySource(data['word'])
         if lookup.err:
             data['lookup_err'] = lookup.err
         else:
             if 'lookup_err' in data: del data['lookup_err']
             data['lookup'] = lookup.content
 
-    print('save')
+    data['shorttext'] = lookup.makeResponse()
+
     if data:
         json.dump(data, open(dbfile, 'w'))
 
-    print('return')
+    print(data)
     return render_template('twotd.txt', today=today, data=data)
 
 

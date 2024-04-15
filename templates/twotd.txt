@@ -1,12 +1,11 @@
 Tournament Word of the Day for {{ today.strftime('%A, %d %B') }}
 
-    {{data['word'] }}
+    {{data['word'] | upper}}
 
 {% if 'lookup_err' in data %}
- {{ data['lookup_err'] }}
+{{ data['lookup_err'] }}
 {% else: %}
-From Merriam-Webster: 
-    {{ data['lookup'][0]["hwi"]["hw"] }}: {{ data['lookup'][0]["shortdef"][0] }}
+{{ data['shorttext'] }}
 {% endif %}
 
 
