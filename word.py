@@ -79,7 +79,10 @@ def tournamentWordOfTheDay():
     if data:
         json.dump(data, open(dbfile, 'w'))
 
+<<<<<<< HEAD
     print(data)
+=======
+>>>>>>> d48a5e4 (wordbot: cleanup debug stmts, use DictionarySource.makeResponse instead of buggy ad-hoc)
     return render_template('twotd.txt', today=today, data=data)
 
 
