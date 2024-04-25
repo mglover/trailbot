@@ -11,7 +11,7 @@ from flask import Flask, request, Response, redirect, abort,Blueprint,\
 
 from . import config
 from .dispatch import dispatch
-
+from .core import TBMessage
 bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
 
 from .wordbot import wordbot
@@ -33,8 +33,8 @@ from .group import group, ungroup, invite, join, leave, chat
 ##
 @bp.errorhandler(500)
 def code_fail(error):
-    return """I'm sorry, something has gone wrong with my programming.
-Try again?  That works sometimes.  I'll let the boss know what happened!"""
+    return TBMessage("I'm sorry, something has gone wrong with my programming.
+Try again?  That works sometimes.  I'll let the boss know what happened!")
 
 def authenticate(request):
     if not request.authorization \
