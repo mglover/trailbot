@@ -92,6 +92,10 @@ class AllowAll(ACL):
 class Group(object):
     dbpath = os.path.join(config.DB_ROOT,'groups')
 
+    @classmethod
+    def list(cls):
+        return [g for g in os.listdir(cls.dbpath)]
+
     def __init__(self, nam, requser):
         self.nam = nam
         self.requser = requser
