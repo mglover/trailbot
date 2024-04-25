@@ -188,14 +188,28 @@ class Group(object):
 
 
 @tbroute('group')
-@needsreg("to use chat groups")
 @tbhelp(
-"""
-group -- create a chat group
+"""group -- create a chat group
 
-say 'group #yourgroupname'
+say 'group #yourgroup'
+
+by default, registered user  can join a group, 
+and any member can post messages tothe group.
+
+use the keyword 'private' to require an invitation to join, like this
+
+ group #yourgroup private
+
+use the keyword 'announce' to prevent other members from posting.
+
+to post a message to a group, start your message with the group's #hashtag:
+
+ #yourgroup Hey my peeps!
+
+related commands: ungroup, invite, join, leave
 """
 )
+@needsreg("to use chat groups")
 def group(req):
     flags = req.args.split()
     if len(flags) < 1:
@@ -205,16 +219,16 @@ def group(req):
     return success("Group '%s' created" % g.tag)
 
 @tbroute('ungroup')
-@needsreg("to use chat groups")
 @tbhelp(
-"""
-ungroup -- remove a chat group
+"""ungroup -- remove a chat group
 
-say 'ungroup #yourgroupname'
+say 'ungroup #yourgroup'
+
 you must be the creator of the group to remove it
-"""
-)
-def ungroup(req): 
+this will immediately destroy the group and the list of group members
+""")
+@needsreg("to use chat groups")
+def ungroup(req):
     if not req.args:
         return "Err? You need to give me a group to remove. Say 'ungroup #tag'"
     g = Group.fromTag(req.args, req.user)
@@ -222,6 +236,17 @@ def ungroup(req):
     return success("Group '%s' removed" % g.tag)
 
 @tbroute('invite')
+@tbhelp(
+"""invite -- invite a registered user to a chat group
+
+say "invite @handle to #yourgroup"
+
+@handle will be sent a message inviting them to #yourgroup, and if this is
+a private group, be allowed to join.
+
+related commands: group, join
+
+""")
 @needsreg("to use chat groups")
 def invite(req):
     resp = TBResponse()
@@ -241,6 +266,16 @@ def invite(req):
     return resp
 
 @tbroute('join')
+@tbhelp(
+"""join -- join a chat group
+
+say "join #yourgroup"
+
+You will receive all messages posted to the group, and be able to post 
+messages to the group (if the group has been set up to allow it).
+
+related commands: group, invite, leave
+""")
 @needsreg("to use chat groups")
 def join(req):
     if not req.args:
@@ -250,6 +285,15 @@ def join(req):
     return success("You have joined #%s" % g.tag)
 
 @tbroute('leave')
+@tbhelp(
+"""leave -- leave a chat group
+
+say "leave #yourgroup"
+
+You will no longer receive posts from or post messages to #yourgroup
+
+related commands: group, join
+""")
 @needsreg("to use chat groups")
 def leave(req):
     g = Group.fromTag(req.args, req.user)
