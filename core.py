@@ -1,3 +1,12 @@
+
+def escape(str_xml):
+    str_xml = str_xml.replace("&", "&amp;")
+    str_xml = str_xml.replace("<", "&lt;")
+    str_xml = str_xml.replace(">", "&gt;")
+    str_xml = str_xml.replace("\"", "&quot;")
+    str_xml = str_xml.replace("'", "&apos;")
+    return str_xml
+
 def success(msg):
     return "TrailBot: Success: %s" % msg
 
@@ -23,7 +32,7 @@ class TBMessage(object):
             resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
-        resp += self.msg[:1500]
+        resp += escape(self.msg)[:1500]
         resp += "</Message>"
         return resp
 
