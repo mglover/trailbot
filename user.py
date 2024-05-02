@@ -254,8 +254,8 @@ class User(object):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
         try:
-            with open(self.dbfile('status')) as stfd:
-                self.status = stfd.read()
+            with open(self.dbfile('status'), 'rb') as stfd:
+                self.status = stfd.read().decode('UTF-8')
         except FileNotFoundError:
             self.status = None
         try:
@@ -271,8 +271,8 @@ class User(object):
         with open(self.dbfile('subs'), 'w') as sfd:
             sfd.write('\n'.join(self.subs))
         if self.status:
-           with  open(self.dbfile('status'),'w') as stfd:
-                stfd.write(self.status)
+           with  open(self.dbfile('status'),'wb') as stfd:
+                stfd.write(self.status.encode('UTF-8'))
 
     def subscribe(self, phone):
         if phone in self.subs:

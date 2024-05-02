@@ -1,7 +1,7 @@
 from flask import render_template
 from .core import success, TBResponse
 from .dispatch import tbhelp, tbroute
-from .user import User
+from .user import User, RegistrationRequired
 
 
 @tbroute('subscribe')
@@ -57,6 +57,7 @@ def status(req):
         else:
             return "No status for %s" % u.handle
     else:
+        if not req.user: raise RegistrationRequired("to post status updates")
         # this is a status update
         status = req.args
         req.user.setStatus(status)
