@@ -55,5 +55,5 @@ def auth_reqd(error):
 ## entry point
 @bp.route("/fetch")
 def sms_reply():
-        authenticate(request)
-        return dispatch(request)
+    authenticate(request)
+    return dispatch(request)
