@@ -114,7 +114,8 @@ class Location(UserObj):
             raise LookupLocationError(citystate)
 
         maybes = []
-        with open(os.path.join(config.DB_ROOT, "places.txt")) as plfd:
+        plpath = os.path.join(config.DB_ROOT, "places.txt")
+        with open(plpath, encoding="utf-8") as plfd:
             pldb = csv.reader(plfd)
             for row in pldb:
                 if not len(row):
