@@ -1,0 +1,5 @@
+This is TrailBot. I know the following <commands>:
+{% for a in all: %}
+  {{a}} {% endfor %}
+
+For more help with a <command>, say 'help <command>'

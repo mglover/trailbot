@@ -7,12 +7,6 @@ from .dispatch import tbhelp, tbroute, TBResponse
 from .location import Location
 
 @tbroute(re.compile('^@.*$'))
-@tbhelp(
-"""direct messaging
-Say:
-
-  '@handle Your Message Goes Here'
-""")
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
