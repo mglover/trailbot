@@ -2,4 +2,4 @@ This is TrailBot. I know the following <commands>:
 {% for a in all: %}
   {{a}} {% endfor %}
 
-For more help with a <command>, say 'help <command>'
+For more help with a <command>, say 'help <command>'.  For complete documentation, visit http://oldskooltrailgoods.com/trailbot

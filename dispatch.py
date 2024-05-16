@@ -9,7 +9,7 @@ class EmptyRequest(TBError):
 
 class UnknownAction(TBError):
     msg ="I don't know how to do %s. \n"
-    msg+="msg 'help' for a list of commands, "
+    msg+="msg 'help me' for a list of commands, "
     msg+="or visit oldskooltrailgoods.com/trailbot "
     msg+="to view the full documentation."
 
