@@ -34,7 +34,7 @@ from .group import group, ungroup, invite, join, leave, chat
 @bp.errorhandler(500)
 def code_fail(error):
     return TBMessage("""I'm sorry, something has gone wrong with my programming.
-Try again?  That works sometimes.  I'll let the boss know what happened!""")
+Try again?  That works sometimes.  I'll let the boss know what happened!""").asTwiML()
 
 def authenticate(request):
     if not request.authorization \
