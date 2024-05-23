@@ -1,9 +1,7 @@
 """
-trailbot.py
+tb.py
 
-receive sms requests via twilio
-for a given zip code, lat/lon, place name,or AT shelter name
-and return the 3 day weather forecast from NWS as TwiML
+Flask blueprint, command inmports, and entry point for TrailBot
 """
 
 from flask import request, Response, abort, Blueprint
