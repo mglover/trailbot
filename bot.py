@@ -35,7 +35,7 @@ class Bot(object):
             try:
                 fd = os.open(self.lockfile, mode)
             except FileExistsError:
-                    log("Waiting on %s" % gofile)
+                    log("Waiting on %s" % self.lockfile)
                     time.sleep(self._sleep)
             else:
                 self._lockfd = fd
