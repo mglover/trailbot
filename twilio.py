@@ -55,7 +55,7 @@ class TBResponse(object):
 
 baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
 
-def smsToPhone(phone, meg):
+def smsToPhone(phone, msg):
     """
         A single message, sent to a single phone number,
         *not* in  response to an incoming message
