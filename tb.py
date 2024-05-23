@@ -3,7 +3,6 @@ tb.py
 
 Flask blueprint, command inmports, and entry point for TrailBot
 """
-
 from flask import request, Response, abort, Blueprint
 
 from . import config
@@ -23,6 +22,9 @@ from .userui import reg, unreg, whoami, saveloc, forget, share, unshare
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
 
+## bots
+from .bot import BotMon
+from .wordbot import WordBot
 
 ##
 ## error/auth hooks
@@ -53,3 +55,9 @@ def auth_reqd(error):
 def sms_reply():
     authenticate(request)
     return dispatch(request)
+
+## bot runner CLI
+@bp.cli.command('botman')
+def botman():
+    BotMon(WordBot).run()
+
