@@ -2,6 +2,7 @@
     Low-level interface to sending and receiving messages
     through the Twilio API.
 """
+import requests
 from . import config
 from .core import escape
 
@@ -51,6 +52,8 @@ class TBResponse(object):
         resp+= "</Response>"
         return str(resp)
 
+
+baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
 
 def smsToPhone(phone, meg):
     """
