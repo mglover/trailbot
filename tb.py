@@ -6,15 +6,12 @@ for a given zip code, lat/lon, place name,or AT shelter name
 and return the 3 day weather forecast from NWS as TwiML
 """
 
-from flask import Flask, request, Response, redirect, abort,Blueprint,\
-    render_template
+from flask import request, Response, abort, Blueprint
 
 from . import config
 from .dispatch import dispatch
 from .core import TBMessage
 bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
-
-from .wordbot import wordbot
 
 ## commands
 from .help import help

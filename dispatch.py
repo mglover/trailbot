@@ -1,5 +1,6 @@
 import re
-from .core import TBError, TBMessage, TBResponse
+
+from .core import TBError, TBResponse
 from .user import User
 
 routes = []
