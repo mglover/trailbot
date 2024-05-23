@@ -3,13 +3,15 @@ import re
 from flask import render_template
 from .core import success, TBError, parseArgs
 from .user import User, needsreg
-from .dispatch import tbhelp, tbroute, TBResponse
+from .dispatch import tbhelp, tbroute
+from .twilio import TBResponse
 from .location import Location
 
 @tbroute(re.compile('^@.*$'))
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
+    # XXX why is this not just a TBMessage?
     resp =TBResponse()
     resp.addMsg('@%s: %s'%(req.user.handle, req.args),
         to=dstu.phone)

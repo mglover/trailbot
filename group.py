@@ -2,7 +2,8 @@ import os, shutil, re
 from flask import render_template
 
 from . import config
-from .core import success, TBResponse, TBError, parseArgs
+from .core import success, TBError, parseArgs
+from .twilio import TBResponse
 from .user import User, needsreg
 from .dispatch import tbroute, tbhelp
 

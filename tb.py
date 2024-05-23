@@ -10,7 +10,8 @@ from flask import request, Response, abort, Blueprint
 
 from . import config
 from .dispatch import dispatch
-from .core import TBMessage
+from .twilio import TBMessage
+
 bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
 
 ## commands

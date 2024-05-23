@@ -18,43 +18,6 @@ class TBError(Exception):
         return self.msg % self.args
 
 
-class TBMessage(object):
-    def __init__(self, msg, **kwargs):
-        self.msg = msg
-        self.kwargs = kwargs
-
-    def __str__(self):
-        return self.msg
-
-    def asTwiML(self):
-        resp = '<Message'
-        if 'to' in self.kwargs:
-            resp+= ' to="%s">' % self.kwargs['to']
-        else:
-            resp+='>'
-        resp += escape(self.msg)[:1500]
-        resp += "</Message>"
-        return resp
-
-class TBResponse(object):
-    def __init__(self):
-        self.msgs = []
-
-    def __len__(self):
-        return len(self.msgs)
-
-    def addMsg(self, msg, **kwargs):
-        self.msgs.append(TBMessage(msg, **kwargs))
-
-    def asTwiML(self):
-        assert len(self.msgs) > 0
-        resp = '<?xml version="1.0" encoding="UTF-8"?>'
-        resp+= "<Response>"
-        for m in self.msgs:
-            resp+=m.asTwiML()
-        resp+= "</Response>"
-        return str(resp)
-
 def parseArgs(args, keywords):
     """ search the request for values separated by keywords 
         return a dict of keyword, value pairs.

@@ -1,5 +1,6 @@
 from flask import render_template
-from .core import success, TBResponse
+from .core import success
+from .twilio import TBResponse
 from .dispatch import tbhelp, tbroute
 from .user import User, RegistrationRequired
 

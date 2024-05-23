@@ -1,6 +1,6 @@
 import os, requests, time
 
-from . import config
+from . import config, twilio
 from .user import User, HandleUnknownError
 
 
@@ -53,15 +53,7 @@ class Bot(object):
         if self._isBotPhone(phone):
             raise ValueError("Trying to send to bot phone %s" % phone)
 
-        data = {
-            'Body': msg,
-            'MessagingServiceSid': config.TWILIO_MSG_SID,
-            'To': phone
-        }
-        res = requests.post(
-            baseurl_sending,
-            data=data,
-            auth=((config.TWILIO_API_USER, config.TWILIO_API_PASS))
-        )
+        twilio.smsToPhone(phone, msg)
+
     # XXX check return code?
 

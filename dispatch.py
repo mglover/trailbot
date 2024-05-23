@@ -1,6 +1,7 @@
 import re
 
-from .core import TBError, TBResponse
+from .core import TBError
+from .twilio import TBResponse
 from .user import User
 
 routes = []
