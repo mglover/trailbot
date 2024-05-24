@@ -53,7 +53,7 @@ class Bot(object):
     @classmethod
     def trigger(cls):
         now = datetime.datetime.now()
-        return now.hour== cls.runhr and now.minute==cls.runmi
+        return now.hour== cls.runhr and now.minute==cls.runmin
 
     @classmethod
     def sleep(cls):
