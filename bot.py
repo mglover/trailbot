@@ -1,4 +1,4 @@
-import datetime, os, time, sys
+import atexit, datetime, os, time, sys
 
 from flask import render_template
 
@@ -40,7 +40,6 @@ class Bot(object):
             else:
                 self._lockfd = fd
 
-
     def _releaseLock(self):
         if self._lockfd is not None:
             os.close(self._lockfd)
@@ -69,7 +68,7 @@ class Bot(object):
             self.user = User.register(self.phone, self.handle)
 
         self._obtainLock()
-
+        atexit.register(self._releaseLock)
 
     def __del__(self):
         self._releaseLock()
@@ -117,7 +116,6 @@ class BotMon(object):
         while True:
             for b in self.bots:
                 if b.trigger():
-                    log("Sending")
                     b.run()
             Bot.sleep()
 
