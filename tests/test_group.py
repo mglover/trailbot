@@ -26,6 +26,25 @@ class TestGroupCreate(TBTest):
         res = self.req1("group")
         self.assertStartsWith(res, "Err?")
 
+    def test_ungroup(self):
+        self.reg1()
+        self.req1("group #chat1")
+        res = self.req1("ungroup #chat1")
+        self.assertSuccess(res)
+
+    def test_ungroup_notyours(self):
+        self.reg1()
+        self.reg2()
+        self.req2("group #chat2")
+        res = self.req1("ungroup #chat2")
+        self.assertStartsWith(res, "I'm sorry, only the owner")
+
+    def test_ungroup_empty(self):
+        self.reg1()
+        res = self.req1("ungroup")
+        self.assertStartsWith(res, "Err?")
+
+
 class TestGroupUse(TBTest):
     def setUp(self):
         super().setUp()
@@ -33,23 +52,12 @@ class TestGroupUse(TBTest):
         self.reg2()
         self.req1("group #chat1")
         self.req2("group #chat2 private")
+        self.req1("group #chat3 open")
 
     def tearDown(self):
         self.req1("ungroup #chat1")
         self.req2("ungroup #chat2")
         super().tearDown()
-
-    def test_ungroup(self):
-        res = self.req1("ungroup #chat1")
-        self.assertSuccess(res)
-
-    def test_ungroup_notyours(self):
-        res = self.req1("ungroup #chat2")
-        self.assertStartsWith(res, "I'm sorry, only the owner")
-
-    def test_ungroup_empty(self):
-        res = self.req1("ungroup")
-        self.assertStartsWith(res, "Err?")
 
     def test_invite(self):
         res = self.req1('invite @test2 to #chat1', only_first=False)
@@ -66,7 +74,7 @@ class TestGroupUse(TBTest):
         res = self.req1("invite")
         self.assertStartsWith(res, "Err?")
 
-    def test_join_open(self):
+    def test_join_public(self):
         res = self.req2('join #chat1')
         self.assertSuccess(res)
 
@@ -86,16 +94,18 @@ class TestGroupUse(TBTest):
     def test_leave(self):
         pass
 
-    def test_ungroup(self):
-        pass
 
+class TestGroupChat(TestGroupUse):
     def test_chat(self):
         self.req2("join #chat1")
-        res = self.req1("#chat1 hello", only_first=False)
+        res = self.req2("#chat1 hello", only_first=False)
         self.assertEqual(2, len(res))
-        m1,m2 = res.msgs
-        self.assertEqual(str(m1), "@test1#chat1: hello")
-        self.assertEqual(self.frm1, m1.kwargs['to'])
-        self.assertEqual(str(m2), "@test1#chat1: hello")
-        self.assertEqual(self.frm2, m2.kwargs['to'])
 
+    def test_chat_nojoin(self):
+        res = self.req2("#chat1 hello")
+        self.assertStartsWith(res, "I'm sorry, you don't have posting")
+
+    def test_chat_nojoin_open(self):
+        res = self.req2("#chat3 hello", only_first=False)
+        self.assertEqual(1, len(res))
+        self.assertStartsWith(str(res.msgs[0]),"From @test2 in #chat3:\nhello")

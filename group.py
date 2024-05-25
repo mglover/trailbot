@@ -22,16 +22,19 @@ class GroupUnknownError(TBError):
 
 
 class ACL(object):
+    @classmethod
+    def _pathFor(cls, grp, nam):
+        return os.path.join(grp.dbpath, grp.nam, nam)
+
     def __init__(self, grp, nam):
         self.nam = nam
         self.grp = grp
-        self.dbpath = os.path.join(grp.dbpath, grp.nam, self.nam)
+        self.dbpath = self._pathFor(grp, nam)
         self.acl = None
 
     @classmethod
     def exists(cls, grp, nam):
-        dbpath = os.path.join(grp.dbpath, grp.nam, nam)
-        return os.path.exists(dbpath)
+        return os.path.exists(cls._pathFor(grp, nam))
 
     @classmethod
     def create(cls, grp, nam):
@@ -62,6 +65,9 @@ class ACL(object):
         if user.handle in self.acl:
             self.acl.remove(user.handle)
             self._save()
+
+    def symlink(self, nam):
+        os.symlink(self.dbpath, self._pathFor(self.grp, nam))
 
     def __contains__(self, user):
         if self.acl is None:
@@ -113,7 +119,7 @@ class Group(object):
         if ACL.exists(self, "write"):
             self.writers = ACL(self, 'write')
         else:
-            self.writers = self.readers
+            self.writers = AllowAll()
 
 
     @classmethod
@@ -131,9 +137,11 @@ class Group(object):
         self.readers.add(owner)
         if 'private' in flags:
             self.invites = ACL.create(self, "invite")
-        if 'announce' in flags:
-            self.writers = ACL.create(self, "write")
-
+        if 'open' not in flags:
+            if 'announce' in flags:
+                self.writers = ACL.create(self, "write")
+            else:
+                self.writers = self.readers.symlink("write")
         return self
 
     @classmethod
