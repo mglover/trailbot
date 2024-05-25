@@ -8,7 +8,7 @@ from flask import Flask
 
 from trailbot import tb, netsource
 from trailbot import netsource
-from trailbot.core import TBResponse
+from trailbot.twilio import TBResponse
 from trailbot.dispatch import routes
 
 class TBTest(unittest.TestCase):
