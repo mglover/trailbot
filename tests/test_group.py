@@ -109,3 +109,7 @@ class TestGroupChat(TestGroupUse):
         res = self.req2("#chat3 hello", only_first=False)
         self.assertEqual(1, len(res))
         self.assertStartsWith(str(res.msgs[0]),"From @test2 in #chat3:\nhello")
+
+    def test_chat_noreg_open(self):
+        res = self.req('+07357000', "#chat3 hello")
+        self.assertStartsWith(res, "You must register")
