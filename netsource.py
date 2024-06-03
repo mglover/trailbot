@@ -44,18 +44,24 @@ class NetSource (object):
     def makeUrl(self, *arge, **kwargs):
         raise NotImplementedError
 
-    def makeParams(self):
-        raise NotImplementedError
+    def makeParams(self, *args, **kwargs):
+        return dict()
 
-    def makeContent(self, *arge, **kwargs):
-        raise NotImplementedError
+    def parse(self, resp, *args, **kwargs):
+        try:
+            self.content = resp.json()
+        except requests.JSONDecodeError:
+            self.err = f"Couldn't understand the response from {self.name}"
+
+    def makeResponse(self, *arge, **kwargs):
+        return self.content
 
     def toSMS(self, *args, **kwargs):
         if self.err:
             return self.err
         else:
             try:
-                return self.makeResponse(self.content, *args, **kwargs)
+                return self.makeResponse(*args, **kwargs)
             except TypeError:
                 return  f"Got a bad repsonse from {self.name}"
 
@@ -72,10 +78,8 @@ class NetSource (object):
                     if raiseOnError: raise ResponseError(self.name)
                     self.err = f"{self.name} returned an error"
                 else:
-                    self.content = resp.json()
+                    self.parse(resp)
 
         except requests.ConnectionError:
             if raiseOnError: raise ConnectionError(self.name)
             self.err = f"Couldn't connect to {self.name}"
-        except requests.JSONDecodeError:
-            self.err = f"Couldn't understand the response from {self.name}"

@@ -5,7 +5,7 @@ import os, csv
 from . import config
 from .core import TBError
 from .netsource import NetSource
-from .user import UserObj
+from .userdata import UserObj
 from .dispatch import tbroute, tbhelp
 
 class LookupZipError(TBError):
@@ -29,8 +29,9 @@ def isfloat(s):
 
 class Location(UserObj):
     typ = 'loc'
-    def __init__(self, lat, lon, orig=None, match=None):
-        super().__init__()
+
+    def __init__(self, lat=None, lon=None, orig=None, match=None, **kwargs):
+        super().__init__(**kwargs)
         self.lat = lat
         self.lon = lon
         self.orig = orig
@@ -47,14 +48,11 @@ class Location(UserObj):
             'match':self.match
         }
 
-    @classmethod
-    def fromDict(cls, d):
-        return cls(
-            d['lat'],
-            d['lon'],
-            orig=d['orig'],
-            match=d['match'],
-        )
+    def parseData(self, d):
+        self.lat = d.get('lat')
+        self.lon = d.get('lon')
+        self.orig = d.get('orig')
+        self.match = d.get('match')
 
     def __str__(self):
         return "(%s,%s)" % (self.lat, self.lon)
@@ -71,17 +69,22 @@ class Location(UserObj):
         return 'here'
 
     @classmethod
-    def fromZip(cls, zip):
+    def fromZip(cls, zip, requser):
         zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
         with open(zipfile) as zipfd:
             zipdb = csv.reader(zipfd)
             for row in zipdb:
                 if len(row) and row[0]==zip:
-                    return cls(row[3], row[4], orig=zip)
+                    return cls(
+                        lat=row[3],
+                        lon = row[4],
+                        orig = zip,
+                        requser=requser
+                    )
         raise LookupZipError(zip)
 
     @classmethod
-    def fromShelter(cls, snam):
+    def fromShelter(cls, snam, requser):
         sheltfile = os.path.join(config.DB_ROOT,"at_shelters.csv")
         sheltdb = csv.reader(open(sheltfile))
         maybes = []
@@ -95,10 +98,15 @@ class Location(UserObj):
                 maybes))
         else:
             s = maybes[0]
-        return cls(s[30], s[31], orig=snam)
+        return cls(
+            lat=s[30],
+            lon=s[31],
+            orig=snam,
+            requser=requser
+        )
 
     @classmethod
-    def fromCitystate(cls, citystate):
+    def fromCitystate(cls, citystate, requser):
         """look at a subset of the NGIS National File for place names
         """
         parts =citystate.split(',')
@@ -131,10 +139,15 @@ class Location(UserObj):
         if len(maybes) > 1:
             raise LookupMultipleError(
                 citystate, [', '.join(r[0:2]) for r in maybes])
-        return cls(maybes[0][3], maybes[0][4], orig=citystate)
+        return cls(
+            lat=maybes[0][3],
+            lon=maybes[0][4],
+            orig=citystate,
+            requser=requser
+        )
 
     @classmethod
-    def fromNominatim(cls, q):
+    def fromNominatim(cls, q, requser):
         class NominatimSource(NetSource):
             name = "Nominatim"
             baseUrl = 'https://nominatim.openstreetmap.org/search'
@@ -147,40 +160,44 @@ class Location(UserObj):
         res = NominatimSource(q, raiseOnError=True)
         if not len(res.content):
             raise LookupLocationError(q)
-        data = res.content
+        data = res.content[0]
         return cls(
-            data[0]['lat'],
-            data[0]['lon'],
-            orig=q,
-            match=data[0]["display_name"]
+            lat=data['lat'],
+            lon=data['lon'],
+            orig = data['display_name'],
+            requser=requser
         )
 
 
-
     @classmethod
-    def fromInput(cls, str, user=None):
+    def fromInput(cls, str, requser):
         parts = str.split()
-
         if len(parts)==1:
-            ud = cls.lookup(str.lower(), user)
+            # saved location lookup
+            ud = cls.lookup(str.lower(), requser)
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
             if len(parts[0])==5 and parts[0].isdigit():
-               return cls.fromZip(str)
+                return cls.fromZip(str, requser)
 
-        if len(parts) == 2 and \
+        elif len(parts) == 2 and \
             isfloat(parts[0]) and isfloat(parts[1]):
-                return cls(parts[0], parts[1])
+            return cls(
+                lat=parts[0],
+                lon=parts[1],
+                orig="coordinates",
+                requser=requser
+            )
 
-        if len(parts)>=2 and parts[-2].endswith(',') \
+        elif len(parts)>=2 and parts[-2].endswith(',') \
             and len(parts[-1].lstrip()) == 2:
-            return cls.fromCitystate(str)
+            return cls.fromCitystate(str, requser)
 
-        if parts[0]=='trail:at':
-            return cls.fromShelter(' '.join(parts[1:]))
+        elif parts[0]=='trail:at':
+            returncls.fromShelter(' '.join(parts[1:]), requser)
 
-        return cls.fromNominatim(str)
-
+        return cls.fromNominatim(str, requser)
+UserObj.typs.append(Location)
 
 @tbroute('where')
 @tbhelp(

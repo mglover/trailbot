@@ -3,6 +3,7 @@ import re
 from flask import render_template
 from .core import success, TBError, parseArgs
 from .user import User, needsreg
+from .userdata import UserObj
 from .dispatch import tbhelp, tbroute
 from .twilio import TBResponse
 from .location import Location
@@ -64,8 +65,46 @@ Related help: 'addr', 'here', 'there'
 """)
 @needsreg("to use saved data")
 def forget(req):
-    req.user.eraseObj(req.args)
+    UserObj.lookup(req.args, req.user).erase()
     return success("'%s' forgotten" % req.args)
+
+
+@tbroute('share')
+@tbhelp(
+"""share -- share saved data with others
+
+Say something like:
+  'share here with @handle
+  'share there' to share 'there' with everyone
+""")
+@needsreg('to share data')
+def share(req):
+    vals = dict(parseArgs(req.args, {'with'}))
+    nam = vals['']
+    spec = vals.get('with', '*')
+
+    UserObj.lookup(nam=nam, requser=req.user).share(spec)
+
+    return success("Shared %s with %s" % (nam, spec))
+
+
+@tbroute('unshare')
+@tbhelp(
+"""
+unshare -- stop sharing saved data with others
+Say something like:
+
+  'unshare there'
+""")
+@needsreg('to share data')
+def unshare(req):
+    vals = dict(parseArgs(req.args, {'with'}))
+    nam = vals['']
+    spec = vals.get('with', '*')
+
+    UserObj.lookup(nam, req.user).unshare(spec)
+
+    return success("Unshared %s with %s" % (nam, spec))
 
 
 @tbroute('address', 'here', 'there')
@@ -84,47 +123,10 @@ def saveloc(req):
     else:
         nam = req.cmd
         q = req.args
+
     loc = Location.fromInput(q, req.user)
+    loc.save(nam.lower())
 
-    req.user.saveObj(nam.lower(), loc)
-
-    msg= success("'%s' is set to:" % nam)
-    msg+="\n"+loc.toSMS()
-    msg+="\n\nTo forget '%s', say 'forget %hs'" % (nam, nam)
-    return msg
+    return render_template("forget.txt", nam=nam.lower(), loc=loc)
 
 
-@tbroute('share')
-@tbhelp(
-"""share -- share saved data with others
-
-Say something like:
-  'share here with @handle
-  'share there' to share 'there' with everyone
-""")
-@needsreg('to share data')
-def share(req):
-    vals = dict(parseArgs(req.args, {'with'}))
-    nam = vals['']
-    spec = vals.get('with', '*')
-
-    req.user.shareObj(nam, spec)
-    return success("Shared %s with %s" % (nam, spec))
-
-
-@tbroute('unshare')
-@tbhelp(
-"""
-unshare -- stop sharing saved data with others
-Say something like:
-
-  'unshare there'
-""")
-@needsreg('to share data')
-def unshare(req):
-    vals = dict(parseArgs(req.args, {'with'}))
-    nam = vals['']
-    spec = vals.get('with', '*')
-
-    req.user.unshareObj(nam, spec)
-    return success("Unshared %s with %s" % (nam, spec))

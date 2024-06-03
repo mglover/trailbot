@@ -1,0 +1,5 @@
+TrailBot: Success. {{ nam }} is set to:
+
+{{ loc.toSMS() }}
+
+To forget {{ nam }}, say 'forget {{ nam }}'.
