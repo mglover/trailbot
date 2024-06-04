@@ -197,7 +197,7 @@ class Location(UserObj):
             returncls.fromShelter(' '.join(parts[1:]), requser)
 
         return cls.fromNominatim(str, requser)
-UserObj.typs.append(Location)
+UserObj.register(Location)
 
 @tbroute('where')
 @tbhelp(

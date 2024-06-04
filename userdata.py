@@ -75,6 +75,10 @@ class UserObj(object):
     typs = []
     typ = None # required to override in subclasses
 
+    @classmethod
+    def register(cls, sub):
+        cls.typs.append(sub)
+
     def __init__(self, nam=None, requser=None, owner=None,
                                 readers=None, rawdata=None):
         self.nam = nam

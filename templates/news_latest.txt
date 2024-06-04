@@ -1,0 +1,5 @@
+From {{feed.feed.title}} on {{feed.feed.generator}} via TrailBot:
+
+{% for ent in feed.entries[0:3] %}
+{{ent.title}} {{ent.published}} {{ent.title}}
+{% endfor %}

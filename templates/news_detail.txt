@@ -1,0 +1,4 @@
+{% set ent = feed.entries[idx] %}In {{feed.title}}: {{ent.title}}
+
+{{ent.description}}
+{{ent.content}}

@@ -21,7 +21,7 @@ from .nav import drive, distance
 from .userui import reg, unreg, whoami, saveloc, forget, share, unshare
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
-
+from .feed import news
 ## bots
 from .bot import BotMon
 from .wordbot import WordBot
