@@ -115,29 +115,32 @@ class User(object):
     def dbfile(self, fname):
         return os.path.join(self.dbpath, self.userdir, fname)
 
+    def getData(self, name, enc='UTF-8'):
+        try:
+            with open(self.dbfile(name), 'rb') as fd:
+                return fd.read().decode(enc)
+        except FileNotFoundError:
+            return None
+
+    def setData(self, name, val, enc='UTF-8'):
+        with open(self.dbfile(name), 'w'b) as fd:
+            fd.write(val.encode(enc)))
+
+
     def __init__(self, userdir):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
-        try:
-            with open(self.dbfile('status'), 'rb') as stfd:
-                self.status = stfd.read().decode('UTF-8')
-        except FileNotFoundError:
-            self.status = None
-        try:
-            with open(self.dbfile('subs')) as sfd:
-                self.subs = sfd.read().split('\n')
-
-        except FileNotFoundError:
-            self.subs = []
+        self.status = loadData('status')
+        self.more = loadData('more')
+        self.subs = loadData('subs').split('\n')
         self.save()
 
     def save(self):
         if '' in self.subs: self.subs.remove('')
-        with open(self.dbfile('subs'), 'w') as sfd:
-            sfd.write('\n'.join(self.subs))
-        if self.status:
-           with  open(self.dbfile('status'),'wb') as stfd:
-                stfd.write(self.status.encode('UTF-8'))
+        self.saveData('status', self.status)
+        self.saveData('more'), self.more)
+        self.saveData('subs', '\n'.join(self.subs))
+
 
     def subscribe(self, phone):
         if phone in self.subs:
@@ -153,7 +156,6 @@ class User(object):
         else:
            raise NotSubscribedError(self.handle)
 
-
     def setStatus(self, status):
         if len(status) > STATUS_MAX:
             raise StatusTooLongError
@@ -161,3 +163,11 @@ class User(object):
             raise StatusTooShortError
         self.status = status
         self.save()
+
+    def setMore(self, more):
+        last = self.more
+        self.more = more
+        return last
+
+    def getMore(self):
+        return self.more

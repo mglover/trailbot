@@ -99,5 +99,7 @@ def dispatch(request):
     else:
         resp = TBResponse()
         resp.addMsg(msg)
+        if tbreq.user:
+            tbreq.user.setMore(msg.more)
 
     return resp.asTwiML()
