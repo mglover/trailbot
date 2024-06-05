@@ -57,6 +57,7 @@ class NetSource (object):
         return self.content
 
     def toSMS(self, *args, **kwargs):
+        self._load()
         if self.err:
             return self.err
         else:
@@ -67,19 +68,25 @@ class NetSource (object):
 
 
     def __init__(self, *args, raiseOnError=False, **kwargs):
-        url =self.makeUrl(*args, **kwargs)
-        params = self.makeParams(*args, **kwargs)
         self.err = None
         self.content = None
+        self.raiseOnError = raiseOnError
+        self.args = args
+        self.kwargs = kwargs
 
+    def _load(self):
+        self.err = None
+        self.content = None
+        url =self.makeUrl(*self.args, **self.kwargs)
+        params = self.makeParams(*self.args, **self.kwargs)
         try:
             with proxy.get(url, params=params) as resp:
                 if not resp.ok:
-                    if raiseOnError: raise ResponseError(self.name)
+                    if self.raiseOnError: raise ResponseError(self.name)
                     self.err = f"{self.name} returned an error"
                 else:
                     self.parse(resp)
 
         except requests.ConnectionError:
-            if raiseOnError: raise ConnectionError(self.name)
+            if self.raiseOnError: raise ConnectionError(self.name)
             self.err = f"Couldn't connect to {self.name}"
