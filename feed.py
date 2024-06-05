@@ -4,7 +4,7 @@ import feedparser
 
 from flask import render_template
 
-from .core import TBError
+from .core import TBError, success
 from .dispatch import tbroute, tbhelp
 from .netsource import NetSource
 from .user import User, RegistrationRequired
@@ -14,14 +14,16 @@ class NewsSyntaxError(TBError):
     msg = "Err? What kind of news do you want?"\
         + "Say 'help news' to learn more"
 
+class FeedNotFound(TBError):
+    msg = "Feed not found: %s"
 
 class Feed (NetSource, UserObj):
     typ = 'url'
 
-    def __init__(self, url, *args, **kwargs):
+    def __init__(self, url=None, *args, **kwargs):
         self.url = url
-        super().__init__(self, *args, **kwargs)
-
+        NetSource.__init__(self, *args, **kwargs)
+        UserObj.__init__(self, *args, **kwargs)
 
     def makeUrl(self, *args, **kwargs):
         self.name = self.url
@@ -39,13 +41,22 @@ class Feed (NetSource, UserObj):
         if len(parts) >1:
             raise NewsSyntaxError
 
-        ud = cls(str.lower(), requser)
+        ud = cls.lookup(str.lower(), requser)
         if ud: return ud
-
         return cls(str, requser=requser)
 
     def parse(self, resp, *args, **kwargs):
         self.content = feedparser.parse(resp.content)
+
+    def toLatestSMS(self):
+        self._load()
+        if self.err: raise FeedNotFound(self.url)
+        return render_template("news_latest.txt", feed=self.content)
+
+    def toDetailSMS(self, idx):
+        self._load()
+        if self.err: raise FeedNotFound(self.url)
+        return render_template("news_detail.txt", feed=self.content, idx=idx)
 
 UserObj.register(Feed)
 
@@ -70,10 +81,11 @@ def news(req):
     if len(args) <1:
         raise NewsSyntaxError
 
-    feed = Feed.fromInput(args.pop(0), req.user)
+    url = args.pop(0)
+    feed = Feed.fromInput(url, req.user)
 
     if len(args) <1:
-        return render_template("news_latest.txt", feed=feed.content)
+        return feed.toLatestSMS()
 
     scmd = args.pop(0)
 
@@ -83,6 +95,7 @@ def news(req):
             raise RegistrationRequired("to use saved news")
         nam = args.pop(0)
         feed.save(nam=nam, requser=req.user)
+        return success(f"feed {feed.url} saved as {nam}")
 
     else:
         """read article N"""
@@ -90,4 +103,4 @@ def news(req):
             idx=int(scmd)-1
         except ValueError:
             raise NewsSyntaxError
-        return render_template("news_detail.txt", feed=feed.content, idx=idx)
+        return feed.toDetailSMS(idx)

@@ -6,6 +6,8 @@ import requests
 from . import config
 from .core import escape
 
+MSG_MAX_LEN=1500
+
 class TBMessage(object):
     """
         A single text message to a single phone number,
@@ -14,6 +16,7 @@ class TBMessage(object):
     def __init__(self, msg, **kwargs):
         self.msg = msg
         self.kwargs = kwargs
+        self.more = None
 
     def __str__(self):
         return self.msg
@@ -24,7 +27,9 @@ class TBMessage(object):
             resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
-        resp += escape(self.msg)[:1500]
+        emsg = escape(self.msg)
+        resp += emsg[:MSG_MAX_LEN]
+        self.more = emsg[MSG_MAX_LEN:]
         resp += "</Message>"
         return resp
 

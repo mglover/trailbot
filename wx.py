@@ -48,7 +48,7 @@ class WxSource (NetSource):
         for orig,new in replaces.items():
             rpt = rpt.replace(orig,new)
 
-        return rpt[:1500]
+        return rpt
 
 @tbroute('wx', 'weather')
 @tbhelp(
