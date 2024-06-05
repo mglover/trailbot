@@ -122,10 +122,9 @@ class UserObj(object):
             if not bytes:
                 return None
             d = json.loads(bytes)
-        except DatumDoesNotExistError: 
+        except (DatumDoesNotExistError,DatumNameTooLong):
             return None
-
-        tcls = [ tcls for tcls in UserObj.typs 
+        tcls = [ tcls for tcls in UserObj.typs
             if tcls.typ==d['type'] ] [0]
         obj = tcls(
             nam=nam,
@@ -148,7 +147,6 @@ class UserObj(object):
         if nam: self.nam = nam
         if requser: self.requser = requser
         assert self.nam is not None and type(self.requser) is User
-
         prevobj = self.lookup(self.nam, self.requser)
         if prevobj:
             assert prevobj.owner == self.owner
