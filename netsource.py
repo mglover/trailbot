@@ -49,7 +49,7 @@ class NetSource (object):
 
     def parse(self, resp, *args, **kwargs):
         try:
-            self.content = resp.json()
+            self._content = resp.json()
         except requests.JSONDecodeError:
             self.err = f"Couldn't understand the response from {self.name}"
 
@@ -57,7 +57,6 @@ class NetSource (object):
         return self.content
 
     def toSMS(self, *args, **kwargs):
-        self._load()
         if self.err:
             return self.err
         else:
@@ -66,23 +65,28 @@ class NetSource (object):
             except TypeError:
                 return  f"Got a bad repsonse from {self.name}"
 
+    @property
+    def content(self):
+        self._load()
+        return self._content
 
     def __init__(self, *args, raiseOnError=False, **kwargs):
         self.err = None
-        self.content = None
+        self._content = None
         self.raiseOnError = raiseOnError
         self.args = args
         self.kwargs = kwargs
 
     def _load(self):
         self.err = None
-        self.content = None
-        url =self.makeUrl(*self.args, **self.kwargs)
+        self._content = None
+        url = self.makeUrl(*self.args, **self.kwargs)
         params = self.makeParams(*self.args, **self.kwargs)
         try:
             with proxy.get(url, params=params) as resp:
                 if not resp.ok:
-                    if self.raiseOnError: raise ResponseError(self.name)
+                    if self.raiseOnError:
+                        raise ResponseError(self.name)
                     self.err = f"{self.name} returned an error"
                 else:
                     self.parse(resp)
