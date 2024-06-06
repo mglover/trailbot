@@ -80,7 +80,6 @@ class TBRequest(object):
         return cls(frm, cmd, args)
 
 
-
 def dispatch(request):
     try:
         tbreq = TBRequest.fromFlask(request)
@@ -99,7 +98,8 @@ def dispatch(request):
     else:
         resp = TBResponse()
         resp.addMsg(msg)
-        if tbreq.user:
-            tbreq.user.setMore(msg.more)
+
+    if tbreq.user:
+        tbreq.user.setMore(resp.getMore())
 
     return resp.asTwiML()

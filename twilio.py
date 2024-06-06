@@ -45,6 +45,10 @@ class TBResponse(object):
     def __len__(self):
         return len(self.msgs)
 
+    def getMore(self):
+        if not self.msgs: return None
+        return self.msgs[0].more
+
     def addMsg(self, msg, **kwargs):
         self.msgs.append(TBMessage(msg, **kwargs))
 

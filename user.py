@@ -115,31 +115,34 @@ class User(object):
     def dbfile(self, fname):
         return os.path.join(self.dbpath, self.userdir, fname)
 
-    def getData(self, name, enc='UTF-8'):
+    def getData(self, name, default=None, enc='UTF-8'):
         try:
             with open(self.dbfile(name), 'rb') as fd:
                 return fd.read().decode(enc)
         except FileNotFoundError:
-            return None
+            return default
 
     def setData(self, name, val, enc='UTF-8'):
-        with open(self.dbfile(name), 'w'b) as fd:
-            fd.write(val.encode(enc)))
-
+        fnam = self.dbfile(name)
+        if val is None:
+            if os.path.exists(fnam): os.unlink(fnam)
+            return
+        with open(fnam, 'wb') as fd:
+            fd.write(val.encode(enc))
 
     def __init__(self, userdir):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
-        self.status = loadData('status')
-        self.more = loadData('more')
-        self.subs = loadData('subs').split('\n')
+        self.status = self.getData('status')
+        self.more = self.getData('more')
+        self.subs = self.getData('subs', '').split('\n')
         self.save()
 
     def save(self):
         if '' in self.subs: self.subs.remove('')
-        self.saveData('status', self.status)
-        self.saveData('more'), self.more)
-        self.saveData('subs', '\n'.join(self.subs))
+        self.setData('status', self.status)
+        self.setData('more', self.more)
+        self.setData('subs', '\n'.join(self.subs))
 
 
     def subscribe(self, phone):
