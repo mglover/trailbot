@@ -5,18 +5,15 @@ from .core import success, TBError, parseArgs
 from .user import User, needsreg
 from .userdata import UserObj
 from .dispatch import tbhelp, tbroute
-from .twilio import TBResponse
+from .twilio import TBMessage
 from .location import Location
 
 @tbroute(re.compile('^@.*$'))
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
-    # XXX why is this not just a TBMessage?
-    resp =TBResponse()
-    resp.addMsg('@%s: %s'%(req.user.handle, req.args),
+    return TBMessage('@%s: %s'%(req.user.handle, req.args),
         to=dstu.phone)
-    return resp
 
 
 @tbroute('register')
