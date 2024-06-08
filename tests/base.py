@@ -67,6 +67,10 @@ class TBTest(unittest.TestCase):
         if not res.startswith(start):
             raise AssertionError(f"'{res}' does not start with '{start}'")
 
+    def assertNotStartsWith(self, res, start):
+        if res.startswith(start):
+            raise AssertionError(f"'{res}' starts with '{start}'")
+
     def assertSuccess(self, res):
         return self.assertStartsWith(res, "TrailBot: Success")
 
