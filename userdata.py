@@ -84,6 +84,8 @@ class UserObj(object):
         self.nam = nam
         self.requser = requser
         self.owner = owner
+        if self.requser and not self.owner:
+            self.owner = self.requser
         self.readers = readers or []
         self.rawdata = rawdata or {}
         if rawdata: self.parseData(rawdata)
@@ -133,10 +135,11 @@ class UserObj(object):
             readers=d.get('readers', []),
             rawdata = d['data']
         )
-        obj.parseData(obj.rawdata)
-
-        if obj.checkAccess(requser): return obj
-        else: return None
+        if obj.checkAccess(requser):
+            obj.parseData(obj.rawdata)
+            return obj
+        else:
+            return None
 
     def erase(self):
         assert self.nam is not None and type(self.requser) is User

@@ -49,9 +49,10 @@ class NetSource (object):
 
     def parse(self, resp, *args, **kwargs):
         try:
-            self._content = resp.json()
+            return resp.json()
         except requests.JSONDecodeError:
             self.err = f"Couldn't understand the response from {self.name}"
+            return None
 
     def makeResponse(self, *arge, **kwargs):
         return self.content
@@ -89,7 +90,7 @@ class NetSource (object):
                         raise ResponseError(self.name)
                     self.err = f"{self.name} returned an error"
                 else:
-                    self.parse(resp)
+                    self._content = self.parse(resp)
 
         except requests.ConnectionError:
             if self.raiseOnError: raise ConnectionError(self.name)

@@ -16,7 +16,7 @@ class TBMessage(object):
     def __init__(self, msg, **kwargs):
         self.msg = msg
         self.kwargs = kwargs
-        self.more = None
+        self.more = ''
 
     def __str__(self):
         return self.msg
@@ -46,11 +46,13 @@ class TBResponse(object):
         return len(self.msgs)
 
     def getMore(self):
-        if not self.msgs: return None
+        if not self.msgs: return ''
         return self.msgs[0].more
 
     def addMsg(self, msg, **kwargs):
-        self.msgs.append(TBMessage(msg, **kwargs))
+        if type(msg) is not TBMessage:
+            msg = TBMessage(msg,**kwargs)
+        self.msgs.append(msg)
 
     def asTwiML(self):
         assert len(self.msgs) > 0
