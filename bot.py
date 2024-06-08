@@ -117,5 +117,6 @@ class BotMon(object):
             for b in self.bots:
                 if b.trigger():
                     b.run()
+                    Bot.sleep()
             Bot.sleep()
 
