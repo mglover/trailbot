@@ -62,7 +62,7 @@ class User(object):
 
 
     def __eq__(self, other):
-        if type(other) is not User: return print('notuser') and False
+        if type(other) is not User: return False
         return self.handle.__eq__(other.handle)
 
     @classmethod
@@ -122,14 +122,6 @@ class User(object):
         except FileNotFoundError:
             return default
 
-    def setData(self, name, val, enc='UTF-8'):
-        fnam = self.dbfile(name)
-        if val is None:
-            if os.path.exists(fnam): os.unlink(fnam)
-            return
-        with open(fnam, 'wb') as fd:
-            fd.write(val.encode(enc))
-
     def __init__(self, userdir):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
@@ -138,11 +130,22 @@ class User(object):
         self.subs = self.getData('subs', '').split('\n')
         self.save()
 
+    def setData(self, name, val, enc='UTF-8'):
+        fnam = self.dbfile(name)
+        if val is None:
+            if os.path.exists(fnam): os.unlink(fnam)
+            return
+        else:
+            with open(fnam, 'wb') as fd: fd.write(val.encode(enc))
+
     def save(self):
         if '' in self.subs: self.subs.remove('')
-        self.setData('status', self.status)
-        self.setData('more', self.more)
-        self.setData('subs', '\n'.join(self.subs))
+        try:
+            self.setData('status', self.status)
+            self.setData('more', self.more)
+            self.setData('subs', '\n'.join(self.subs))
+        except FileNotFoundError:
+            pass # after e.g. unsubscribe
 
 
     def subscribe(self, phone):
@@ -170,6 +173,7 @@ class User(object):
     def setMore(self, more):
         last = self.more
         self.more = more
+        self.save()
         return last
 
     def getMore(self):

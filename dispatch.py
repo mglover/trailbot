@@ -1,4 +1,4 @@
-import re
+import re, os
 
 from .core import TBError
 from .twilio import TBResponse
@@ -99,7 +99,9 @@ def dispatch(request):
         resp = TBResponse()
         resp.addMsg(msg)
 
+    r = resp.asTwiML()
+
     if tbreq.user:
         tbreq.user.setMore(resp.getMore())
 
-    return resp.asTwiML()
+    return r

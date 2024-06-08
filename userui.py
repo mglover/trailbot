@@ -52,6 +52,16 @@ def whoami(req):
         return "You are not registered"
 
 
+@tbroute('more')
+@tbhelp(
+"""more -- continue reading
+""")
+@needsreg('to continue reading')
+def more(req):
+    m = req.user.getMore()
+    if m: return m
+    else: return "Nothing else to read"
+
 ## user data
 
 @tbroute('forget')
