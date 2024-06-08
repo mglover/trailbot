@@ -1,6 +1,6 @@
 __package__ = "trailbot"
 
-import feedparser
+import inscriptis, feedparser, re
 from urllib import parse
 
 from flask import render_template
@@ -24,16 +24,17 @@ class Feed (NetSource, UserObj):
     @classmethod
     def setUrl(self, url):
         self.url = None
-        prxs =  ['', 'https://', 'http://']
-        try:
-            while not self.url:
-                prx = prxs.pop(0)
-                urlp = parse.urlparse(prx+url)
-                if urlp.scheme and urlp.netloc:
-                    self.url = url
+        urlreg = re.compile(r'[\w\.]+')
+        urlp = parse.urlparse(url)
+        if urlp.scheme and urlreg.match(urlp.netloc):
+            self.url = url
+            return
+        else:
+            urlp = parse.urlparse('https://'+url)
+            if urlp.scheme and urlreg.match(urlp.netloc):
+                self.url = 'https://'+url
                 return
-        except IndexError:
-            raise FeedNotFound("Not a valid URL")
+        raise FeedNotFound("Invalid URL: %s" % url)
 
     def __init__(self, url=None, *args, **kwargs):
         if url: self.setUrl(url)
@@ -60,7 +61,10 @@ class Feed (NetSource, UserObj):
         return cls(str, requser=requser)
 
     def parse(self, resp, *args, **kwargs):
-        self._content = feedparser.parse(resp.content)
+        c = feedparser.parse(resp.content)
+        if c.bozo:
+            raise FeedNotFound(c.bozo_exception)
+        return c
 
     def toSMS(self, *args, **kwargs):
         try:
@@ -70,11 +74,16 @@ class Feed (NetSource, UserObj):
 
     def makeResponse(self, scmd, *args, **kwargs):
         if self.err: raise FeedNotFound(self.url)
+        feed = self.content
         if scmd == 'latest':
-            return render_template("news_latest.txt", feed=self.content)
+            return render_template("news_latest.txt", feed=feed)
         else:
-            return render_template("news_detail.txt", feed=self.content,
-                idx=args[0])
+            idx = int(args[0])
+            ent = feed.entries[idx]
+
+            content = inscriptis.get_text(ent.content[0]['value'])
+            return render_template("news_detail.txt", feed=feed,
+                ent = ent, content=content)
 
 UserObj.register(Feed)
 
