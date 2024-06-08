@@ -3,6 +3,7 @@ import sys, os, warnings
 import unittest
 from urllib3.connectionpool import InsecureRequestWarning
 
+
 tbroot = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append(tbroot)
 
@@ -12,7 +13,7 @@ testbase = 'trailbot.tests.test_'
 warnings.simplefilter(
     "ignore", 
     category=InsecureRequestWarning,
-    lineno=1045
+    lineno=1099
 )
 
 if __name__ == '__main__':
