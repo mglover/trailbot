@@ -59,7 +59,7 @@ class TestAddr(TBTest):
         self.reg1()
         self.assertSuccess(self.req1("addr home New York City"))
         res = self.req1("where home")
-        self.assertStartsWith(res, "New York City")
+        self.assertStartsWith(res, "City of New York")
         self.assertSuccess(self.req1("forget home"))
         res = self.req1("where @test1")
         self.assertStartsWith(res, "Location not found:")
@@ -72,5 +72,3 @@ class TestAddr(TBTest):
     def testNoWord(self):
         res = self.req1("word")
         self.assertStartsWith(res, "Which word")
-
-

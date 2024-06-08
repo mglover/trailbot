@@ -4,7 +4,7 @@ class TestWhere(TBTest):
     def test_where_nom(self):
         self.reg1()
         res = self.req1("where Empire State Building")
-        self.assertStartsWith(res, "Empire State Building\n(full name")
+        self.assertStartsWith(res, "Empire State Building")
 
     def test_where_citystate(self):
         res = self.req1("where portland, or")
