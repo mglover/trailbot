@@ -43,7 +43,9 @@ class TestNews(TBTest):
     def test_resave(self):
         self.reg1()
         self.assertSuccess(self.req1(f"news {feed2} as is"))
-        self.assertSuccess(self.req1(f"news {feed2} as is"))
+        self.assertSuccess(self.req1(f"news {feed1} as is"))
+        res = self.req1('news is')
+        self.assertStartsWith(res, "From INSIDE SHIPPING on Substack")
 
     def test_more(self):
         self.reg1()

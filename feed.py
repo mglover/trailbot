@@ -21,7 +21,6 @@ class FeedNotFound(TBError):
 class Feed (NetSource, UserObj):
     typ = 'url'
 
-    @classmethod
     def setUrl(self, url):
         self.url = None
         urlreg = re.compile(r'[\w\.]+')

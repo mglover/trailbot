@@ -88,7 +88,6 @@ class UserObj(object):
             self.owner = self.requser
         self.readers = readers or []
         self.rawdata = rawdata or {}
-        if rawdata: self.parseData(rawdata)
 
     def toJson(self):
         return json.dumps({
@@ -135,6 +134,7 @@ class UserObj(object):
             readers=d.get('readers', []),
             rawdata = d['data']
         )
+
         if obj.checkAccess(requser):
             obj.parseData(obj.rawdata)
             return obj
@@ -150,13 +150,12 @@ class UserObj(object):
         if nam: self.nam = nam
         if requser: self.requser = requser
         assert self.nam is not None and type(self.requser) is User
-        prevobj = self.lookup(self.nam, self.requser)
+        prevobj = UserObj.lookup(self.nam, self.requser)
         if prevobj:
             assert prevobj.owner == self.owner
             self.readers = prevobj.readers
         else:
             self.owner = self.requser
-
         self.rawdata = self.toDict()
         datum = UserDatum(self.owner, nam, self.toJson())
         datum.save()
