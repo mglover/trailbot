@@ -1,7 +1,10 @@
 import json, os
 
+from flask import render_template
+
 from .core import TBError
-from .user import User
+from .user import User, needsreg
+from .dispatch import tbroute, tbhelp
 
 NAM_MAX   = 10
 
@@ -78,6 +81,12 @@ class UserObj(object):
     @classmethod
     def register(cls, sub):
         cls.typs.append(sub)
+
+    @classmethod
+    def search(cls, user, typ=None):
+        dnam = user.dbfile("saved")
+        return [f for f in os.listdir(dnam)]
+
 
     def __init__(self, nam=None, requser=None, owner=None,
                                 readers=None, rawdata=None):
@@ -183,3 +192,23 @@ class UserObj(object):
         self.readers.remove(spec)
         self.saveMeta()
 
+
+@tbroute('my')
+@tbhelp(
+"""my -- see your saved information
+say:
+  'my addrs' to see saved locations
+  'my news' to see saved feeds
+""")
+@needsreg("to use saved data")
+def my(req):
+    tmap = {'addrs': 'loc', 'news': 'feed'}
+    if not req.args:
+        return "Err? What do you want to see?  Say 'help my' to learn more"
+
+    typ = tmap.get(req.args)
+    if typ is None:
+        return "I don't know anything about '%s'" % req.args
+
+    objs = UserObj.search(typ=typ, user=req.user)
+    return render_template('my.txt', cnam=req.args, objs=objs)

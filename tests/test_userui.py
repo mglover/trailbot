@@ -31,6 +31,13 @@ class TestAddr(TBTest):
         res = self.req1("here portland, or")
         self.assertSuccess(res)
 
+    def test_rehere(self):
+        self.reg1()
+        self.assertSuccess(self.req1("here deming,nm"))
+        self.assertSuccess(self.req1("here lordsburg, nm"))
+        res = self.req1("where here")
+        self.assertStartsWith(res, "lordsburg")
+
     def test_addr(self):
         self.reg1()
         self.assertSuccess(self.req1("addr buq Albuquerque, NM"))

@@ -18,6 +18,7 @@ from .word import define, twl, twotd
 from .wiki import wiki
 from .location import where
 from .nav import drive, distance
+from .userdata import my
 from .userui import reg, unreg, whoami, saveloc, forget, share, unshare
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
