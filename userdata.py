@@ -85,7 +85,10 @@ class UserObj(object):
     @classmethod
     def search(cls, user, typ=None):
         dnam = user.dbfile("saved")
-        return [f for f in os.listdir(dnam)]
+        return list(filter(
+            lambda o: o and o.typ==typ,
+            [cls.lookup(f, user) for f in os.listdir(dnam)]
+        ))
 
 
     def __init__(self, nam=None, requser=None, owner=None,
@@ -132,6 +135,8 @@ class UserObj(object):
             if not bytes:
                 return None
             d = json.loads(bytes)
+            if not d.get('type'): return None
+
         except (DatumDoesNotExistError,DatumNameTooLong):
             return None
         tcls = [ tcls for tcls in UserObj.typs
@@ -202,7 +207,7 @@ say:
 """)
 @needsreg("to use saved data")
 def my(req):
-    tmap = {'addrs': 'loc', 'news': 'feed'}
+    tmap = {'addrs': 'loc', 'news': 'url'}
     if not req.args:
         return "Err? What do you want to see?  Say 'help my' to learn more"
 
