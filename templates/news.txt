@@ -1,3 +1,10 @@
-{% for name,ents in new.items() %}From {{ name }}:{% for e in ents %}
-  {{e.title}}, {{e.published}}
-{% endfor %}{% else: %}Nothing new to report{% endfor %}
+{% for name,ents in new.items() %}
+  From {{ name }}:
+  {% if type(ent) is not list: %}
+    {{ str(e) }}
+  {% else: %}
+    {% for e in ents %}
+      {{e.title}}, {{e.published}}
+    {% endfor %}
+  {% endif %}
+{% else: %}Nothing new to report{% endfor %}

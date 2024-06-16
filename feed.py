@@ -173,8 +173,11 @@ def news(req):
         new = {}
 
         for f in feeds:
-            n = f.newer()
-            if n: new[f.nam] = n
+            try:
+                n = f.newer()
+                if n: new[f.nam] = n
+            except FeedError as e:
+                new[f.nam] = e
         return render_template('news.txt', new=new)
 
     url = args.pop(0)
