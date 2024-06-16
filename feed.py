@@ -1,8 +1,9 @@
 __package__ = "trailbot"
 
-import inscriptis, feedparser, re
+import inscriptis, feedparser, dateutil, re
 from bs4 import BeautifulSoup as bs4
 from urllib import parse
+from datetime import datetime
 
 from flask import render_template
 
@@ -25,8 +26,9 @@ class HTMLHasAlternate(TBError):
 class Feed (NetSource, UserObj):
     typ = 'url'
 
-    def __init__(self, url=None, *args, **kwargs):
-        if url: self.url = url
+    def __init__(self, url=None, last=None, *args, **kwargs):
+        self.url = url
+        self.last = last
         # XX make this work w super()?
         NetSource.__init__(self, *args, raiseOnError=True, **kwargs)
         UserObj.__init__(self, *args, **kwargs)
@@ -36,10 +38,17 @@ class Feed (NetSource, UserObj):
         return self.url
 
     def toDict(self):
-        return {'url': self.url}
+        d =  {'url': self.url}
+        if self.last:
+            d['last'] = self.last.isoformat()
+        return d
 
     def parseData(self, data):
-        self.url = (data['url'])
+        self.url = data['url']
+        if data.get('last'):
+            self.last = datetime.fromisoformat(data['last'])
+        else:
+            self.last = None
 
     @classmethod
     def fromInput(cls, str, requser):
@@ -95,6 +104,22 @@ class Feed (NetSource, UserObj):
             raise FeedNotFound(c.bozo_exception)
         return c
 
+    def newer(self, max=5):
+        new = []
+        if 'published' in self.content.feed:
+            newlast = dateutil.parser.parse(self.content.feed.published)
+        else : newlast=None
+
+        for ent in self.content.entries:
+            pubdate = dateutil.parser.parse(ent.published)
+            if self.last is None or pubdate > self.last :
+                new.append(ent)
+            if newlast is None or pubdate > newlast:
+                newlast = pubdate
+        self.last = newlast
+        self.save()
+        return new[:max]
+
     def toSMS(self, *args, **kwargs):
         try:
             return NetSource.toSMS(self, *args, **kwargs)
@@ -102,8 +127,8 @@ class Feed (NetSource, UserObj):
             raise FeedNotFound('%s returned an error' % self.name)
 
     def makeResponse(self, scmd, *args, **kwargs):
-        if self.err: raise FeedNotFound(self.url)
         feed = self.content
+        if self.err: raise FeedNotFound(self.url)
         if scmd == 'latest':
             return render_template("news_latest.txt", feed=feed)
         else:
@@ -121,7 +146,6 @@ class Feed (NetSource, UserObj):
 UserObj.register(Feed)
 
 
-
 @tbroute('news')
 @tbhelp('''news -- fetch and follow RSS feeds
   you can say
@@ -137,12 +161,21 @@ registered users) the NAME of a saved feed
 
 ''')
 def news(req):
-    if not req.args:
-        raise NewsSyntaxError
-    args = req.args.split(' ')
-    if len(args) <1:
-        raise NewsSyntaxError
+    if req.args: args = req.args.split(' ')
+    else: args=[]
 
+    if len(args) <1:
+        if not req.user:
+            raise RegistrationRequired("to use saved news")
+        feeds = Feed.search(req.user)
+        if not feeds:
+            return("You have no saved feeds")
+        new = {}
+
+        for f in feeds:
+            n = f.newer()
+            if n: new[f.nam] = n
+        return render_template('news.txt', new=new)
 
     url = args.pop(0)
     feed = Feed.fromInput(url, req.user)

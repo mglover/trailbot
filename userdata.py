@@ -84,6 +84,7 @@ class UserObj(object):
 
     @classmethod
     def search(cls, user, typ=None):
+        if not typ: typ=cls.typ
         dnam = user.dbfile("saved")
         return list(filter(
             lambda o: o and o.typ==typ,
@@ -171,7 +172,7 @@ class UserObj(object):
         else:
             self.owner = self.requser
         self.rawdata = self.toDict()
-        datum = UserDatum(self.owner, nam, self.toJson())
+        datum = UserDatum(self.owner, self.nam, self.toJson())
         datum.save()
 
     def saveMeta(self):
