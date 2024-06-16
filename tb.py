@@ -3,6 +3,8 @@ tb.py
 
 Flask blueprint, command inmports, and entry point for TrailBot
 """
+import warnings
+from urllib3.connectionpool import InsecureRequestWarning
 from flask import request, Response, abort, Blueprint
 
 from . import config
@@ -26,6 +28,14 @@ from .feed import news
 ## bots
 from .bot import BotMon
 from .wordbot import WordBot
+
+
+# requests run through the local proxy with an unknown cert
+warnings.simplefilter(
+    "ignore", 
+    category=InsecureRequestWarning,
+    lineno=1099
+)
 
 ##
 ## error/auth hooks
