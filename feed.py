@@ -1,6 +1,6 @@
 __package__ = "trailbot"
 
-import inscriptis, feedparser, dateutil, re
+import inscriptis, feedparser, dateutil.parser, re
 from bs4 import BeautifulSoup as bs4
 from urllib import parse
 from datetime import datetime

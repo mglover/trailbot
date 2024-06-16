@@ -1,0 +1,3 @@
+{% for name,ents in new.items() %}From {{ name }}:{% for e in ents %}
+  {{e.title}}, {{e.published}}
+{% endfor %}{% else: %}Nothing new to report{% endfor %}

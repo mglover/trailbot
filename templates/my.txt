@@ -1,4 +1,4 @@
 {% if not objs: %}You have no saved {{cnam}}{% else: 
-%}You have {{objs|length}} saved {{cnam}}{% for o in objs %}
-  {{o.nam}}
+%}You have {{objs|length}} saved {{cnam}}:
+{% for o in objs %}  {{o.nam}}
 {% endfor %}{% endif %}
