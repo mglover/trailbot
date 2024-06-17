@@ -113,12 +113,16 @@ class Feed (NetSource, UserObj):
 
         for ent in self.content.entries:
             pubdate = dateutil.parser.parse(ent.published)
-            if self.last is None or pubdate > self.last :
+            print(self.last is None, pubdate)
+            if (self.last is None) or (pubdate > self.last):
+                print("  appending")
                 new.append(ent)
             if newlast is None or pubdate > newlast:
                 newlast = pubdate
         self.last = newlast
-        self.save()
+        if self.nam and self.requser:
+            self.save()
+        print("found %d new items, max is %s" % (len(new), max))
         return new[:max]
 
     def toSMS(self, *args, **kwargs):
@@ -181,7 +185,6 @@ def news(req):
 
         msg = []
         for f in feeds:
-           f.content
            try:
                 ents = f.newer()
                 if ents: msg.append(f.makeFeedHeads(ents))
@@ -199,8 +202,9 @@ def news(req):
         # see new articles in this group
         ents = feed.newer()
         if ents:
-            return "Nothing new from %s" % feed.url
-        return feed.makeFeedHeads(self, ents)
+            return feed.makeFeedHeads(ents)
+        return "Nothing new from %s" % feed.url
+
 
     scmd = args.pop(0)
     if scmd == 'as':
