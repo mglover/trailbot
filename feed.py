@@ -26,9 +26,10 @@ class HTMLHasAlternate(TBError):
 class Feed (NetSource, UserObj):
     typ = 'url'
 
-    def __init__(self, url=None, last=None, *args, **kwargs):
+    def __init__(self, url=None, last=None, orig_url=None, *args, **kwargs):
         self.url = url
         self.last = last
+        self.orig_url = orig_url
         # XX make this work w super()?
         NetSource.__init__(self, *args, raiseOnError=True, **kwargs)
         UserObj.__init__(self, *args, **kwargs)
@@ -39,12 +40,15 @@ class Feed (NetSource, UserObj):
 
     def toDict(self):
         d =  {'url': self.url}
+        if self.orig_url:
+            d['orig_url'] = self.orig_url
         if self.last:
             d['last'] = self.last.isoformat()
         return d
 
     def parseData(self, data):
         self.url = data['url']
+        self.orig_url = data.get('orig_url')
         if data.get('last'):
             self.last = datetime.fromisoformat(data['last'])
         else:
@@ -57,20 +61,18 @@ class Feed (NetSource, UserObj):
         ud = cls.lookup(str, requser)
         if ud: return ud
         else: return cls.fromInputUrl(str, requser)
-        url = cls.findFeedUrl(str)
-        return cls(str, requser=requser)
 
     @classmethod
-    def fromInputUrl(cls, url, requser, scheme='https://'):
+    def fromInputUrl(cls, orig_url, requser, scheme='https://'):
         urlreg = re.compile(r'[\w]+\.[\w]+')
-        ps = [url, scheme+url]
+        ps = [orig_url, scheme+orig_url]
         while ps:
             url = ps.pop(0)
             urlp = parse.urlparse(url)
             if not (urlp.scheme and urlreg.match(urlp.netloc)):
                 continue
             try:
-                obj = cls(url, requser=requser)
+                obj = cls(url, orig_url=orig_url, requser=requser)
                 if obj.content:
                     return obj
             except FeedNotFound:
@@ -132,9 +134,13 @@ class Feed (NetSource, UserObj):
             raise FeedNotFound('%s returned an error' % self.name)
 
     def makeFeedHeads(self, ents):
+        if self.nam: src=self.nam
+        elif self.orig_url: src = self.orig_url
+        else: src = self.url
+
         if not ents:
             return ''
-        return "\n  ".join([f"From {self.nam}"] \
+        return "\n  ".join([f"From {src}"] \
             + [f"{e.title}: {e.published}" for e in ents])
 
     def makeResponse(self, scmd, *args, **kwargs):
