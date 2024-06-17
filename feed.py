@@ -88,9 +88,10 @@ class Feed (NetSource, UserObj):
             # not rss, maybe it's html w/ link rel=alternate
             html = bs4(resp.content, features="lxml")
             can = html.find('link', rel="canonical")
-            if can: base =  can.get('href')
-            else: base = None
-
+            if can:
+                base =  can.get('href')
+            else:
+                base = resp.url
             feed_urls = html.findAll("link", rel="alternate")
             for f in feed_urls:
                 t = f.get('type')
@@ -125,6 +126,12 @@ class Feed (NetSource, UserObj):
             return NetSource.toSMS(self, *args, **kwargs)
         except ResponseError:
             raise FeedNotFound('%s returned an error' % self.name)
+
+    def makeFeedHeads(self, ents):
+        if not ents:
+            return ''
+        return "\n  ".join([f"From {self.nam}"] \
+            + [f"{e.title}: {e.published}" for e in ents])
 
     def makeResponse(self, scmd, *args, **kwargs):
         feed = self.content
@@ -165,37 +172,46 @@ def news(req):
     else: args=[]
 
     if len(args) <1:
+        # see new articles in all saved groups
         if not req.user:
             raise RegistrationRequired("to use saved news")
         feeds = Feed.search(req.user)
         if not feeds:
             return("You have no saved feeds")
-        new = {}
 
+        msg = []
         for f in feeds:
-            try:
-                n = f.newer()
-                if n: new[f.nam] = n
-            except FeedError as e:
-                new[f.nam] = e
-        return render_template('news.txt', new=new)
+           f.content
+           try:
+                ents = f.newer()
+                if ents: msg.append(f.makeFeedHeads(ents))
+           except FeedNotFound as e:
+                msg.append("%s: %s" % (f.nam, str(e)))
+        if len(msg):
+            return '\n\n'.join(msg)
+        else:
+            return "Nothing new to report"
 
     url = args.pop(0)
     feed = Feed.fromInput(url, req.user)
 
     if len(args) <1:
-        return feed.toSMS('latest')
+        # see new articles in this group
+        ents = feed.newer()
+        if ents:
+            return "Nothing new from %s" % feed.url
+        return feed.makeFeedHeads(self, ents)
 
     scmd = args.pop(0)
     if scmd == 'as':
-        """save feed with name"""
+        # save feed with name
         if not req.user: raise RegistrationRequired("to save news")
         nam = args.pop(0)
         feed.save(nam=nam, requser=req.user)
         return success(f"feed {feed.url} saved as {nam}")
 
     else:
-        """read article N"""
+        # read article N
         try:
             idx=int(scmd)-1
         except ValueError:
