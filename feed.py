@@ -114,17 +114,17 @@ class Feed (NetSource, UserObj):
         else : newlast=None
 
         for ent in self.content.entries:
-            pubdate = dateutil.parser.parse(ent.published)
-            print(self.last is None, pubdate)
+            if 'updated' in ent:
+                pubdate = dateutil.parser.parse(ent.updated)
+            else:
+                pubdate = dateutil.parser.parse(ent.published)
             if (self.last is None) or (pubdate > self.last):
-                print("  appending")
                 new.append(ent)
             if newlast is None or pubdate > newlast:
                 newlast = pubdate
         self.last = newlast
         if self.nam and self.requser:
             self.save()
-        print("found %d new items, max is %s" % (len(new), max))
         return new[:max]
 
     def toSMS(self, *args, **kwargs):
@@ -138,10 +138,14 @@ class Feed (NetSource, UserObj):
         elif self.orig_url: src = self.orig_url
         else: src = self.url
 
+        def date(ent):
+            if 'updated' in ent: return ent.updated
+            return ent.published
+
         if not ents:
             return ''
         return "\n  ".join([f"From {src}"] \
-            + [f"{e.title}: {e.published}" for e in ents])
+            + [f"{e.title}: {date(e)}" for e in ents])
 
     def makeResponse(self, scmd, *args, **kwargs):
         feed = self.content
@@ -194,7 +198,7 @@ def news(req):
            try:
                 ents = f.newer()
                 if ents: msg.append(f.makeFeedHeads(ents))
-           except FeedNotFound as e:
+           except (FeedNotFound,ResponseError) as e:
                 msg.append("%s: %s" % (f.nam, str(e)))
         if len(msg):
             return '\n\n'.join(msg)
@@ -227,3 +231,4 @@ def news(req):
         except ValueError:
             raise NewsSyntaxError
         return feed.toSMS('detail', idx)
+
