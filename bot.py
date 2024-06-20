@@ -3,6 +3,7 @@ import atexit, datetime, os, time, sys
 from flask import render_template
 
 from . import config, twilio
+from .core import isBotPhone
 from .user import User, HandleUnknownError
 from .group import Group, GroupUnknownError
 
@@ -20,10 +21,6 @@ class Bot(object):
 
     _sleep = 60
     _lockfd = None
-
-    def _isBotPhone(self, phone):
-        assert type(phone) is str
-        return phone.startswith("+07807")
 
     @property
     def lockfile(self):
@@ -59,7 +56,7 @@ class Bot(object):
         time.sleep(cls._sleep)
 
     def __init__(self):
-        assert self._isBotPhone(self.phone)
+        assert isBotPhone(self.phone)
         try:
             self.user = User.lookup(self.handle)
             assert self.phone == self.user.phone
@@ -102,7 +99,7 @@ class ChannelBot(Bot):
 
     def send_to_phone(self, phone, msg):
         if phone == self.phone: return
-        if self._isBotPhone(phone):
+        if isBotPhone(phone):
             raise ValueError("Trying to send to bot phone %s" % phone)
 
         twilio.smsToPhone(phone, msg)
@@ -117,6 +114,6 @@ class BotMon(object):
             for b in self.bots:
                 if b.trigger():
                     b.run()
-                    Bot.sleep()
+                    b.sleep()
             Bot.sleep()
 
