@@ -71,6 +71,18 @@ class Bot(object):
         self._releaseLock()
 
 
+    def getResponse(self, req):
+        """Handle direct messages to this user"""
+        return "Hmm. I don't know what to say to that."
+
+    def send_to_phone(self, phone, msg):
+        if phone == self.phone: return
+        if isBotPhone(phone):
+            raise ValueError("Trying to send to bot phone %s" % phone)
+
+        twilio.smsToPhone(phone, msg)
+
+
 
 class ChannelBot(Bot):
     def __init__(self):
@@ -95,14 +107,6 @@ class ChannelBot(Bot):
             self.send_to_phone(user.phone, msg)
             i+=1
         log('sent to %d users' % i)
-
-
-    def send_to_phone(self, phone, msg):
-        if phone == self.phone: return
-        if isBotPhone(phone):
-            raise ValueError("Trying to send to bot phone %s" % phone)
-
-        twilio.smsToPhone(phone, msg)
 
 
 class BotMon(object):

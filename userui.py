@@ -1,7 +1,7 @@
 ## import loop with user/dispatch requires these to be in their own file
 import re
 from flask import render_template
-from .core import success, TBError, parseArgs
+from .core import success, TBError, parseArgs, isBotPhone
 from .user import User, needsreg
 from .userdata import UserObj
 from .dispatch import tbhelp, tbroute
@@ -12,8 +12,13 @@ from .location import Location
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
-    return TBMessage('@%s: %s'%(req.user.handle, req.args),
-        to=dstu.phone)
+    if isBotPhone(dstu):
+        #message to a bot
+        return dstu.getResponse(req)
+    else:
+        # message to real phone
+        return TBMessage('@%s: %s'%(req.user.handle, req.args),
+            to=dstu.phone)
 
 
 @tbroute('register')
