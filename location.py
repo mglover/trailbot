@@ -2,6 +2,8 @@
 ##
 import os, csv
 
+from flask import render_template
+
 from . import config
 from .core import TBError
 from .netsource import NetSource
@@ -15,7 +17,7 @@ class LookupShelterError(TBError):
 class LookupLocationError(TBError):
     msg = "Location not found: %s"
 class LookupMultipleError(TBError):
-    msg = "multiple matches for %s: %s"
+     msg = "%s"
 class SharingSpecError(TBError):
     msg = "Not a handle or '*': %s"
 
@@ -30,13 +32,14 @@ def isfloat(s):
 class Location(UserObj):
     typ = 'loc'
 
-    def __init__(self, lat=None, lon=None, orig=None, match=None, **kwargs):
+    def __init__(self, lat=None, lon=None, orig=None, match=None, source=None,
+            **kwargs):
         super().__init__(**kwargs)
         self.lat = lat
         self.lon = lon
         self.orig = orig
         self.match = match
-
+        self.source = source
     def __repr__(self):
         return str(self)
 
@@ -61,8 +64,7 @@ class Location(UserObj):
         return "%s,%s" % (self.lon, self.lat)
 
     def toSMS(self):
-        return "%s\n(full name: %s)\ncoordinates: %s %s" % (
-            self.orig, self.match, self.lat, self.lon)
+        return render_template("location.txt", obj=self)
 
     @classmethod
     def getDefault(cls):
@@ -79,6 +81,7 @@ class Location(UserObj):
                         lat=row[3],
                         lon = row[4],
                         orig = zip,
+                        source = "ZIP code",
                         requser=requser
                     )
         raise LookupZipError(zip)
@@ -102,6 +105,7 @@ class Location(UserObj):
             lat=s[30],
             lon=s[31],
             orig=snam,
+            source = "AT shelter name",
             requser=requser
         )
 
@@ -109,40 +113,37 @@ class Location(UserObj):
     def fromCitystate(cls, citystate, requser):
         """look at a subset of the NGIS National File for place names
         """
-        parts =citystate.split(',')
-        if len(parts) == 3:
-            city = parts[0].lstrip()
-            county = parts[1].lstrip()
-            state = parts[2].lstrip()
-        elif len(parts) == 2:
-            city = parts[0].lstrip()
-            county = None
-            state = parts[1].lstrip()
+        parts = citystate.split(',')
+        city = parts.pop(0).strip()
+        if len(parts) > 1:
+            county  = parts.pop(0).strip()
+            if county.endswith(" county"):
+                county = county[:-len(" county")]
         else:
-            raise LookupLocationError(citystate)
+            county = None
+        state = parts.pop(0).strip()
 
         maybes = []
         plpath = os.path.join(config.DB_ROOT, "places.txt")
         with open(plpath, encoding="utf-8") as plfd:
             pldb = csv.reader(plfd)
             for row in pldb:
-                if not len(row):
-                    continue
-                if row[0].lower() == city.lower() \
-                and row[1].lower() == state.lower() \
-                and (not county or row[3].lower() == county.lower()):
-                    maybes.append(row)
-
+                if not len(row): continue
+                if not row[0].lower() == city.lower(): continue
+                if not row[1].lower() == state.lower(): continue
+                if county and not row[2].lower() == county.lower(): continue
+                maybes.append(row)
 
         if not len(maybes):
             raise LookupLocationError(citystate)
         if len(maybes) > 1:
-            raise LookupMultipleError(
-                citystate, [', '.join(r[0:2]) for r in maybes])
+            raise LookupMultipleError(render_template("location_multi.txt", 
+                orig=citystate, rows=maybes))
         return cls(
             lat=maybes[0][3],
             lon=maybes[0][4],
             orig=citystate,
+            source = "City/State",
             requser=requser
         )
 
@@ -165,6 +166,7 @@ class Location(UserObj):
             lat=data['lat'],
             lon=data['lon'],
             orig = data['display_name'],
+            source = "Nominatim",
             requser=requser
         )
 
@@ -185,8 +187,9 @@ class Location(UserObj):
             return cls(
                 lat=parts[0],
                 lon=parts[1],
-                orig="coordinates",
-                requser=requser
+                orig=str,
+                requser=requser,
+                source = "Latitude/Longitude"
             )
 
         elif len(parts)>=2 and parts[-2].endswith(',') \

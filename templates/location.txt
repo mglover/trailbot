@@ -1,0 +1,7 @@
+Results for "{{ obj.orig }}"
+From {{ obj.source }} database:{% if obj.match %}
+
+Full Name: {{ obj.match }}
+{% endif %}
+
+Coordinates: {{ obj.lat }}, {{ obj.lon }}
