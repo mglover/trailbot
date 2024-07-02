@@ -9,7 +9,7 @@ wikipedia.requests = netsource.TBSession
 
 @tbroute('wiki', 'wikipedia')
 @tbhelp(
-'''wiki -- get Wikipedia summary for a topic 
+'''wiki -- get Wikipedia summary for a topic
     e.g. say 'wiki New York'
     or 'wiki potato pancakes'
 ''')
