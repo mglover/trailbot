@@ -64,7 +64,7 @@ def whoami(req):
 @needsreg('to continue reading')
 def more(req):
     m = req.user.getMore()
-    if m: return m
+    if m: return TBMessage(m, noescape=True)
     else: return "Nothing else to read"
 
 ## user data

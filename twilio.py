@@ -27,7 +27,10 @@ class TBMessage(object):
             resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
-        emsg = escape(self.msg)
+        if  kwargs.get('noescape':
+            emsg = self.msg
+        else:
+            emsg = escape(self.msg)
         resp += emsg[:MSG_MAX_LEN]
         self.more = emsg[MSG_MAX_LEN:]
         resp += "</Message>"
