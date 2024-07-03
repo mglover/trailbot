@@ -27,7 +27,7 @@ class TBMessage(object):
             resp+= ' to="%s">' % self.kwargs['to']
         else:
             resp+='>'
-        if  kwargs.get('noescape':
+        if  self.kwargs.get('noescape'):
             emsg = self.msg
         else:
             emsg = escape(self.msg)
