@@ -40,6 +40,7 @@ class Location(UserObj):
         self.orig = orig
         self.match = match
         self.source = source
+
     def __repr__(self):
         return str(self)
 
@@ -48,7 +49,8 @@ class Location(UserObj):
             'lat':self.lat,
             'lon':self.lon,
             'orig':self.orig,
-            'match':self.match
+            'match':self.match,
+            'source': self.source
         }
 
     def parseData(self, d):
@@ -56,7 +58,7 @@ class Location(UserObj):
         self.lon = d.get('lon')
         self.orig = d.get('orig')
         self.match = d.get('match')
-
+        self.source = d.get('source')
     def __str__(self):
         return "(%s,%s)" % (self.lat, self.lon)
 

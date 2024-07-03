@@ -1,5 +1,5 @@
-Results for "{{ obj.orig }}"
-From {{ obj.source }} database:{% if obj.match %}
+"{{ obj.orig }}"
+Found in the {{ obj.source }} database:{% if obj.match %}
 
 Full Name: {{ obj.match }}
 {% endif %}

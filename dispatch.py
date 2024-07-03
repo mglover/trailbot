@@ -101,7 +101,7 @@ def dispatch(request):
 
     r = resp.asTwiML()
 
-    if tbreq.user:
+    if tbreq and tbreq.user:
         tbreq.user.setMore(resp.getMore())
 
     return r
