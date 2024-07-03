@@ -119,10 +119,6 @@ class UserObj(object):
 
     @classmethod
     def lookup(cls, nam, requser):
-        if requser is None: return None
-        assert type(requser) is User
-
-        target = requser
         if nam.startswith('@'):
             try:
                 tnam, nam = nam.split('.')
@@ -131,6 +127,9 @@ class UserObj(object):
                 tnam = nam
                 nam = cls.getDefault()
             target = User.lookup(tnam)
+        else:
+            assert type(requser) is User
+            target = requser
 
         try:
             datum = UserDatum(target, nam)
