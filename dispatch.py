@@ -81,6 +81,7 @@ class TBRequest(object):
 
 
 def dispatch(request):
+    tbreq = None
     try:
         tbreq = TBRequest.fromFlask(request)
         act = getAction(tbreq.cmd)
