@@ -127,8 +127,10 @@ class UserObj(object):
             try:
                 tnam, nam = nam.split('.')
                 target = User.lookup(tnam)
-            except ValueError:
+            except ValueError as e:
+                tnam = nam
                 nam = cls.getDefault()
+            target = User.lookup(tnam)
 
         try:
             datum = UserDatum(target, nam)
