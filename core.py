@@ -10,7 +10,7 @@ def escape(str_xml):
 def success(msg):
     return "TrailBot: Success: %s" % msg
 
-def isBotPhone(self, phone):
+def isBotPhone(phone):
     assert type(phone) is str
     return phone.startswith("+07807")
 
