@@ -8,6 +8,7 @@ in 3 hours
 on 21 August
 the 3rd of September
 October 10th
+January 1st at noon
 next month
 next wednesday
 the 11th next month
@@ -20,6 +21,7 @@ on the 8th at 2pm
 every month on the 9th at 3pm
 every thursday at 10:30 a.m.
 every 3 hours between 9am and 6 p.m.
+9am, 2pm, and 4pm
 every day at 9am, 11:30am, 2pm and 5pm
 """
 
@@ -29,9 +31,9 @@ from dateutil.relativedelta import relativedelta, weekdays
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
 from datetime import date, datetime
 import logging, time
+import pprint
 
 from core import TBError
-
 
 class WhenError(TBError):
     msg = "When? %s"
@@ -81,7 +83,7 @@ for r in repeats:
 
 keywords = [
     'IN', 'ON', 'AT', 'OF', 'THE', 'AND', 'BETWEEN', 'AFTER', 'BEFORE',
-     'NEXT', 'EVERY', 'TOMORROW', 'AM', 'PM'
+     'NEXT', 'EVERY', 'TOMORROW', 'NOON', 'AM', 'PM'
 ]
 for k in keywords:
     tokmap[k] = (k, k)
@@ -123,34 +125,47 @@ def p_error(p):
     else:
         print("error at %d  near %s" % (lexer.lexpos, p))
 
-def p_whens(p):
+def p_whenevery_at(p):
+    ''' when : every absdatetime'''
+    freq, fkwargs = p[1]
+    p[0] = []
+    for pp in p[2]:
+        fk = fkwargs
+        fk['dtstart'] = NOW + relativedelta(**pp)
+        p[0].append(rrule(freq, **fk))
+
+def p_whenevery(p):
     '''when : every
-            | every absdatetime
             | every BETWEEN absdatetime AND absdatetime
     '''
     freq, fkwargs = p[1]
     if len(p) == 2:
-        fkwargs['dtstart'] = NOW
-    if len(p) == 3:
-        fkwargs['dtstart'] = NOW + relativedelta(**p[2])
+        fkwargs['dtstart'] =  NOW
     else:
-        fkwargs['dtstart'] = NOW + relativedelta(**p[3])
-        fkwargs['until'] = NOW + relativedelta(**p[5])
+        if len(p[3]) != 1: raise WhenError("start time must be a single time")
+        if len(p[5]) != 1: raise WhenError("end time must be a single time")
+        fkwargs['dtstart'] = NOW + relativedelta(**p[3][0])
+        fkwargs['until'] = NOW + relativedelta(**p[5][0])
 
     p[0] = rrule(freq, **fkwargs)
 
 def p_when(p):
     '''when : datetime'''
-    kwargs= p[1]
+    p[0] = []
 
-    kwargs['second'] = 0
-    kwargs['microsecond'] = 0
-    d = relativedelta(**kwargs)
-
-    skip = 0
-    while NOW + relativedelta(days=skip) + d < NOW:
-        skip += 1
-    p[0] = NOW + relativedelta(days=skip) + d
+    for kwargs in p[1]:
+        kwargs['second'] = 0
+        kwargs['microsecond'] = 0
+        if 'month' in kwargs and kwargs['month'] < NOW.month:
+            kwargs['year'] = NOW.year + 1
+        elif 'day' in kwargs and kwargs['day'] < NOW.day:
+            kwargs['month'] = NOW.month + 1
+        elif 'hour' in kwargs and kwargs['hour'] < NOW.hour:
+            kwargs['day'] = NOW.day + 1
+        elif 'minute' in kwargs and kwargs['minute'] < NOW.minute:
+            kwargs['hour'] = NOW.hour + 1
+        d = relativedelta(**kwargs)
+        p[0].append( NOW + d)
 
 
 def p_every_unit(p):
@@ -188,9 +203,20 @@ def p_datetime(p):
                 | absdatetime ddelta
                 | ddelta
     '''
-    p[0] = {}
-    for pp in p[1:]:
-        p[0].update(pp)
+    if len(p) == 2:
+        p[0] = p[1]
+        return
+    elif type(p[1]) is list:
+        pl = p[1]
+        r = p[2][0]
+    elif type(p[2]) is list:
+        pl = p[2]
+        r = p[1][0]
+
+    p[0] = []
+    for pp in pl:
+        pp.update(r)
+        p[0].append(pp)
 
 def p_ddelta(p):
     '''ddelta : in
@@ -203,7 +229,7 @@ def p_in(p):
     amt = p[2]
     unit = p[3]
     if not unit.endswith('s'): unit = unit+'s'
-    p[0] = { unit.lower() : amt }
+    p[0] = [ { unit.lower() : amt } ]
 
 def p_next(p):
     ''' next : NEXT UNIT
@@ -226,37 +252,76 @@ def p_next(p):
         p[0] = { 'weekday': tok[2]+1 }
     else:
         p[0] = p[1]
+    p[0] = [ p[0] ]
 
 
-def p_dtlist(p):
-    ''' dtlist :  dtcommas
-               |  dtcommas AND absdatetime
+def p_absdatetime_simple(p):
+    '''absdatetime : datelist
+                   | timelist
+    '''
+    p[0] = p[1]
+
+def p_absdatetime_multi(p):
+    '''absdatetime : timelist datelist
+                   | datelist timelist
+    '''
+    p[0] = []
+    for pp in p[1]:
+        for qq in p[2]:
+            pq = {}
+            pq.update(pp)
+            pq.update(qq)
+            pq['second'] = 0
+            pq['microsecond'] = 0
+            p[0].append(pq)
+
+
+
+def p_timelist(p):
+    ''' timelist : ticommas
+                 | ticommas AND time
+                 | ticommas COMMA AND time
+                 | time
+    '''
+    if type(p[1]) is list:
+        p[0] = p[1]
+    else:
+        p[0] = [ p[1] ]
+    if len(p) == 4:
+        p[0].append(p[3])
+    if len(p) == 5:
+        p[0].append(p[4])
+
+def p_tilist_comma(p):
+    ''' ticommas : time COMMA time
+                 | ticommas COMMA time
+    '''
+    if type(p[1]) is list:
+        p[0] = p[1]
+        p[0].append(p[3])
+    else:
+        p[0] = [ p[1] , p[3] ]
+
+def p_datelist(p):
+    ''' datelist :  dacommas
+                 |  dacommas AND date
+                 |  dacommas COMMA AND date
     '''
     p[0] = p[1]
     if len(p) == 4:
         p[0].append(p[3])
+    if len(p) == 5:
+        p[0].append(p[4])
 
-def p_dtlist_comma(p):
-    ''' dtcommas : dtlist COMMA absdatetime
-                 | absdatetime
+def p_dalist_comma(p):
+    ''' dacommas : dacommas COMMA date
+                 | date
     '''
     if len(p) == 4:
         p[0] = p[1]
         p[0].append(p[3])
     else:
         p[0] = [ p[1] ]
-
-def p_absdatetime(p):
-    '''absdatetime : date
-                   | time
-                   | time date
-                   | date time
-    '''
-    p[0] = {}
-    for pp in p[1:]:
-        p[0].update(pp)
-    p[0]['second'] = 0
-    p[0]['microsecond'] = 0
 
 def p_ondate(p):
     '''date : ON date'''
@@ -268,7 +333,8 @@ def p_date(p):
 
 def p_daymo_ord_indef(p):
     '''daymo : THE ORDINAL'''
-    p[0] = { 'day' : int(p[2][:-2]) }
+    d = int(p[2][:-2])
+    p[0] = { 'day' : d }
 
 def p_daymo_ord(p):
     '''daymo : THE ORDINAL OF MONTH
@@ -293,7 +359,7 @@ def p_daymo(p):
             p[0] = {'days': +1 }
         else:
             tok = tokmap[p[1]]
-            p[0] = {'day': tok[2]+1}
+            p[0] = {'weekday': tok[2]+1}
     else:
         mo = tokmap[p[2]]
         p[0] = { "day": p[1],"month": mo[2] }
@@ -309,6 +375,10 @@ def p_dom(p):
 def p_attime(p):
     '''time : AT time'''
     p[0] = p[2]
+
+def p_time_noon(p):
+    '''time : NOON'''
+    p[0] = {'hour': 12, 'minute': 0}
 
 def p_time(p):
     '''time : hrmin24
@@ -373,12 +443,12 @@ def p_amount(p):
 
 parser = yacc.yacc(debug=True, errorlog=log)
 
-
-s = __doc__
-for line in s.split('\n'):
-    if not line or line.startswith('#'): continue
-    try:
-        res = parser.parse(line, debug=log)
-    except TBError as e:
-        res = str(e)
-    print(line, "=>", res)
+if __name__ == '__main__':
+    s = __doc__
+    for line in s.split('\n'):
+        if not line or line.startswith('#'): continue
+        try:
+            res = parser.parse(line, debug=log)
+        except TBError as e:
+            res = str(e)
+        print(line, "=>", res)
