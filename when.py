@@ -34,7 +34,7 @@ from dateutil.tz import tzoffset
 
 try:
     from zoneinfo import ZoneInfo
-except ModuleNotFoundError
+except ModuleNotFoundError:
     from backports.zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from datetime import datetime
