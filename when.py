@@ -31,7 +31,11 @@ from dateutil.relativedelta import relativedelta, weekdays
 from dateutil.rrule import rrule, rruleset,\
     YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
 from dateutil.tz import tzoffset
-from zoneinfo import ZoneInfo
+
+try:
+    from zoneinfo import ZoneInfo
+except ModuleNotFoundError
+    from backports.zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from datetime import datetime
 
