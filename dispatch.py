@@ -1,4 +1,4 @@
-import re, os
+import re, os, traceback
 
 from .core import TBError
 from .twilio import TBResponse
@@ -90,6 +90,9 @@ def dispatch(request):
     except TBError as e:
         msg = str(e)
 
+    except Exception as e:
+        traceback.print_exception(e)
+
     if msg is None:
         msg = "This is TrailBot:  something strange happened, "
         msg+= " I don't know how to respond. Try again?"
@@ -101,7 +104,6 @@ def dispatch(request):
         resp.addMsg(msg)
 
     r = resp.asTwiML()
-
     if tbreq and tbreq.user:
         tbreq.user.setMore(resp.getMore())
 
