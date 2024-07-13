@@ -1,6 +1,7 @@
 """
 in 3 hours
 9am
+10am EST
 1745
 3pm
 4p.m.
@@ -21,23 +22,31 @@ on the 8th at 2pm
 every month on the 9th at 3pm
 every thursday at 10:30 a.m.
 every 3 hours between 9am and 6 p.m.
-9am, 2pm, and 4pm
+9am, 2pm, and 4pm EDT
 every day at 9am, 11:30am, 2pm and 5pm
 """
-
-from pkgs.ply import lex, yacc
+__package__ = 'trailbot'
 
 from dateutil.relativedelta import relativedelta, weekdays
-from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
-from datetime import date, datetime
-import logging, time
-import pprint
+from dateutil.rrule import rrule, rruleset,\
+    YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
+from dateutil.tz import tzoffset
+from zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
+from datetime import datetime
 
-from core import TBError
+import logging, time
+
+from .pkgs.ply import lex, yacc
+
+from .core import TBError, success, parseArgs
+from .dispatch import tbroute, tbhelp
+from .user import needsreg
+from .userdata import UserObj
+from .location import Location
 
 class WhenError(TBError):
     msg = "When? %s"
-
 
 logging.basicConfig(
     level = logging.DEBUG,
@@ -46,6 +55,27 @@ logging.basicConfig(
     format = "%(lineno)4d:%(message)s"
 )
 log = logging.getLogger()
+
+## time zone support functions
+zf = TimezoneFinder()
+
+def getUserZone(user):
+    if user is None:
+        return (None, None)
+    if user.tz:
+        return (user.tz, None)
+
+    loc = UserObj.lookup('here', requser=user)
+    if not loc:
+        return (None, None)
+
+    zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+    return (zone, loc.orig)
+
+def mkDatetime(**kwargs):
+    now = datetime.now(kwargs.get('timezone'))
+    if 'timezone' in kwargs: kwargs.pop('timezone')
+    return now + relativedelta(**kwargs)
 
 ## setup the symbol table
 
@@ -77,6 +107,11 @@ for d in days:
     i += 1
 tokmap['THUR'] = ('DOW', 'THURS', 4)
 
+tzones = {'EST': -5*3600, 'CST': -6*3600, 'MST': -7*3600, 'PST': -8*3600,
+          'EDT': -4*3600, 'CDT': -5*3600, 'MDT': -6*3600, 'PDT': -7*3600}
+for z, off in tzones.items():
+    tokmap[z] = ('ZONE', z, off)
+
 repeats = ['HOURLY', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY']
 for r in repeats:
     tokmap[r]  = ('REPEAT', r)
@@ -92,7 +127,7 @@ for k in keywords:
 # -- set up the leer
 
 tokens = keywords + ['DIGIT', 'COLON', 'COMMA', 'ORDINAL',
-    'MONTH', 'DOW', 'UNIT']
+    'MONTH', 'DOW', 'UNIT', 'ZONE']
 
 def t_error(t):
     print(f"Unexpected character '%s' at %d" % (t.value[0],t.lexer.lexpos))
@@ -116,8 +151,6 @@ lexer = lex.lex(errorlog=log)
 
 
 # ---
-NOW = datetime.now()
-TODAY = date.today()
 
 def p_error(p):
     if p is None:
@@ -128,11 +161,11 @@ def p_error(p):
 def p_whenevery_at(p):
     ''' when : every absdatetime'''
     freq, fkwargs = p[1]
-    p[0] = []
+    p[0] = rruleset()
     for pp in p[2]:
         fk = fkwargs
-        fk['dtstart'] = NOW + relativedelta(**pp)
-        p[0].append(rrule(freq, **fk))
+        fk['dtstart'] = mkDatetime(**pp)
+        p[0].rrule(rrule(freq, **fk))
 
 def p_whenevery(p):
     '''when : every
@@ -140,19 +173,19 @@ def p_whenevery(p):
     '''
     freq, fkwargs = p[1]
     if len(p) == 2:
-        fkwargs['dtstart'] =  NOW
+        fkwargs['dtstart'] =  mkDatetime()
     else:
         if len(p[3]) != 1: raise WhenError("start time must be a single time")
         if len(p[5]) != 1: raise WhenError("end time must be a single time")
-        fkwargs['dtstart'] = NOW + relativedelta(**p[3][0])
-        fkwargs['until'] = NOW + relativedelta(**p[5][0])
+        fkwargs['dtstart'] = mkDatetime(**p[3][0])
+        fkwargs['until'] = mkDatetime(**p[5][0])
 
     p[0] = rrule(freq, **fkwargs)
 
 def p_when(p):
     '''when : datetime'''
     p[0] = []
-
+    NOW = mkDatetime()
     for kwargs in p[1]:
         kwargs['second'] = 0
         kwargs['microsecond'] = 0
@@ -164,8 +197,8 @@ def p_when(p):
             kwargs['day'] = NOW.day + 1
         elif 'minute' in kwargs and kwargs['minute'] < NOW.minute:
             kwargs['hour'] = NOW.hour + 1
-        d = relativedelta(**kwargs)
-        p[0].append( NOW + d)
+
+        p[0].append( mkDatetime(**kwargs) )
 
 
 def p_every_unit(p):
@@ -245,8 +278,6 @@ def p_next(p):
     elif tok[0] == 'MONTH':
         monum = tokmap[val][2]
         p[0] = {'month': monum}
-        if monum <= NOW.month:
-            p[0]['years'] = +1
     elif tok[0] == 'DOW':
         val = val[:2].upper()
         p[0] = { 'weekday': tok[2]+1 }
@@ -274,6 +305,16 @@ def p_absdatetime_multi(p):
             pq['second'] = 0
             pq['microsecond'] = 0
             p[0].append(pq)
+
+
+def p_timelist_zone(p):
+    '''timelist : timelist ZONE'''
+    p[0] = p[1]
+    offset = tzones.get(p[2])
+    if offset is None:
+        raise WhenError("I don't know a time zone named '%s'" % p[2])
+    for pp in p[0]:
+        pp['timezone'] = tzoffset(p[2], offset)
 
 
 
@@ -414,7 +455,6 @@ def p_hrmin(p):
         hm['hour'] += 12
     p[0] = hm
 
-
 def p_ampm(p):
     '''ampm : AM
             | PM
@@ -442,6 +482,83 @@ def p_amount(p):
         p[0] = p[1]*10 + int(p[2])
 
 parser = yacc.yacc(debug=True, errorlog=log)
+
+@tbroute('tz', 'timezone')
+@tbhelp('''tz -- set or get your time zone
+
+say e.g.: 'tz America/New_York'
+or: 'tz US/Eastern'
+or just 'tz' to see the currently set zone
+
+(if this isn't set, your current location (with 'here') will be used)
+''')
+@needsreg("to use time zones")
+def tz(req):
+    if not req.args:
+        zone, source = getUserZone(req.user)
+        if zone is None:
+            return "No time zone or current location set"
+        elif source is None:
+            return "You have set your time zone to: %s" % zone
+        else:
+            msg = "Based on your current location of: %s" % source
+            msg+= "Your time zone is %s" % zone
+    try:
+        req.user.tz = str(ZoneInfo(req.args))
+    except (hKeyError, ValueError):
+        return "Not a valid time zone: %s" % req.args
+    return success("Time zone set to %s" % req.user.tz)
+
+@tbroute('untz', 'untimezone')
+@tbhelp('''untz -- delete your time zone setting''')
+@needsreg("to use time zones")
+def untz(req):
+    if not req.user.tz: return "No time zone set"
+    req.user.tz = None
+    return "Time zone deleted"
+
+@tbroute('now')
+@tbhelp('''now -- get current time in your timezone
+
+see also: tz, here
+''')
+def now(req):
+    args = dict(parseArgs(req.args, ['in']))
+    lnam = args.get('in')
+    if lnam:
+        loc = Location.fromInput(lnam, requser=req.user)
+        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+        source = lnam
+    else:
+        zone, source = getUserZone(req.user)
+    now = datetime.now(tz=ZoneInfo(zone))
+    msg = "Current time is: %s" % now.ctime()
+    msg+= "\nCurrent time zone is: %s" % zone
+    if source:
+        msg+= "\n(Based on your location of: %s)" % source
+    return msg
+
+@tbroute('when')
+@tbhelp('''when -- parse a plain english date
+
+say e.g: 'next tuesday'
+or: 'every friday at 9am'
+''')
+def when(req):
+    zone, source = getUserZone(req.user)
+    tzinfo = zone and ZoneInfo(zone)
+    res = parser.parse(req.args)
+    if type(res) in (rrule,rruleset):
+        ct = 3
+        res = res.xafter(mkDatetime(), count=ct)
+    else:
+        ct = len(res)
+    evts = ', '.join([r.astimezone(tzinfo).ctime() for r in res])
+    if ct > 1:
+        msg = "%d recurrences: %s" % (ct, evts)
+    else:
+        msg = evts
+    return success(msg)
 
 if __name__ == '__main__':
     s = __doc__

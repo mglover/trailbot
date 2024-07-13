@@ -128,6 +128,7 @@ class User(object):
         self.status = self.getData('status')
         self.more = self.getData('more')
         self.subs = self.getData('subs', '').split('\n')
+        self.tz = self.getData('tz')
         self.save()
 
     def setData(self, name, val, enc='UTF-8'):
@@ -144,6 +145,7 @@ class User(object):
             self.setData('status', self.status)
             self.setData('more', self.more)
             self.setData('subs', '\n'.join(self.subs))
+            self.setData('tz', self.tz)
         except FileNotFoundError:
             pass # after e.g. unsubscribe
 

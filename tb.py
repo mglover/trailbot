@@ -25,6 +25,7 @@ from .userui import reg, unreg, whoami, saveloc, forget, share, unshare, more
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
 from .feed import news
+from .when import when
 ## bots
 from .bot import BotMon
 from .wordbot import WordBot
