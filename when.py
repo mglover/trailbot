@@ -52,6 +52,7 @@ from .location import Location
 class WhenError(TBError):
     msg = "When? %s"
 
+'''
 logging.basicConfig(
     level = logging.DEBUG,
     filename = "errors.txt",
@@ -59,6 +60,7 @@ logging.basicConfig(
     format = "%(lineno)4d:%(message)s"
 )
 log = logging.getLogger()
+'''
 
 ## time zone support functions
 zf = TimezoneFinder()
@@ -151,7 +153,7 @@ def t_token (t):
     t.value = v[1]
     return t
 
-lexer = lex.lex(errorlog=log)
+lexer = lex.lex()
 
 
 # ---
@@ -485,7 +487,7 @@ def p_amount(p):
     else:
         p[0] = p[1]*10 + int(p[2])
 
-parser = yacc.yacc(debug=True, errorlog=log)
+parser = yacc.yacc()
 
 @tbroute('tz', 'timezone')
 @tbhelp('''tz -- set or get your time zone
@@ -569,7 +571,7 @@ if __name__ == '__main__':
     for line in s.split('\n'):
         if not line or line.startswith('#'): continue
         try:
-            res = parser.parse(line, debug=log)
+            res = parser.parse(line)
         except TBError as e:
             res = str(e)
         print(line, "=>", res)
