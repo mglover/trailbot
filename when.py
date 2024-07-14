@@ -20,12 +20,18 @@ next month at 1900
 16:00
 on the 8th at 2pm
 every month on the 9th at 3pm
+monthly on the 12th at 1535 CDT
+weekly  on wednesday
+daily at 7:15pm
 every thursday at 10:30 a.m.
+every other week on friday
+saturdays at  noon
 every 3 hours between 9am and 6 p.m.
 9am, 2pm, and 4pm EDT
 every day at 9am, 11:30am, 2pm and 5pm
 """
 __package__ = 'trailbot'
+
 
 from dateutil.relativedelta import relativedelta, weekdays
 from dateutil.rrule import rrule, rruleset,\
@@ -43,6 +49,7 @@ import logging, time
 
 from .pkgs.ply import lex, yacc
 
+from .config import DEBUG
 from .core import TBError, success, parseArgs
 from .dispatch import tbroute, tbhelp
 from .user import needsreg
@@ -52,17 +59,19 @@ from .location import Location
 class WhenError(TBError):
     msg = "When? %s"
 
-'''
-logging.basicConfig(
-    level = logging.DEBUG,
-    filename = "errors.txt",
-    filemode = "w",
-    format = "%(lineno)4d:%(message)s"
-)
-log = logging.getLogger()
-'''
+if DEBUG:
+    logging.basicConfig(
+        level = logging.DEBUG,
+        filename = "errors.txt",
+        filemode = "w",
+        format = "%(lineno)4d:%(message)s"
+    )
+    log = logging.getLogger()
+else:
+    log = None
 
 ## time zone support functions
+
 zf = TimezoneFinder()
 
 def getUserZone(user):
@@ -78,7 +87,13 @@ def getUserZone(user):
     zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
     return (zone, loc.orig)
 
+def getUserNow(user):
+    zone, source = getUserZone(user)
+    tzdata = zone and ZoneInfo(zone)
+    return datetime.now(tzdata)
+
 def mkDatetime(**kwargs):
+    print(kwargs)
     now = datetime.now(kwargs.get('timezone'))
     if 'timezone' in kwargs: kwargs.pop('timezone')
     return now + relativedelta(**kwargs)
@@ -110,6 +125,7 @@ for d in days:
     tokmap[d+'DAY'] = v
     tokmap[d[:3]] = v
     tokmap[d[:2]] = v
+    tokmap[d+'DAYS'] = ('DOWS', d, i)
     i += 1
 tokmap['THUR'] = ('DOW', 'THURS', 4)
 
@@ -124,7 +140,7 @@ for r in repeats:
 
 keywords = [
     'IN', 'ON', 'AT', 'OF', 'THE', 'AND', 'BETWEEN', 'AFTER', 'BEFORE',
-     'NEXT', 'EVERY', 'TOMORROW', 'NOON', 'AM', 'PM'
+     'NEXT', 'EVERY', 'REPEAT', 'OTHER', 'TOMORROW', 'NOON', 'AM', 'PM'
 ]
 for k in keywords:
     tokmap[k] = (k, k)
@@ -133,7 +149,7 @@ for k in keywords:
 # -- set up the leer
 
 tokens = keywords + ['DIGIT', 'COLON', 'COMMA', 'ORDINAL',
-    'MONTH', 'DOW', 'UNIT', 'ZONE']
+    'MONTH', 'DOW', 'DOWS', 'UNIT', 'ZONE']
 
 def t_error(t):
     print(f"Unexpected character '%s' at %d" % (t.value[0],t.lexer.lexpos))
@@ -153,7 +169,7 @@ def t_token (t):
     t.value = v[1]
     return t
 
-lexer = lex.lex()
+lexer = lex.lex(errorlog=log)
 
 
 # ---
@@ -179,7 +195,7 @@ def p_whenevery(p):
     '''
     freq, fkwargs = p[1]
     if len(p) == 2:
-        fkwargs['dtstart'] =  mkDatetime()
+        fkwargs['dtstart'] =  getUserNow(p.parser.user)
     else:
         if len(p[3]) != 1: raise WhenError("start time must be a single time")
         if len(p[5]) != 1: raise WhenError("end time must be a single time")
@@ -191,7 +207,7 @@ def p_whenevery(p):
 def p_when(p):
     '''when : datetime'''
     p[0] = []
-    NOW = mkDatetime()
+    NOW = getUserNow(p.parser.user)
     for kwargs in p[1]:
         kwargs['second'] = 0
         kwargs['microsecond'] = 0
@@ -206,9 +222,19 @@ def p_when(p):
 
         p[0].append( mkDatetime(**kwargs) )
 
+def p_repeat(p):
+    '''every : REPEAT'''
+    unit = p[1]
+    if unit == 'YEARLY': f=YEARLY
+    if unit == 'MONTHLY': f=MONTHLY
+    elif unit=='WEEKLY': f=WEEKLY
+    elif unit=='DAILY': f=DAILY
+    elif unit=='HOURLY': f=HOURLY
+    p[0] = ( f, {'interval': 1} )
 
 def p_every_unit(p):
     ''' every : EVERY UNIT
+              | EVERY OTHER UNIT
               | EVERY amount UNIT
     '''
     if len(p) == 3:
@@ -216,7 +242,10 @@ def p_every_unit(p):
         amt = 1
     else:
         i = 3
-        amt = int(p[2])
+        if p[2] == 'OTHER':
+            amt = 2
+        else:
+            amt = int(p[2])
     typ, unit = tokmap[p[i]]
 
     if unit == 'MONTH': f=MONTHLY
@@ -231,8 +260,14 @@ def p_every_month(p):
     p[0] = ( YEARLY, { 'bymonth': monum } )
 
 def p_every_dow(p):
-    ''' every : EVERY DOW'''
-    danum = tokmap[p[2]][2]
+    ''' every : EVERY DOW
+              | DOWS
+    '''
+    if p[1] == 'EVERY':
+        idx = 2
+    else:
+        idx = 1
+    danum = tokmap[p[idx]][2]
     p[0] = ( WEEKLY, { 'byweekday': danum } )
 
 
@@ -286,7 +321,7 @@ def p_next(p):
         p[0] = {'month': monum}
     elif tok[0] == 'DOW':
         val = val[:2].upper()
-        p[0] = { 'weekday': tok[2]+1 }
+        p[0] = { 'weekday': tok[2] }
     else:
         p[0] = p[1]
     p[0] = [ p[0] ]
@@ -406,7 +441,7 @@ def p_daymo(p):
             p[0] = {'days': +1 }
         else:
             tok = tokmap[p[1]]
-            p[0] = {'weekday': tok[2]+1}
+            p[0] = {'weekday': tok[2]}
     else:
         mo = tokmap[p[2]]
         p[0] = { "day": p[1],"month": mo[2] }
@@ -487,7 +522,11 @@ def p_amount(p):
     else:
         p[0] = p[1]*10 + int(p[2])
 
-parser = yacc.yacc()
+parser = yacc.yacc(debug=DEBUG, errorlog=log)
+
+
+## TrailBot interface
+
 
 @tbroute('tz', 'timezone')
 @tbhelp('''tz -- set or get your time zone
@@ -500,18 +539,19 @@ or just 'tz' to see the currently set zone
 ''')
 @needsreg("to use time zones")
 def tz(req):
-    if not req.args:
+    if not len(req.args.strip()):
         zone, source = getUserZone(req.user)
         if zone is None:
             return "No time zone or current location set"
         elif source is None:
             return "You have set your time zone to: %s" % zone
         else:
-            msg = "Based on your current location of: %s" % source
-            msg+= "Your time zone is %s" % zone
+            msg = "Based on your current location of:\n  %s" % source
+            msg+= "\n your time zone is\n  %s" % zone
+            return msg
     try:
         req.user.tz = str(ZoneInfo(req.args))
-    except (hKeyError, ValueError):
+    except (KeyError, ValueError):
         return "Not a valid time zone: %s" % req.args
     return success("Time zone set to %s" % req.user.tz)
 
@@ -553,17 +593,26 @@ or: 'every friday at 9am'
 def when(req):
     zone, source = getUserZone(req.user)
     tzinfo = zone and ZoneInfo(zone)
+    print(tzinfo)
+    NOW = getUserNow(req.user)
+    if req.args.lower().lstrip().startswith('is '):
+        req.args = req.args.lstrip()[3:]
+    parser.user = req.user
+
     res = parser.parse(req.args)
+
     if type(res) in (rrule,rruleset):
         ct = 3
-        res = res.xafter(mkDatetime(), count=ct)
+        res = res.xafter(NOW, count=ct)
     else:
         ct = len(res)
-    evts = ', '.join([r.astimezone(tzinfo).ctime() for r in res])
+    print(NOW, res)
+    evts = ',\n '.join([r.astimezone(tzinfo).ctime() for r in res])
     if ct > 1:
-        msg = "%d recurrences: %s" % (ct, evts)
+        msg = "%s is a recurring event. next %d recurrences:\n %s" \
+            % (req.args, ct, evts)
     else:
-        msg = evts
+        msg = '%s is %s' % (req.args, evts)
     return success(msg)
 
 if __name__ == '__main__':
@@ -571,7 +620,8 @@ if __name__ == '__main__':
     for line in s.split('\n'):
         if not line or line.startswith('#'): continue
         try:
+            print(line, "=>", end='')
             res = parser.parse(line)
         except TBError as e:
             res = str(e)
-        print(line, "=>", res)
+        print(res)
