@@ -177,12 +177,12 @@ class Location(UserObj):
     def fromInput(cls, str, requser):
         parts = str.split()
         if len(parts)==1:
+            if len(parts[0])==5 and parts[0].isdigit():
+                return cls.fromZip(str, requser)
             # saved location lookup
             ud = cls.lookup(str.lower(), requser)
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
-            if len(parts[0])==5 and parts[0].isdigit():
-                return cls.fromZip(str, requser)
 
         elif len(parts) == 2 and \
             isfloat(parts[0]) and isfloat(parts[1]):
