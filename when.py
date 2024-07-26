@@ -1,51 +1,9 @@
-"""
-in 3 hours
-9am
-10am EST
-1745
-3pm
-4p.m.
-19 July
-on 21 August
-the 3rd of September
-October 10th
-January 1st at noon
-next month
-next wednesday
-the 11th next month
-tomorrow at 1700
-thu at 6:45am
-fri at 0655
-next month at 1900
-16:00
-on the 8th at 2pm
-every month on the 9th at 3pm
-monthly on the 12th at 1535 CDT
-weekly  on wednesday
-daily at 7:15pm
-every thursday at 10:30 a.m.
-every other week on friday
-saturdays at  noon
-every 3 hours between 9am and 6 p.m.
-9am, 2pm, and 4pm EDT
-every day at 9am, 11:30am, 2pm and 5pm
-"""
 __package__ = 'trailbot'
 
 
-from dateutil.relativedelta import relativedelta, weekdays
-from dateutil.rrule import rrule, rruleset,\
-    YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
-from dateutil.tz import tzoffset
-
-try:
-    from zoneinfo import ZoneInfo
-except ModuleNotFoundError:
-    from backports.zoneinfo import ZoneInfo
-from timezonefinder import TimezoneFinder
-from datetime import datetime
-
 import logging, time
+
+from flask import render_template
 
 from .pkgs.ply import lex, yacc
 
@@ -69,34 +27,6 @@ if DEBUG:
     log = logging.getLogger()
 else:
     log = None
-
-## time zone support functions
-
-zf = TimezoneFinder()
-
-def getUserZone(user):
-    if user is None:
-        return (None, None)
-    if user.tz:
-        return (user.tz, None)
-
-    loc = UserObj.lookup('here', requser=user)
-    if not loc:
-        return (None, None)
-
-    zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-    return (zone, loc.orig)
-
-def getUserNow(user):
-    zone, source = getUserZone(user)
-    tzdata = zone and ZoneInfo(zone)
-    return datetime.now(tzdata)
-
-def mkDatetime(**kwargs):
-    print(kwargs)
-    now = datetime.now(kwargs.get('timezone'))
-    if 'timezone' in kwargs: kwargs.pop('timezone')
-    return now + relativedelta(**kwargs)
 
 ## setup the symbol table
 
@@ -130,7 +60,8 @@ for d in days:
 tokmap['THUR'] = ('DOW', 'THURS', 4)
 
 tzones = {'EST': -5*3600, 'CST': -6*3600, 'MST': -7*3600, 'PST': -8*3600,
-          'EDT': -4*3600, 'CDT': -5*3600, 'MDT': -6*3600, 'PDT': -7*3600}
+          'EDT': -4*3600, 'CDT': -5*3600, 'MDT': -6*3600, 'PDT': -7*3600,
+          'UTC': 0}
 for z, off in tzones.items():
     tokmap[z] = ('ZONE', z, off)
 
@@ -146,11 +77,14 @@ for k in keywords:
     tokmap[k] = (k, k)
 
 
-# -- set up the leer
+# -- set up the lexer
 
 tokens = keywords + ['DIGIT', 'COLON', 'COMMA', 'ORDINAL',
     'MONTH', 'DOW', 'DOWS', 'UNIT', 'ZONE']
-
+precedence = (
+    ('left', 'AT'),
+    ('left', 'COMMA', 'AND'),
+)
 def t_error(t):
     print(f"Unexpected character '%s' at %d" % (t.value[0],t.lexer.lexpos))
 
@@ -163,64 +97,57 @@ t_COMMA = r','
 def t_token (t):
     '''[a-zA-Z.]+'''
     k = t.value.replace('.','').upper()
-    v = tokmap[k]
+    try:
+        v = tokmap[k]
+    except KeyError:
+        raise WhenError("I don't understand %s" % k)
     t.orig = t.value
     t.type = v[0]
     t.value = v[1]
     return t
 
-lexer = lex.lex(errorlog=log)
+# parser rules
 
-
-# ---
 
 def p_error(p):
     if p is None:
-        print('error at end of input')
+        raise WhenError('error at end of input')
     else:
-        print("error at %d  near %s" % (lexer.lexpos, p))
+        raise WhenError("error at %d  near %s" % (lexer.lexpos, p))
 
 def p_whenevery_at(p):
     ''' when : every absdatetime'''
-    freq, fkwargs = p[1]
-    p[0] = rruleset()
-    for pp in p[2]:
-        fk = fkwargs
-        fk['dtstart'] = mkDatetime(**pp)
-        p[0].rrule(rrule(freq, **fk))
+    rmap = {
+        'day': 'bymonthday',
+        'month': 'bymonth',
+        'weekday': 'byweekday',
+        'hour': 'byhour',
+        'minute': 'byminute'
+    }
+    freq, kwargs = p[1]
+    p[0] = []
+    for kk in p[2]:
+        kw = kwargs.copy()
+        for k,v in kk.items():
+            kw[rmap.get(k, k)] = v
+        p[0].append((freq, kw))
 
 def p_whenevery(p):
     '''when : every
             | every BETWEEN absdatetime AND absdatetime
     '''
     freq, fkwargs = p[1]
-    if len(p) == 2:
-        fkwargs['dtstart'] =  getUserNow(p.parser.user)
-    else:
+    if len(p) > 2:
         if len(p[3]) != 1: raise WhenError("start time must be a single time")
         if len(p[5]) != 1: raise WhenError("end time must be a single time")
-        fkwargs['dtstart'] = mkDatetime(**p[3][0])
-        fkwargs['until'] = mkDatetime(**p[5][0])
+        fkwargs['dtstart'] = p[3][0]
+        fkwargs['until'] = p[5][0]
 
-    p[0] = rrule(freq, **fkwargs)
+    p[0] = (freq, fkwargs)
 
 def p_when(p):
     '''when : datetime'''
-    p[0] = []
-    NOW = getUserNow(p.parser.user)
-    for kwargs in p[1]:
-        kwargs['second'] = 0
-        kwargs['microsecond'] = 0
-        if 'month' in kwargs and kwargs['month'] < NOW.month:
-            kwargs['year'] = NOW.year + 1
-        elif 'day' in kwargs and kwargs['day'] < NOW.day:
-            kwargs['month'] = NOW.month + 1
-        elif 'hour' in kwargs and kwargs['hour'] < NOW.hour:
-            kwargs['day'] = NOW.day + 1
-        elif 'minute' in kwargs and kwargs['minute'] < NOW.minute:
-            kwargs['hour'] = NOW.hour + 1
-
-        p[0].append( mkDatetime(**kwargs) )
+    p[0] = p[1]
 
 def p_repeat(p):
     '''every : REPEAT'''
@@ -230,7 +157,7 @@ def p_repeat(p):
     elif unit=='WEEKLY': f=WEEKLY
     elif unit=='DAILY': f=DAILY
     elif unit=='HOURLY': f=HOURLY
-    p[0] = ( f, {'interval': 1} )
+    p[0] = ( f, {} )
 
 def p_every_unit(p):
     ''' every : EVERY UNIT
@@ -239,20 +166,20 @@ def p_every_unit(p):
     '''
     if len(p) == 3:
         i = 2
-        amt = 1
+        kwargs = {}
     else:
         i = 3
         if p[2] == 'OTHER':
-            amt = 2
+            kwargs = { 'interval': 2 }
         else:
-            amt = int(p[2])
+            kwargs = { 'interval': int(p[2]) }
     typ, unit = tokmap[p[i]]
 
     if unit == 'MONTH': f=MONTHLY
     elif unit == 'WEEK': f=WEEKLY
     elif unit == 'DAY': f=DAILY
     elif unit == 'HOUR': f=HOURLY
-    p[0] = (f, {'interval': amt})
+    p[0] = (f, kwargs)
 
 def p_every_month(p):
     ''' every :  EVERY MONTH'''
@@ -343,8 +270,6 @@ def p_absdatetime_multi(p):
             pq = {}
             pq.update(pp)
             pq.update(qq)
-            pq['second'] = 0
-            pq['microsecond'] = 0
             p[0].append(pq)
 
 
@@ -355,48 +280,21 @@ def p_timelist_zone(p):
     if offset is None:
         raise WhenError("I don't know a time zone named '%s'" % p[2])
     for pp in p[0]:
-        pp['timezone'] = tzoffset(p[2], offset)
-
+        pp['tzoffset'] = (p[2], offset)
 
 
 def p_timelist(p):
-    ''' timelist : ticommas
-                 | ticommas AND time
-                 | ticommas COMMA AND time
+    ''' timelist : timelist and time
                  | time
     '''
-    if type(p[1]) is list:
+    if len(p) == 4:
         p[0] = p[1]
+        p[0].append(p[3])
     else:
         p[0] = [ p[1] ]
-    if len(p) == 4:
-        p[0].append(p[3])
-    if len(p) == 5:
-        p[0].append(p[4])
-
-def p_tilist_comma(p):
-    ''' ticommas : time COMMA time
-                 | ticommas COMMA time
-    '''
-    if type(p[1]) is list:
-        p[0] = p[1]
-        p[0].append(p[3])
-    else:
-        p[0] = [ p[1] , p[3] ]
 
 def p_datelist(p):
-    ''' datelist :  dacommas
-                 |  dacommas AND date
-                 |  dacommas COMMA AND date
-    '''
-    p[0] = p[1]
-    if len(p) == 4:
-        p[0].append(p[3])
-    if len(p) == 5:
-        p[0].append(p[4])
-
-def p_dalist_comma(p):
-    ''' dacommas : dacommas COMMA date
+    ''' datelist : datelist and date
                  | date
     '''
     if len(p) == 4:
@@ -514,19 +412,144 @@ def p_minute(p):
     min = int(''.join(p[1:]))
     p[0] = min
 
+def p_comma_and(p):
+    '''and : AND
+           | COMMA
+           | COMMA AND
+    '''
+    p[0] =  p[1]
+
 def p_amount(p):
     '''amount : DIGIT
-              | amount DIGIT'''
+              | amount DIGIT
+    '''
     if len(p) == 2:
         p[0] = int(p[1])
     else:
         p[0] = p[1]*10 + int(p[2])
 
+
+lexer = lex.lex(errorlog=log)
 parser = yacc.yacc(debug=DEBUG, errorlog=log)
+
+
+## support functions
+from dateutil.relativedelta import relativedelta, weekdays
+from dateutil.rrule import rrule, rruleset,\
+    YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
+from dateutil.tz import tzoffset
+
+try:
+    from zoneinfo import ZoneInfo
+except ModuleNotFoundError:
+    from backports.zoneinfo import ZoneInfo
+from timezonefinder import TimezoneFinder
+from datetime import datetime, timezone
+
+zf = TimezoneFinder()
+
+def getUserZone(user):
+    if user is not None:
+        if user.tz:
+            return (user.tz, None)
+
+        loc = UserObj.lookup('here', requser=user)
+        if loc:
+            zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+            return (zone, loc.orig)
+
+    return (None, None)
+
+def getUserNow(user):
+    zone, source = getUserZone(user)
+    if zone:
+        tzdata = ZoneInfo(zone)
+    else:
+        tzdata = timezone.utc
+    return datetime.now(tzdata)
+
+
+def mkdatetime(now, output_tz, kwargs):
+    """ adjust datetime to UTC using desired offset (if given),
+        zero-out second and microsecond
+        and ensure it's in the future
+    """
+
+    if 'tzoffset' in kwargs:
+        input_tz = tzoffset(*kwargs['tzoffset'])
+        kwargs.pop('tzoffset')
+    else:
+        input_tz = output_tz
+
+    now = now.replace(second=0, microsecond=0).astimezone(input_tz)
+    print('mkdatetime', now, now.tzinfo)
+
+    then = now + relativedelta(**kwargs)
+    print(now, then, then.astimezone(output_tz))
+    if then >= now: return then.astimezone(output_tz)
+
+    if 'year' in kwargs and kwargs['year'] < now.year:
+        raise WhenError("%d is in the past" % kwargs['year'])
+
+    moveable = [ p for p in ('day', 'month', 'year') if p not in kwargs]
+    for m in moveable:
+        kk = { m: getattr(now, m) + 1 }
+        kk.update(kwargs)
+        then = now + relativedelta(**kk)
+        if then >= now:
+            print(then.astimezone(output_tz), output_tz)
+            return then.astimezone(output_tz)
+
+def mkruleset(now, args):
+    # passing in 'now' to ease testing
+    tzinfo = now.tzinfo
+
+    rows = parser.parse(args)
+    rrs = rruleset()
+
+    for r in rows:
+        if type(r) is tuple:
+            # this is an rrule
+            freq, kwargs = r
+            kwargs['dtstart'] = mkdatetime(now, tzinfo,
+                kwargs.get('dtstart', {}))
+            rrs.rrule(rrule(freq, **kwargs))
+        else:
+            kwargs = r
+            print('rdate', now, now.tzinfo, tzinfo, kwargs)
+            rrs.rdate(mkdatetime(now, tzinfo, kwargs))
+    return rrs
 
 
 ## TrailBot interface
 
+
+@tbroute('when')
+@tbhelp('''when -- parse a plain english date
+
+say e.g: 'next tuesday'
+or: 'every friday at 9am'
+''')
+def when(req):
+    if req.args.lower().lstrip().startswith('is '):
+        req.args = req.args.lstrip()[3:]
+    args = dict(parseArgs(req.args, ['max']))
+    wh = args['']
+    try:
+        max = int(args.get('max',3))
+    except ValueError:
+        pass
+
+    now = getUserNow(req.user)
+    rrs = mkruleset(now, wh)
+    evts = [r for r in rrs.xafter(now, count=max)]
+    if len(evts) == 1:
+       msg = "%s is:" % (wh)
+    else:
+        msg = "%s is a recurring event. Next %d occurrences:" % (wh, len(evts))
+    for e in evts:
+        msg += "\n%s %s" % (e.astimezone(now.tzinfo).ctime(), now.tzinfo)
+    return msg
 
 @tbroute('tz', 'timezone')
 @tbhelp('''tz -- set or get your time zone
@@ -577,51 +600,10 @@ def now(req):
         source = lnam
     else:
         zone, source = getUserZone(req.user)
-    now = datetime.now(tz=ZoneInfo(zone))
+    now = datetime.now(tz=zone and ZoneInfo(zone))
     msg = "Current time is: %s" % now.ctime()
     msg+= "\nCurrent time zone is: %s" % zone
     if source:
         msg+= "\n(Based on your location of: %s)" % source
     return msg
 
-@tbroute('when')
-@tbhelp('''when -- parse a plain english date
-
-say e.g: 'next tuesday'
-or: 'every friday at 9am'
-''')
-def when(req):
-    zone, source = getUserZone(req.user)
-    tzinfo = zone and ZoneInfo(zone)
-    print(tzinfo)
-    NOW = getUserNow(req.user)
-    if req.args.lower().lstrip().startswith('is '):
-        req.args = req.args.lstrip()[3:]
-    parser.user = req.user
-
-    res = parser.parse(req.args)
-
-    if type(res) in (rrule,rruleset):
-        ct = 3
-        res = res.xafter(NOW, count=ct)
-    else:
-        ct = len(res)
-    print(NOW, res)
-    evts = ',\n '.join([r.astimezone(tzinfo).ctime() for r in res])
-    if ct > 1:
-        msg = "%s is a recurring event. next %d recurrences:\n %s" \
-            % (req.args, ct, evts)
-    else:
-        msg = '%s is %s' % (req.args, evts)
-    return success(msg)
-
-if __name__ == '__main__':
-    s = __doc__
-    for line in s.split('\n'):
-        if not line or line.startswith('#'): continue
-        try:
-            print(line, "=>", end='')
-            res = parser.parse(line)
-        except TBError as e:
-            res = str(e)
-        print(res)
