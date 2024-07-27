@@ -36,13 +36,13 @@ class TestAddr(TBTest):
         self.assertSuccess(self.req1("here deming,nm"))
         self.assertSuccess(self.req1("here lordsburg, nm"))
         res = self.req1("where here")
-        self.assertStartsWith(res, "lordsburg")
+        self.assertStartsWith(res, '"lordsburg')
 
     def test_addr(self):
         self.reg1()
         self.assertSuccess(self.req1("addr buq Albuquerque, NM"))
         res = self.req1("where buq")
-        self.assertStartsWith(res, "Albuquerque, NM")
+        self.assertStartsWith(res, '"Albuquerque, NM')
 
     def test_here_nouser(self):
         res = self.req1("addr buq Albuquerque, NM")
@@ -52,7 +52,7 @@ class TestAddr(TBTest):
         self.reg1()
         self.assertSuccess(self.req1("here portland, or"))
         res = self.req1("where here")
-        self.assertStartsWith(res, "portland, or")
+        self.assertStartsWith(res, '"portland, or')
 
     def test_share_here(self):
         self.reg1()
@@ -60,13 +60,13 @@ class TestAddr(TBTest):
         self.req1("here silver city, nm")
         self.assertSuccess(self.req1("share here with @test2"))
         resp = self.req2("where @test1.here")
-        self.assertStartsWith(resp, "silver city, nm")
+        self.assertStartsWith(resp, '"silver city, nm')
 
     def test_forget(self):
         self.reg1()
         self.assertSuccess(self.req1("addr home New York City"))
         res = self.req1("where home")
-        self.assertStartsWith(res, "City of New York")
+        self.assertStartsWith(res, '"City of New York')
         self.assertSuccess(self.req1("forget home"))
         res = self.req1("where @test1")
         self.assertStartsWith(res, "Location not found:")
