@@ -37,6 +37,11 @@ warnings.simplefilter(
     category=InsecureRequestWarning,
     lineno=1099
 )
+warnings.simplefilter(
+    "ignore", 
+    category=InsecureRequestWarning,
+    lineno=999
+)
 
 ##
 ## error/auth hooks
