@@ -128,7 +128,8 @@ class UserObj(object):
                 nam = cls.getDefault()
             target = User.lookup(tnam)
         else:
-            assert type(requser) is User
+            if type(requser) is not User:
+                return None
             target = requser
 
         try:
