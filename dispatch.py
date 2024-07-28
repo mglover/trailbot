@@ -92,7 +92,7 @@ def dispatch(request):
         msg = str(e)
 
     except Exception as e:
-        traceback.print_exception(e)
+        traceback.print_exception(e,None)
 
     if msg is None:
         msg = "This is TrailBot:  something strange happened, "
