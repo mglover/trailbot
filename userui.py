@@ -12,7 +12,7 @@ from .location import Location
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
-    if isBotPhone(dstu):
+    if isBotPhone(dstu.phone):
         #message to a bot
         return dstu.getResponse(req)
     else:
