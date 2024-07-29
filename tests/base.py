@@ -11,6 +11,18 @@ from trailbot import netsource
 from trailbot.twilio import TBResponse
 from trailbot.dispatch import routes
 
+HAS_REMOTE = False
+
+def remote_db(fxn):
+    """skip tests that need remote resources
+       if remote connections are unavailable"
+    """
+    if HAS_REMOTE:
+        print('run', fxn)
+        return fxn
+    print('Skipping %s: no internet' % fxn.__name__)
+    return unittest.skip("no internet")
+
 class TBTest(unittest.TestCase):
     def setUp(self):
         if False: # XXX expect connection failures
