@@ -12,6 +12,10 @@ from .dispatch import tbroute, tbhelp
 
 class LookupZipError(TBError):
     msg = "zip code not found: %s"
+class LookupAreaCodeError(TBError):
+    msg = "Area code not found: %s"
+class NotAnAreaCode(TBError):
+    msg = "Not a US/Canada number: %s"
 class LookupShelterError(TBError):
     msg = "Shelter name not found: %s"
 class LookupLocationError(TBError):
@@ -28,7 +32,19 @@ def isfloat(s):
     except:
         return False
 
+def geoFromCSV(file, key, latidx=1, lonidx=2):
+    path = os.path.join(config.DB_ROOT, file)
+    with open(path) as fd:
+        db = csv.reader(fd)
+        for row in db:
+            if len(row) and row[0]==key:
+                return row[latidx], row[lonidx]
+        return None
 
+def areaCodeFromPhone(phone):
+    if not phone.startswith("+1"):
+        raise NotAnAreaCode(phone)
+    return phone[2:5]
 class Location(UserObj):
     typ = 'loc'
 
@@ -73,19 +89,30 @@ class Location(UserObj):
         return 'here'
 
     @classmethod
+    def fromPhone(cls, phone, requser):
+        ac = areaCodeFromPhone(phone)
+        geo = geoFromCSV("areacode.csv", ac, latidx=1, lonidx=2)
+        if geo:
+            return cls(
+                lat = geo[0],
+                lon = geo[1],
+                orig = phone,
+                source = "Area code",
+                requser=requser
+            )
+        raise LookupAreaCodeError(ac)
+
+    @classmethod
     def fromZip(cls, zip, requser):
-        zipfile = os.path.join(config.DB_ROOT,"zipcode.csv")
-        with open(zipfile) as zipfd:
-            zipdb = csv.reader(zipfd)
-            for row in zipdb:
-                if len(row) and row[0]==zip:
-                    return cls(
-                        lat=row[3],
-                        lon = row[4],
-                        orig = zip,
-                        source = "ZIP code",
-                        requser=requser
-                    )
+        geo = geoFromCSV("zipcode.csv", zip, latidx=3, lonidx=4)
+        if geo:
+            return cls(
+                lat=geo[0],
+                lon = geo[1],
+                orig = zip,
+                source = "ZIP code",
+                requser=requser
+            )
         raise LookupZipError(zip)
 
     @classmethod
@@ -179,6 +206,9 @@ class Location(UserObj):
         if len(parts)==1:
             if len(parts[0])==5 and parts[0].isdigit():
                 return cls.fromZip(str, requser)
+            elif parts[0].startswith("+"):
+                return cls.fromPhone(str, requser)
+
             # saved location lookup
             ud = cls.lookup(str.lower(), requser)
             if ud: return ud
