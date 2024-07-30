@@ -12,7 +12,7 @@ from .core import TBError, success, parseArgs
 from .dispatch import tbroute, tbhelp
 from .user import needsreg
 from .userdata import UserObj
-from .location import Location
+from .location import Location, areaCodeFromPhone, LookupAreaCodeError, NotAnAreaCode
 
 class WhenError(TBError):
     msg = "When? %s"
@@ -447,20 +447,27 @@ from datetime import datetime, timezone
 
 zf = TimezoneFinder()
 
-def getUserZone(user):
-    if user is not None:
-        if user.tz:
-            return (user.tz, None)
+def getReqZone(req):
+    if req.user is not None:
+        if req.user.tz:
+            return (req.user.tz, None)
 
-        loc = UserObj.lookup('here', requser=user)
+        loc = UserObj.lookup('here', requser=req.user)
+        if not loc:
+            try:
+                ac = areaCodeFromPhone(req.frm)
+                loc = Location.fromAreaCode(ac, req.user)
+            except (LookupAreaCodeError, NotAnAreaCode) as e:
+                print("Error:", e)
+                pass
         if loc:
             zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-            return (zone, loc.orig)
+            return (zone, loc)
 
     return (None, None)
 
-def getUserNow(user):
-    zone, source = getUserZone(user)
+def getReqNow(req):
+    zone, _ = getReqZone(req.user)
     if zone:
         tzdata = ZoneInfo(zone)
     else:
@@ -535,7 +542,7 @@ def when(req):
     except ValueError:
         pass
 
-    now = getUserNow(req.user)
+    now = getReqNow(req)
     rrs = mkruleset(now, wh)
     evts = [r for r in rrs.xafter(now, count=max)]
     if len(evts) == 1:
@@ -557,15 +564,16 @@ or just 'tz' to see the currently set zone
 ''')
 @needsreg("to use time zones")
 def tz(req):
+    loc = None
     if not len(req.args.strip()):
-        zone, source = getUserZone(req.user)
+        zone, loc = getReqZone(req)
         if zone is None:
             return "No time zone or current location set"
-        elif source is None:
+        elif loc is None:
             return "You have set your time zone to: %s" % zone
         else:
-            msg = "Based on your current location of:\n  %s" % source
-            msg+= "\n your time zone is\n  %s" % zone
+            msg = "Based on your %s of: %s" % (loc.source, loc.orig)
+            msg+= "\nyour time zone is %s" % zone
             return msg
     try:
         req.user.tz = str(ZoneInfo(req.args))
@@ -589,16 +597,17 @@ see also: tz, here
 def now(req):
     args = dict(parseArgs(req.args, ['in']))
     lnam = args.get('in')
+    loc = None
     if lnam:
         loc = Location.fromInput(lnam, requser=req.user)
         zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
         source = lnam
     else:
-        zone, source = getUserZone(req.user)
+        zone, loc = getReqZone(req)
     now = datetime.now(tz=zone and ZoneInfo(zone))
     msg = "Current time is: %s" % now.ctime()
     msg+= "\nCurrent time zone is: %s" % zone
-    if source:
-        msg+= "\n(Based on your location of: %s)" % source
+    if loc:
+        msg+= "\n(Based on your %s of: %s)" % (loc.source, loc.orig)
     return msg
 
