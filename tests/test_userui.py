@@ -1,4 +1,4 @@
-from tests.base import TBTest
+from tests.base import TBTest, remote_db
 
 class TestDM(TBTest):
     def test_dm(self):
@@ -62,6 +62,7 @@ class TestAddr(TBTest):
         resp = self.req2("where @test1.here")
         self.assertStartsWith(resp, '"silver city, nm')
 
+    @remote_db
     def test_forget(self):
         self.reg1()
         self.assertSuccess(self.req1("addr home New York City"))
@@ -71,6 +72,7 @@ class TestAddr(TBTest):
         res = self.req1("where @test1")
         self.assertStartsWith(res, "Location not found:")
 
+    @remote_db
     def test_forget_nouser(self):
         res = self.req1("forget panama")
         self.assertStartsWith(res, 

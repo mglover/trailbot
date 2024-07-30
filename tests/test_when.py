@@ -249,7 +249,7 @@ class TestMkRuleset(unittest.TestCase):
         self.user = None # default, UTC timezone
 
     def getRules(self,input):
-        return  mkruleset(self.user, input, now=self.now)
+        return  mkruleset(self.now, input)
 
     def test_hrmin(self):
         rules = self.getRules("7pm")
