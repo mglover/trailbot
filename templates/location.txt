@@ -1,7 +1,6 @@
 "{{ obj.orig }}"
 Found in the {{ obj.source }} database:{% if obj.match %}
 
-Full Name: {{ obj.match }}
-{% endif %}
+Full Name: {{ obj.match }}{% endif %}
 
 Coordinates: {{ obj.lat }}, {{ obj.lon }}
