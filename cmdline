@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. ./config.py
+
+URL="http://localhost:8080/wx/fetch"
+PHONE="+19713364571"
+ARGS=$*
+
+
+curl --silent --get "$URL" --basic -u "$BASICAUTH_USER:$BASICAUTH_PASS" \
+    --data-urlencode "From=$PHONE" --data-urlencode "Body=$ARGS" \
+ent     | sed 's/<[^>]*>//g' | sed 's/&quot;/"/g' | sed 's/&amp;/&/g'
+echo
