@@ -225,12 +225,12 @@ class Location(UserObj):
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
 
-        elif len(cparts)==1 and len(sparts==2) \
-            and isfloat(parts[0]) and isfloat(parts[1]):
+        elif len(cparts)==1 and len(sparts)==2 \
+            and isfloat(sparts[0]) and isfloat(sparts[1]):
             # lat/lon pair
             return cls(
-                lat=parts[0],
-                lon=parts[1],
+                lat=sparts[0],
+                lon=sparts[1],
                 orig=str,
                 requser=requser,
                 source="latitude/longitude"
