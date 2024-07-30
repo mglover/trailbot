@@ -195,43 +195,48 @@ class Location(UserObj):
             lat=data['lat'],
             lon=data['lon'],
             orig = data['display_name'],
-            source = "Nominatim",
+            source = "nominatim location",
             requser=requser
         )
 
-
     @classmethod
     def fromInput(cls, str, requser):
-        parts = str.split()
-        if len(parts)==1:
-            if len(parts[0])==5 and parts[0].isdigit():
-                return cls.fromZip(str, requser)
-            elif parts[0].startswith("+"):
-                return cls.fromPhone(str, requser)
+        cparts = str.split(',')
+        sparts = str.split()
 
-            # saved location lookup
+        if sparts[0]=='trail:at':
+            # AT trail shelter name
+            return cls.fromShelter(' '.join(parts[1:]), requser)
+
+        if len(cparts)==1 and len(sparts)==1:
+            #  zip, phone number, or saved addr
+            if len(str)==5 and str.isdigit():
+                return cls.fromZip(str, requser)
+            elif len(str)==3 and str.isdigit():
+                return cls.fromAreaCode(str, requser)
+
             ud = cls.lookup(str.lower(), requser)
             if ud: return ud
             if str.startswith('@'): raise LookupLocationError(str)
 
-        elif len(parts) == 2 and \
-            isfloat(parts[0]) and isfloat(parts[1]):
+        elif len(cparts)==1 and len(sparts==2) \
+            and isfloat(parts[0]) and isfloat(parts[1]):
+            # lat/lon pair
             return cls(
                 lat=parts[0],
                 lon=parts[1],
                 orig=str,
                 requser=requser,
-                source = "Latitude/Longitude"
+                source="latitude/longitude"
             )
 
-        elif len(parts)>=2 and parts[-2].endswith(',') \
-            and len(parts[-1].lstrip()) == 2:
+        elif len(cparts)>=2 and len(cparts[-1].lstrip()) == 2:
+            # maybe a city/state pair
             return cls.fromCitystate(str, requser)
 
-        elif parts[0]=='trail:at':
-            returncls.fromShelter(' '.join(parts[1:]), requser)
-
+        # defailt: check nominatim
         return cls.fromNominatim(str, requser)
+
 UserObj.register(Location)
 
 @tbroute('where')
