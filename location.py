@@ -38,13 +38,19 @@ def geoFromCSV(file, key, latidx=1, lonidx=2):
         db = csv.reader(fd)
         for row in db:
             if len(row) and row[0]==key:
-                return row[latidx], row[lonidx]
+                lat = row.pop(latidx)
+                if lonidx > latidx: lonidx -= 1
+                lon = row.pop(lonidx)
+                row.pop(0)
+                return lat, lon, row
         return None
 
-def areaCodeFromPhone(phone):
+def areaCodeFromPhone(phone, raiseOnFail=False):
     if not phone.startswith("+1"):
-        raise NotAnAreaCode(phone)
+        if raiseOnFail: raise NotAnAreaCode(phone)
+        return None
     return phone[2:5]
+
 class Location(UserObj):
     typ = 'loc'
 
@@ -89,15 +95,15 @@ class Location(UserObj):
         return 'here'
 
     @classmethod
-    def fromPhone(cls, phone, requser):
-        ac = areaCodeFromPhone(phone)
-        geo = geoFromCSV("areacode.csv", ac, latidx=1, lonidx=2)
+    def fromAreaCode(cls, ac, requser):
+        geo = geoFromCSV("areacode.csv", ac, latidx=4, lonidx=5)
         if geo:
             return cls(
                 lat = geo[0],
                 lon = geo[1],
-                orig = phone,
-                source = "Area code",
+                orig = ac,
+                match = ', '.join(geo[2]),
+                source = "area code",
                 requser=requser
             )
         raise LookupAreaCodeError(ac)
@@ -172,7 +178,7 @@ class Location(UserObj):
             lat=maybes[0][3],
             lon=maybes[0][4],
             orig=citystate,
-            source = "City/State",
+            source = "city/state",
             requser=requser
         )
 
