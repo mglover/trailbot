@@ -481,10 +481,8 @@ def mkdatetime(now, output_tz, kwargs):
         input_tz = output_tz
 
     now = now.replace(second=0, microsecond=0).astimezone(input_tz)
-    print('mkdatetime', now, now.tzinfo)
 
     then = now + relativedelta(**kwargs)
-    print(now, then, then.astimezone(output_tz))
     if then >= now: return then.astimezone(output_tz)
 
     if 'year' in kwargs and kwargs['year'] < now.year:
@@ -496,7 +494,6 @@ def mkdatetime(now, output_tz, kwargs):
         kk.update(kwargs)
         then = now + relativedelta(**kk)
         if then >= now:
-            print(then.astimezone(output_tz), output_tz)
             return then.astimezone(output_tz)
 
 def mkruleset(now, args):
@@ -515,7 +512,6 @@ def mkruleset(now, args):
             rrs.rrule(rrule(freq, **kwargs))
         else:
             kwargs = r
-            print('rdate', now, now.tzinfo, tzinfo, kwargs)
             rrs.rdate(mkdatetime(now, tzinfo, kwargs))
     return rrs
 
