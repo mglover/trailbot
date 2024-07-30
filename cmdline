@@ -9,5 +9,6 @@ ARGS=$*
 
 curl --silent --get "$URL" --basic -u "$BASICAUTH_USER:$BASICAUTH_PASS" \
     --data-urlencode "From=$PHONE" --data-urlencode "Body=$ARGS" \
-ent     | sed 's/<[^>]*>//g' | sed 's/&quot;/"/g' | sed 's/&amp;/&/g'
+    | sed 's/<[^>]*>//g' | sed 's/&quot;/"/g' | sed 's/&amp;/&/g' \
+    | sed 's/&apos;/'"'"'/g'
 echo
