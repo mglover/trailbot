@@ -132,18 +132,17 @@ def p_whenevery_at(p):
             kw[rmap.get(k, k)] = v
         p[0].append((freq, kw))
 
-def p_whenevery(p):
-    '''when : every
-            | every BETWEEN absdatetime AND absdatetime
-    '''
-    freq, fkwargs = p[1]
-    if len(p) > 2:
-        if len(p[3]) != 1: raise WhenError("start time must be a single time")
-        if len(p[5]) != 1: raise WhenError("end time must be a single time")
-        fkwargs['dtstart'] = p[3][0]
-        fkwargs['until'] = p[5][0]
+def p_whenevery_bounded(p):
+    '''when : every BETWEEN time AND time
+            | every BETWEEN date AND date'''
+    freq, kw = p[1]
+    kw['dtstart'] = p[3]
+    kw['until'] = p[5]
+    p[0] = [ (freq, kw) ]
 
-    p[0] = (freq, fkwargs)
+def p_whenevery(p):
+    '''when : every'''
+    p[0] = p[1]
 
 def p_when(p):
     '''when : datetime'''
