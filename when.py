@@ -467,7 +467,7 @@ def getReqZone(req):
     return (None, None)
 
 def getReqNow(req):
-    zone, _ = getReqZone(req.user)
+    zone, _ = getReqZone(req)
     if zone:
         tzdata = ZoneInfo(zone)
     else:
@@ -591,7 +591,6 @@ def untz(req):
 
 @tbroute('now')
 @tbhelp('''now -- get current time in your timezone
-
 see also: tz, here
 ''')
 def now(req):
