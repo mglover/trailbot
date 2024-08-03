@@ -21,7 +21,7 @@ def dm(req):
             to=dstu.phone)
 
 
-@tbroute('register')
+@tbroute('register', cat="settings")
 @tbhelp(
 """register -- register a TrailBot @handle
 
@@ -33,7 +33,7 @@ def reg(req):
     return render_template('reg.txt', handle=u.handle)
 
 
-@tbroute('unregister')
+@tbroute('unregister', cat="settings")
 @tbhelp(
 """unregister -- delete your TrailBot @handle
 
@@ -49,7 +49,7 @@ def unreg(req):
     req.user.unregister()
     return success("@%s unregistered." % req.user.handle)
 
-@tbroute('whoami')
+@tbroute('whoami', cat="settings")
 def whoami(req):
     if req.user:
         return "You are @%s" % req.user.handle
@@ -57,7 +57,7 @@ def whoami(req):
         return "You are not registered"
 
 
-@tbroute('more')
+@tbroute('more', cat="etc")
 @tbhelp(
 """more -- continue reading
 """)
@@ -69,7 +69,7 @@ def more(req):
 
 ## user data
 
-@tbroute('forget')
+@tbroute('forget', cat="settings")
 @tbhelp(
 """forget -- delete saved data
 
@@ -81,7 +81,7 @@ def forget(req):
     return success("'%s' forgotten" % req.args)
 
 
-@tbroute('share')
+@tbroute('share', cat='settings')
 @tbhelp(
 """share -- share saved data with others
 
@@ -100,7 +100,7 @@ def share(req):
     return success("Shared %s with %s" % (nam, spec))
 
 
-@tbroute('unshare')
+@tbroute('unshare', cat="settings")
 @tbhelp(
 """
 unshare -- stop sharing saved data with others
@@ -119,7 +119,7 @@ def unshare(req):
     return success("Unshared %s with %s" % (nam, spec))
 
 
-@tbroute('address', 'here', 'there')
+@tbroute('address', 'here', 'there', cat="nav")
 @tbhelp(
 """addr(ess) -- save any location
 here -- save your current location

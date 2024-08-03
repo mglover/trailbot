@@ -200,7 +200,7 @@ class Group(object):
 
 
 
-@tbroute('group')
+@tbroute('group',  cat="chat")
 @tbhelp(
 """group -- create a chat group
 
@@ -231,7 +231,7 @@ def group(req):
     g = Group.create(tag, req.user, *flags)
     return success("Group '%s' created" % g.tag)
 
-@tbroute('ungroup')
+@tbroute('ungroup', cat="chat")
 @tbhelp(
 """ungroup -- remove a chat group
 
@@ -248,7 +248,7 @@ def ungroup(req):
     g.destroy()
     return success("Group '%s' removed" % g.tag)
 
-@tbroute('invite')
+@tbroute('invite', cat='chat')
 @tbhelp(
 """invite -- invite a registered user to a chat group
 
@@ -278,7 +278,7 @@ def invite(req):
     resp.addMsg(success("%s invited to %s" % (handle, tag)))
     return resp
 
-@tbroute('join')
+@tbroute('join', cat="chat")
 @tbhelp(
 """join -- join a chat group
 
@@ -297,7 +297,7 @@ def join(req):
     g.join()
     return success("You have joined #%s" % g.tag)
 
-@tbroute('leave')
+@tbroute('leave', cat="chat")
 @tbhelp(
 """leave -- leave a chat group
 
@@ -313,7 +313,7 @@ def leave(req):
     g.leave()
     return success("You have left #%s" % g.tag)
 
-@tbroute(re.compile('^#.*$'))
+@tbroute(re.compile('^#.*$'), cat="chat")
 @needsreg("to use chat groups")
 def chat(req):
     resp = TBResponse()

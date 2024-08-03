@@ -245,7 +245,7 @@ class Location(UserObj):
 
 UserObj.register(Location)
 
-@tbroute('where')
+@tbroute('where', cat='nav')
 @tbhelp(
 """where -- lookup a location
 

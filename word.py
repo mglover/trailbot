@@ -82,7 +82,7 @@ def tournamentWordOfTheDay():
     return render_template('twotd.txt', today=today, data=data)
 
 
-@tbroute('word')
+@tbroute('word', cat="search")
 @tbhelp(
 """word -- look up a word in a dictionary
 
@@ -98,7 +98,7 @@ def define(req):
     return DictionarySource(w).toSMS()
 
 
-@tbroute('twl')
+@tbroute('twl', cat="search")
 @tbhelp(
 """twl -- look up word in Tournament Word List
 

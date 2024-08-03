@@ -526,7 +526,7 @@ def mkruleset(now, args):
 ## TrailBot interface
 
 
-@tbroute('when')
+@tbroute('when', cat="cal")
 @tbhelp('''when -- parse a plain english date
 
 say e.g: 'next tuesday'
@@ -553,7 +553,7 @@ def when(req):
         msg += "\n%s %s" % (e.astimezone(now.tzinfo).ctime(), now.tzinfo)
     return msg
 
-@tbroute('tz', 'timezone')
+@tbroute('tz', 'timezone', cat='cal')
 @tbhelp('''tz -- set or get your time zone
 
 say e.g.: 'tz America/New_York'
@@ -581,7 +581,7 @@ def tz(req):
         return "Not a valid time zone: %s" % req.args
     return success("Time zone set to %s" % req.user.tz)
 
-@tbroute('untz', 'untimezone')
+@tbroute('untz', 'untimezone', cat='cal')
 @tbhelp('''untz -- delete your time zone setting''')
 @needsreg("to use time zones")
 def untz(req):
@@ -589,7 +589,7 @@ def untz(req):
     req.user.tz = None
     return "Time zone deleted"
 
-@tbroute('now')
+@tbroute('now', cat='cal')
 @tbhelp('''now -- get current time in your timezone
 see also: tz, here
 ''')

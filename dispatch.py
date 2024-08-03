@@ -5,6 +5,7 @@ from .twilio import TBResponse
 from .user import User
 
 routes = []
+cats = {}
 
 class EmptyRequest(TBError):
     msg = "No request"
@@ -28,10 +29,13 @@ def tbhelp(helpmsg):
         return cmd
     return fxn
 
-def tbroute(*specs):
+def tbroute(*specs, cat=None):
     def fxn(cmd, *args, **kwargs):
         for spec in specs:
             routes.append((spec, cmd))
+        if cat:
+            if cat not in cats: cats[cat] = []
+            cats[cat].append((specs, cmd))
         return cmd
     return fxn
 

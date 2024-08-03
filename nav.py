@@ -171,7 +171,7 @@ def getStartEnd(req):
     return (locs['from'], locs['to'])
 
 
-@tbroute('drive')
+@tbroute('drive', cat='nav')
 @tbhelp(
 """drive -- get turn-by-turn directions
 
@@ -186,7 +186,7 @@ def drive(req):
     return route.toSMS()
 
 
-@tbroute('distance')
+@tbroute('distance', cat='nav')
 @tbhelp(
 """distance -- get the road distance and travel time
 
