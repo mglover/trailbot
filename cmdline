@@ -1,14 +1,27 @@
-#!/bin/sh
+#!/usr/bin/python
 
-. ./config.py
+import sys, requests
+from xml.etree import ElementTree
+import html
+import config
 
 URL="http://localhost:8080/wx/fetch"
 PHONE="+19713364571"
-ARGS=$*
 
 
-curl --silent --get "$URL" --basic -u "$BASICAUTH_USER:$BASICAUTH_PASS" \
-    --data-urlencode "From=$PHONE" --data-urlencode "Body=$ARGS" \
-    | sed 's/<[^>]*>//g' | sed 's/&quot;/"/g' | sed 's/&amp;/&/g' \
-    | sed 's/&apos;/'"'"'/g'
-echo
+body = ' '.join(sys.argv[1:])
+if not len(body):
+    body = "help me"
+
+args = {'Body': html.escape(body), 'From': PHONE}
+
+auth = requests.auth.HTTPBasicAuth(
+    config.BASICAUTH_USER,config.BASICAUTH_PASS)
+
+r = requests.get(
+    URL,
+    params = args,
+    auth = auth
+)
+tree = ElementTree.fromstring(r.content)
+print ( html.unescape(tree.find('Message').text) )
