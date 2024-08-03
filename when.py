@@ -533,24 +533,33 @@ say e.g: 'next tuesday'
 or: 'every friday at 9am'
 ''')
 def when(req):
-    if req.args.lower().lstrip().startswith('is '):
-        req.args = req.args.lstrip()[3:]
-    args = dict(parseArgs(req.args, ['max']))
-    wh = args['']
+    in_now = getReqNow(req)
+    args = dict(parseArgs(req.args, ['max', 'in', 'is']))
+    if 'is' in args:
+        wh = args['is']
+    else:
+        wh = args['']
+    lnam = args.get('in')
+    if lnam:
+        loc = Location.fromInput(lnam, req.user)
+        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+        out_now = datetime.now(ZoneInfo(zone))
+    else:
+        out_now = in_now
     try:
         max = int(args.get('max',3))
     except ValueError:
         pass
 
-    now = getReqNow(req)
-    rrs = mkruleset(now, wh)
-    evts = [r for r in rrs.xafter(now, count=max)]
+    rrs = mkruleset(in_now, wh)
+    evts = [r for r in rrs.xafter(in_now, count=max)]
     if len(evts) == 1:
        msg = "%s is:" % (wh)
     else:
         msg = "%s is a recurring event. Next %d occurrences:" % (wh, len(evts))
     for e in evts:
-        msg += "\n%s %s" % (e.astimezone(now.tzinfo).ctime(), now.tzinfo)
+        msg += "\n%s %s" % (e.astimezone(out_now.tzinfo).ctime(),
+            out_now.tzinfo)
     return msg
 
 @tbroute('tz', 'timezone', cat='cal')
