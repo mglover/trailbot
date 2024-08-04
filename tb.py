@@ -1,5 +1,4 @@
-"""
-tb.py
+"""tb.py
 
 Flask blueprint, command inmports, and entry point for TrailBot
 """
@@ -15,6 +14,7 @@ bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
 
 ## commands
 from .help import help
+from .menu import menu
 from .wx import wx
 from .word import define, twl, twotd
 from .wiki import wiki
