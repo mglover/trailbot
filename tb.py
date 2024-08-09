@@ -1,4 +1,5 @@
-"""tb.py
+"""
+tb.py
 
 Flask blueprint, command inmports, and entry point for TrailBot
 """
