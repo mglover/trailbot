@@ -60,9 +60,8 @@ class Feed (NetSource, UserObj):
         if requser:
             # check saved data
             ud = cls.lookup(str, requser)
-            if ud: return ud
-        else:
-            return cls.fromInputUrl(str, requser)
+            if ud is not None: return ud
+        return cls.fromInputUrl(str, requser)
 
     @classmethod
     def fromInputUrl(cls, orig_url, requser, scheme='https://'):
