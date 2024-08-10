@@ -34,7 +34,7 @@ def isfloat(s):
 
 def geoFromCSV(file, key, latidx=1, lonidx=2):
     path = os.path.join(config.DB_ROOT, file)
-    with open(path) as fd:
+    with open(path, encoding="utf-8") as fd:
         db = csv.reader(fd)
         for row in db:
             if len(row) and row[0]==key:
@@ -124,7 +124,7 @@ class Location(UserObj):
     @classmethod
     def fromShelter(cls, snam, requser):
         sheltfile = os.path.join(config.DB_ROOT,"at_shelters.csv")
-        sheltdb = csv.reader(open(sheltfile))
+        sheltdb = csv.reader(open(sheltfile, encoding="utf-8"))
         maybes = []
         for row in sheltdb:
             if len(row) and snam.lower() in row[0].lower():
