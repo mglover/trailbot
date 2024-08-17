@@ -201,7 +201,7 @@ class UserObj(object):
         self.saveMeta()
 
 
-@tbroute('my')
+@tbroute('my', cat='settings')
 @tbhelp(
 """my -- see your saved information
 say:

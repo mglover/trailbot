@@ -5,7 +5,7 @@ from .dispatch import tbhelp, tbroute
 from .user import User, RegistrationRequired
 
 
-@tbroute('subscribe')
+@tbroute('subscribe', cat='status')
 @tbhelp(
 """sub(scribe) -- subscribe to a @handle's status updates
 
@@ -24,7 +24,7 @@ def sub(req):
     return resp
 
 
-@tbroute('unsubscribe')
+@tbroute('unsubscribe', cat='status')
 @tbhelp(
 """unsub(scribe) -- unsubcribe from status updates for a @handle
 
@@ -36,7 +36,7 @@ def unsub(req):
     return success("unsubscribed from @%s" % subu.handle)
 
 
-@tbroute('status')
+@tbroute('status', cat='status')
 @tbhelp(
 """status -- check or set a status update
 

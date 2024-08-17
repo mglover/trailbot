@@ -8,7 +8,7 @@ from .dispatch import tbhelp, tbroute
 from .twilio import TBMessage
 from .location import Location
 
-@tbroute(re.compile('^@.*$'))
+@tbroute(re.compile('^@.*$'), cat='chat')
 @needsreg("to send direct messages")
 def dm(req):
     dstu = req.user.lookup(req.cmd)
