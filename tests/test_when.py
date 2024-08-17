@@ -1,8 +1,9 @@
 import unittest
 from datetime import datetime, timezone
-from when import parser, mkdatetime, mkruleset, WhenError
 from dateutil.rrule import YEARLY, MONTHLY, WEEKLY,DAILY, HOURLY
 
+from when import parser, mkdatetime, mkruleset, WhenError
+from tests.base import TBTest
 
 class ParserTest(unittest.TestCase):
     def setUp(self):
@@ -261,3 +262,8 @@ class TestMkRuleset(unittest.TestCase):
         self.assertEqual(datetime(1990, 7, 19, 13, 30, tzinfo=timezone.utc),
             rules.after(self.now))
 
+
+class TestWhen(TBTest):
+    def test_when(self):
+        resp = self.req1("when is next tuesday")
+        self.assertStartsWith(resp, "next tuesday is:")
