@@ -1,21 +1,14 @@
 __package__ = 'trailbot'
 
-
 import logging, time
-
-from flask import render_template
-
 from .pkgs.ply import lex, yacc
-
 from .config import DEBUG
-from .core import TBError, success, parseArgs
-from .dispatch import tbroute, tbhelp
-from .user import needsreg
-from .userdata import UserObj
-from .location import Location, areaCodeFromPhone, LookupAreaCodeError, NotAnAreaCode
+from .core import TBError
+
 
 class WhenError(TBError):
     msg = "When? %s"
+
 
 if DEBUG:
     logging.basicConfig(
@@ -28,7 +21,9 @@ if DEBUG:
 else:
     log = None
 
-## setup the symbol table
+
+## -- setup the symbol table
+
 
 tokmap = {}
 units = ['MINUTE', 'HOUR', 'DAY', 'WEEK', 'MONTH', 'YEAR']
@@ -106,7 +101,7 @@ def t_token (t):
     t.value = v[1]
     return t
 
-# parser rules
+# -- parser rules
 
 
 def p_error(p):
@@ -432,7 +427,9 @@ lexer = lex.lex(errorlog=log)
 parser = yacc.yacc(debug=DEBUG, errorlog=log)
 
 
-## support functions
+## -- support functions
+
+
 from dateutil.relativedelta import relativedelta, weekdays
 from dateutil.rrule import rrule, rruleset,\
     YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
@@ -444,6 +441,13 @@ except ModuleNotFoundError:
     from backports.zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from datetime import datetime, timezone
+
+from .core import TBError, success, parseArgs
+from .dispatch import tbroute, tbhelp
+from .user import needsreg
+from .userdata import UserObj
+from .location import Location, areaCodeFromPhone,\
+     LookupAreaCodeError, NotAnAreaCode
 
 zf = TimezoneFinder()
 
@@ -465,6 +469,15 @@ def getReqZone(req):
             return (zone, loc)
 
     return (None, None)
+
+
+def getArgsZone(lnam):
+    if lnam:
+        loc = Location.fromInput(lnam, req.user)
+        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+        return zone, loc
+    return None, None
+
 
 def getReqNow(req):
     zone, _ = getReqZone(req)
@@ -539,10 +552,8 @@ def when(req):
         wh = args['is']
     else:
         wh = args['']
-    lnam = args.get('in')
-    if lnam:
-        loc = Location.fromInput(lnam, req.user)
-        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+    zone, _ = getArgsZone(args.get('in'))
+    if zone:
         out_now = datetime.now(ZoneInfo(zone))
     else:
         out_now = in_now
@@ -561,6 +572,7 @@ def when(req):
         msg += "\n%s %s" % (e.astimezone(out_now.tzinfo).ctime(),
             out_now.tzinfo)
     return msg
+
 
 @tbroute('tz', 'timezone', cat='cal')
 @tbhelp('''tz -- set or get your time zone
@@ -590,6 +602,7 @@ def tz(req):
         return "Not a valid time zone: %s" % req.args
     return success("Time zone set to %s" % req.user.tz)
 
+
 @tbroute('untz', 'untimezone', cat='cal')
 @tbhelp('''untz -- delete your time zone setting''')
 @needsreg("to use time zones")
@@ -598,21 +611,20 @@ def untz(req):
     req.user.tz = None
     return "Time zone deleted"
 
+
 @tbroute('now', cat='cal')
 @tbhelp('''now -- get current time in your timezone
 see also: tz, here
 ''')
 def now(req):
     args = dict(parseArgs(req.args, ['in']))
-    lnam = args.get('in')
-    loc = None
-    if lnam:
-        loc = Location.fromInput(lnam, requser=req.user)
-        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-        source = lnam
+    if 'in' in args:
+        zone, loc = getArgsZone(args.get('in'))
     else:
         zone, loc = getReqZone(req)
     now = datetime.now(tz=zone and ZoneInfo(zone))
+
+
     msg = "Current time is: %s" % now.ctime()
     msg+= "\nCurrent time zone is: %s" % zone
     if loc:
