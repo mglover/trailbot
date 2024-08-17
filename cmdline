@@ -23,5 +23,8 @@ r = requests.get(
     params = args,
     auth = auth
 )
-tree = ElementTree.fromstring(r.content)
-print ( html.unescape(tree.find('Message').text) )
+try:
+    tree = ElementTree.fromstring(r.content)
+    print ( html.unescape(tree.find('Message').text) )
+except ElementTree.ParseError as e:
+    print( "%s parsing %s" % (e, r.content) )
