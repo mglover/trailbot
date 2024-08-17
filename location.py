@@ -10,18 +10,22 @@ from .netsource import NetSource
 from .userdata import UserObj
 from .dispatch import tbroute, tbhelp
 
-class LookupZipError(TBError):
+class LocationError(TBError):
+    pass
+
+class LookupZipError(LocationError):
     msg = "zip code not found: %s"
-class LookupAreaCodeError(TBError):
+class LookupAreaCodeError(LocationError):
     msg = "Area code not found: %s"
-class NotAnAreaCode(TBError):
+class NotAnAreaCode(LocationError):
     msg = "Not a US/Canada number: %s"
-class LookupShelterError(TBError):
+class LookupShelterError(LocationError):
     msg = "Shelter name not found: %s"
-class LookupLocationError(TBError):
+class LookupLocationError(LocationError):
     msg = "Location not found: %s"
-class LookupMultipleError(TBError):
+class LookupMultipleError(LocationError):
      msg = "%s"
+
 class SharingSpecError(TBError):
     msg = "Not a handle or '*': %s"
 
