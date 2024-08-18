@@ -122,6 +122,15 @@ class User(object):
         except FileNotFoundError:
             return default
 
+    def __init__(self, userdir):
+        self.userdir = userdir
+        self.phone, self.handle = userdir.split('@')
+        self.status = self.getData('status')
+        self.more = self.getData('more')
+        self.subs = self.getData('subs', '').split('\n')
+        self.tz = self.getData('tz')
+        self.save()
+
     def setData(self, name, val, enc='UTF-8'):
         fnam = self.dbfile(name)
         if val is None:
@@ -130,16 +139,6 @@ class User(object):
         else:
             with open(fnam, 'wb') as fd: fd.write(val.encode(enc))
 
-    def __init__(self, userdir):
-        self.userdir = userdir
-        self.phone, self.handle = userdir.split('@')
-        self.status = self.getData('status')
-        self.more = self.getData('more')
-        self.subs = self.getData('subs', '').split('\n')
-        self.tz = self.getData('tz')
-        self.cal = json.loads(self.getData('cal', default='[]'))
-        self.save()
-
     def save(self):
         if '' in self.subs: self.subs.remove('')
         try:
@@ -147,7 +146,6 @@ class User(object):
             self.setData('more', self.more)
             self.setData('subs', '\n'.join(self.subs))
             self.setData('tz', self.tz)
-            self.setData('cal', json.dumps(self.cal))
         except FileNotFoundError:
             pass # after e.g. unsubscribe
 
