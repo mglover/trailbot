@@ -34,7 +34,8 @@ class UserDatum(object):
     def __init__(self, owner, nam, bytes=None):
         if len(nam) > NAM_MAX:
             raise DatumNameTooLong(nam)
-        if not owner or not nam.isalnum():
+        namOk = nam.isalnum() or nam[0] == '_' and nam[1:].isalnum()
+        if not owner or not namOk:
             raise DatumDoesNotExistError(nam)
 
         self.owner = owner
@@ -102,6 +103,13 @@ class UserObj(object):
         self.readers = readers or []
         self.rawdata = rawdata or {}
 
+    def toDict(self):
+        raise UnimplementedError
+
+
+    def parseData(self, data):
+        raise UnimplementedError
+
     def toJson(self):
         return json.dumps({
             'type' : self.typ,
@@ -140,8 +148,9 @@ class UserObj(object):
             d = json.loads(bytes)
             if not d.get('type'): return None
 
-        except (DatumDoesNotExistError,DatumNameTooLong):
+        except (DatumDoesNotExistError, DatumNameTooLong):
             return None
+
         tcls = [ tcls for tcls in UserObj.typs
             if tcls.typ==d['type'] ] [0]
         obj = tcls(
