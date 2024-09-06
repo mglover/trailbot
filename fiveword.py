@@ -121,10 +121,7 @@ say '5word' and your five-letter guess  to start playing,
 @tbroute('5word')
 @tbhelp(FiveWord.__doc__)
 def fiveword(req):
-    try:
-        f = FiveWord.lookup('_5word', requser=req.user)
-    except DatumDoesNotExistError:
-        f= None
+    f = FiveWord.lookup('_5word', requser=req.user)
     if f is None:
         f = FiveWord.random(requser=req.user, nam="_5word")
 

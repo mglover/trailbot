@@ -152,7 +152,10 @@ class UserObj(object):
             return None
 
         tcls = [ tcls for tcls in UserObj.typs
-            if tcls.typ==d['type'] ] [0]
+            if tcls.typ==d['type'] ]
+        if not tcls:
+            return None
+        tcls =tcls[0]
         obj = tcls(
             nam=nam,
             requser=requser,
