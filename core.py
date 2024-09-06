@@ -1,3 +1,21 @@
+"""
+    NO trailbot includes!
+    wrap includes with try/except
+"""
+
+try:
+    import random
+    from .db.TWL06 import twl
+
+    def randomWord():
+        word = ''
+        next = ''
+        while next != '$':
+            word += next
+            next = random.choice(twl.children(word))
+        return word
+except ImportError as e:
+    print (e)
 
 def escape(str_xml):
     str_xml = str_xml.replace("&", "&amp;")

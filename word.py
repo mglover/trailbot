@@ -4,18 +4,11 @@ from urllib.parse import urljoin
 from flask import render_template
 
 from . import config
+from .core import randomWord
 from .netsource import NetSource
 from .dispatch import tbroute, tbhelp
 
 from .db.TWL06 import twl as twl_mod
-
-def randomWord():
-    word = ''
-    next = ''
-    while next != '$':
-        word += next
-        next = random.choice(twl_mod.children(word))
-    return word
 
 
 class DictionarySource (NetSource):
