@@ -27,6 +27,8 @@ from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
 from .feed import news
 from .when import when
+from .fiveword import fiveword
+
 ## bots
 from .bot import BotMon
 from .wordbot import WordBot
