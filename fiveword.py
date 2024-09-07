@@ -1,4 +1,6 @@
 #!/usr/bin/python
+__package__ = 'trailbot'
+
 import json, os, sys
 
 from .dispatch import tbroute, tbhelp
@@ -31,9 +33,8 @@ say '5word' and your five-letter guess  to start playing,
     MAXTURN=6
     typ = '5word'
 
-    def __init__(self, word, turn=1, guessed=[], **kwargs):
+    def __init__(self, word='', turn=1, guessed=[], **kwargs):
         UserObj.__init__(self, **kwargs)
-        assert len(word) == self.WLEN and twl.check(word)
         self.word = word.lower()
         self.guessed = guessed
 
@@ -51,7 +52,9 @@ say '5word' and your five-letter guess  to start playing,
         }
 
     def parseData(self, d):
-        self.word = d['word']
+        word = d['word']
+        assert len(word) == self.WLEN and twl.check(word)
+        self.word = word
         self.guessed = d['guessed']
 
     @property
@@ -116,26 +119,24 @@ say '5word' and your five-letter guess  to start playing,
     def didLose(self):
         return self.turn > self.MAXTURN
 
+UserObj.register(FiveWord)
 
-@needsreg("to play 5word")
-@tbroute('5word')
-@tbhelp(FiveWord.__doc__)
-def fiveword(req):
-    f = FiveWord.lookup('_5word', requser=req.user)
+def playFiveWord(user, args):
+    f = FiveWord.lookup('_5word', requser=user)
     if f is None:
-        f = FiveWord.random(requser=req.user, nam="_5word")
+        f = FiveWord.random(requser=user, nam="_5word")
 
-    if not req.args:
+    if not args:
         out =  f.display()
         out+= "\nsay '5word quit' to quit"
         return out
 
-    if req.args == 'quit':
-        f.remove()
+    if args == 'quit':
+        f.erase()
         return "You have quit.\nWord was %s" % f.word.upper()
 
     try:
-        out = f.doGuess(req.args)
+        out = f.doGuess(args)
     except FiveError as e:
         return str(e)
 
@@ -147,9 +148,21 @@ def fiveword(req):
         return out
 
     else:
-        f.remove()
+        f.erase()
         if won: out = "You win!"
         else: out = "You lose."
-        return out + " Word\nwas %s" %  word
+        return out + "\nWord was %s" %  word
 
+
+@needsreg("to play 5word")
+@tbroute('5word')
+@tbhelp(FiveWord.__doc__)
+def fiveword(req):
+    return playFiveWord(req.user, req.args)
+
+
+if __name__ == '__main__':
+    from .user import User
+    user = User.lookup('@mg')
+    print( playFiveWord(user, ' '.join(sys.argv[1:])) )
 
