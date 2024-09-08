@@ -14,8 +14,20 @@ try:
             word += next
             next = random.choice(twl.children(word))
         return word
+
+    def shapedRandomWord(maxlen=None, minlen=None, pluratten=0.5):
+        done = False
+        while not done:
+            word = randomWord()
+            if maxlen and len(word) > maxlen: continue
+            if minlen and len(word) < minlen: continue
+            if word.endswith('s') and random.random() < pluratten: continue
+            done = True
+        return word
+
 except ImportError as e:
     print (e)
+
 
 def escape(str_xml):
     str_xml = str_xml.replace("&", "&amp;")

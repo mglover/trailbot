@@ -24,3 +24,12 @@ class TestTWL(TBTest):
     def testNo(self):
         res = self.req1("twl asdf")
         self.assertStartsWith(res, "NO")
+
+class TestFiveWord(TBTest):
+    def testFW(self):
+            self.reg1()
+            res = self.req1("5word")
+            self.assertStartsWith(res, "Try to guess")
+            res = self.req1("5word flume")
+            res = self.req1("5word quit")
+            self.assertStartsWith(res, "You have quit")

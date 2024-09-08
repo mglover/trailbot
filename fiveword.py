@@ -5,7 +5,7 @@ import json, os, sys
 
 from .dispatch import tbroute, tbhelp
 from .userdata import UserObj, needsreg
-from .core import randomWord
+from .core import shapedRandomWord
 from .db.TWL06 import twl
 
 class FiveError(Exception):
@@ -13,13 +13,12 @@ class FiveError(Exception):
 
 
 class FiveWord(UserObj):
-    """ Try to guess the secret five-letter word
+    """Try to guess the secret five-letter word
 in six guesses
 
-After each guess, I'll tell you which
-letters are right, and which of those 
-are in which  are in the correct location
-in the secret word. I'll also show you
+After each guess, I'll tell you which letters are
+right, and which of those are in the correct 
+location in the secret word. I'll also show you
 all of the letters you guessed so far,
 and which ones are part of the secret word.
 
@@ -41,9 +40,7 @@ say '5word' and your five-letter guess  to start playing,
 
     @classmethod
     def random(cls, **kwargs):
-        word = None
-        while not word or len(word) != 5:
-            word = randomWord()
+        word = shapedRandomWord(maxlen=5, minlen=5)
         return cls(word=word, **kwargs)
 
     def toDict(self):
@@ -87,7 +84,7 @@ say '5word' and your five-letter guess  to start playing,
             if out[idx] == '*' and  g in unguessed:
                 out[idx] = g.lower()
                 unguessed.remove(g)
-        return ' '.join(out)
+        return '\t'.join(out)
 
     def displayLetters(self):
         o=[]
