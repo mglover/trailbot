@@ -123,6 +123,7 @@ say '5word' and your five-letter guess  to start playing,
 UserObj.register(FiveWord)
 
 def playFiveWord(user, args):
+    args = args.lower()
     f = FiveWord.lookup('_5word', requser=user)
     if f is None:
         f = FiveWord.random(requser=user, nam="_5word")
