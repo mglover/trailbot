@@ -33,9 +33,10 @@ say '5word' and your five-letter guess  to start playing,
     MAXTURN=6
     typ = '5word'
 
-    def __init__(self, word='', guessed=[], **kwargs):
+    def __init__(self, word='', guessed=None, **kwargs):
         UserObj.__init__(self, **kwargs)
         self.word = word.lower()
+        if not guessed: guessed=[]
         self.guessed = guessed
 
     @classmethod
