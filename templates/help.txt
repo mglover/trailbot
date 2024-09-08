@@ -1,7 +1,7 @@
 Hi, this is TrailBot!
 
-Say 'help me' for a list of all &lt;command&gt;s
-Say 'help &lt;command&gt;' for more info
+Say 'help me' for a list of all <command>s
+Say 'help <command>;' for more info
 Say 'help @' for direct messaging help
 
 To view the full documentation, visit
