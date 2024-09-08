@@ -33,7 +33,7 @@ say '5word' and your five-letter guess  to start playing,
     MAXTURN=6
     typ = '5word'
 
-    def __init__(self, word='', turn=1, guessed=[], **kwargs):
+    def __init__(self, word='', guessed=[], **kwargs):
         UserObj.__init__(self, **kwargs)
         self.word = word.lower()
         self.guessed = guessed
@@ -43,7 +43,7 @@ say '5word' and your five-letter guess  to start playing,
         word = None
         while not word or len(word) != 5:
             word = randomWord()
-        return cls(word, **kwargs)
+        return cls(word=word, **kwargs)
 
     def toDict(self):
         return {
@@ -125,6 +125,7 @@ def playFiveWord(user, args):
     f = FiveWord.lookup('_5word', requser=user)
     if f is None:
         f = FiveWord.random(requser=user, nam="_5word")
+
 
     if not args:
         out =  f.display()
