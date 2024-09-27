@@ -619,7 +619,7 @@ see also: tz, here
 def now(req):
     args = dict(parseArgs(req.args, ['in']))
     if 'in' in args:
-        zone, loc = getArgsZone(args.get('in'))
+        zone, loc = getArgsZone(args.get('in'), user=req.user)
     else:
         zone, loc = getReqZone(req)
     now = datetime.now(tz=zone and ZoneInfo(zone))
