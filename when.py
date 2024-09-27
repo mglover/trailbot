@@ -471,9 +471,9 @@ def getReqZone(req):
     return (None, None)
 
 
-def getArgsZone(lnam):
+def getArgsZone(lnam, user):
     if lnam:
-        loc = Location.fromInput(lnam, req.user)
+        loc = Location.fromInput(lnam, user)
         zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
         return zone, loc
     return None, None
@@ -552,7 +552,7 @@ def when(req):
         wh = args['is']
     else:
         wh = args['']
-    zone, _ = getArgsZone(args.get('in'))
+    zone, _ = getArgsZone(args.get('in'), user=req.user)
     if zone:
         out_now = datetime.now(ZoneInfo(zone))
     else:
