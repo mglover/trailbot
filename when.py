@@ -612,7 +612,7 @@ def untz(req):
     return "Time zone deleted"
 
 
-@tbroute('now', cat='cal')
+@tbroute('time', 'now', cat='cal')
 @tbhelp('''now -- get current time in your timezone
 see also: tz, here
 ''')
