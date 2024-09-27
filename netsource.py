@@ -1,4 +1,4 @@
-import requests
+from requests import request, Session, ConnectionError, JSONDecodeError
 from urllib.parse import urljoin
 
 from . import  config
@@ -9,7 +9,7 @@ class ConnectionError(TBError):
 class ResponseError(TBError):
     msg = "%s returned an error"
 
-class TBSession (requests.Session):
+class TBSession (Session):
     def __init__(self):
         super().__init__()
         try:
@@ -32,7 +32,7 @@ class TestSessionConnectionError(object):
         pass
 
     def get(self, *args, **kwargs):
-            raise requests.ConnectionError("Mock Connection Failure")
+            raise ConnectionError("Mock Connection Failure")
 
 proxy = TBSession()
 
@@ -40,6 +40,7 @@ proxy = TBSession()
 class NetSource (object):
     name = None
     baseUrl = None
+    method = "get"
 
     def makeUrl(self, *arge, **kwargs):
         raise NotImplementedError
@@ -47,10 +48,13 @@ class NetSource (object):
     def makeParams(self, *args, **kwargs):
         return dict()
 
+    def makeData(self, *args, **kwargs):
+        return dict()
+
     def parse(self, resp, *args, **kwargs):
         try:
             return resp.json()
-        except requests.JSONDecodeError:
+        except JSONDecodeError:
             self.err = f"Couldn't understand the response from {self.name}"
             return None
 
@@ -71,27 +75,44 @@ class NetSource (object):
         self._load()
         return self._content
 
+    @property
+    def response(self):
+        self._load()
+        return self._response
+
     def __init__(self, *args, raiseOnError=False, **kwargs):
         self.err = None
+        self._response = None
         self._content = None
         self.raiseOnError = raiseOnError
         self.args = args
         self.kwargs = kwargs
 
     def _load(self):
+        if self._response and not self.err:
+            return
         self.err = None
+        self._response = None
         self._content = None
+
         url = self.makeUrl(*self.args, **self.kwargs)
         params = self.makeParams(*self.args, **self.kwargs)
-        try:
-            with proxy.get(url, params=params) as resp:
-                if not resp.ok:
-                    if self.raiseOnError:
-                        raise ResponseError(self.name)
-                    self.err = f"{self.name} returned an error"
-                else:
-                    self._content = self.parse(resp)
+        data = self.makeData(*self.args, **self.kwargs)
 
-        except requests.ConnectionError:
+        try:
+            self._response = proxy.request(
+                method=self.method,
+                url=url,
+                params=params,
+                data=data)
+            if not self._response.ok:
+                print("_load", self._response.content)
+                if self.raiseOnError:
+                    raise ResponseError(self.name)
+                self.err = f"{self.name} returned an error"
+            else:
+                self._content = self.parse(self._response)
+
+        except ConnectionError:
             if self.raiseOnError: raise ConnectionError(self.name)
             self.err = f"Couldn't connect to {self.name}"
