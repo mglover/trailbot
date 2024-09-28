@@ -51,10 +51,8 @@ def getAction(search_cmd):
     m = [(spec,cmd) for spec, cmd in routes
         if matchesSpec(search_cmd, spec)]
     if len(m) == 0: raise UnknownAction(search_cmd)
-    print('f', m)
     if len(m) > 1:
         for s,c in m:
-            print('m', search_cmd, s, c)
             if s == search_cmd: return c
         raise AmbiguousAction(search_cmd, '\n'.join([i[0] for i in m]))
     return m[0][1]
