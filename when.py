@@ -451,6 +451,7 @@ from .location import Location, areaCodeFromPhone,\
 zf = TimezoneFinder()
 
 def getReqZone(req, default="UTC"):
+    loc = None
     if req.user is not None:
         if req.user.tz:
             return (req.user.tz, None)
