@@ -9,7 +9,6 @@ from .core import TBError
 class WhenError(TBError):
     msg = "When? %s"
 
-
 if DEBUG:
     logging.basicConfig(
         level = logging.DEBUG,
@@ -451,24 +450,25 @@ from .location import Location, areaCodeFromPhone,\
 
 zf = TimezoneFinder()
 
-def getReqZone(req):
+def getReqZone(req, default="UTC"):
     if req.user is not None:
         if req.user.tz:
             return (req.user.tz, None)
 
         loc = UserObj.lookup('here', requser=req.user)
-        if not loc:
-            try:
-                ac = areaCodeFromPhone(req.frm)
-                loc = Location.fromAreaCode(ac, req.user)
-            except (LookupAreaCodeError, NotAnAreaCode) as e:
-                print("Error:", e)
-                pass
-        if loc:
-            zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-            return (zone, loc)
 
-    return (None, None)
+    if not loc:
+        try:
+            ac = areaCodeFromPhone(req.frm)
+            loc = Location.fromAreaCode(ac, req.user)
+        except (LookupAreaCodeError, NotAnAreaCode) as e:
+           loc = None
+
+    if loc:
+        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
+        return (zone, loc)
+
+    return (default, None)
 
 
 def getArgsZone(lnam, user):
