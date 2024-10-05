@@ -536,34 +536,6 @@ def mkruleset(now, args):
     return rrs
 
 
-class Calendar(object):
-    def __init__(self, rows=[], user=None):
-        assert type(rows) is list
-        self.user = user
-        for when, what in rows:
-            self.add(when, what)
-
-    @classmethod
-    def fromUser(cls, user):
-        rows = json.loads(user.cal)
-        return cls( rows, user=user )
-
-    def save(self):
-        assert type(self.user) is User
-        self.user.cal = json.dumps([
-            (e['when'], e['what']) for e in self.entries
-        ])
-
-    def add(self, when, what):
-        now = datetime.now()
-        e = {'when':when, 'what':what}
-        rrules = mkruleset(now, when)
-        e['next'] = rrules.xafter(now, count=1)
-        self.entries.append(e)
-        self.entries.sort(key=lambda ee: ee['next'])
-        if self.entries[0] == e:
-            """ new next. ping the cal server"""
-            UserBot.update(self.user)
 
 ## TrailBot interface
 
@@ -660,15 +632,3 @@ def now(req):
     return msg
 
 
-@tbroute('cal', 'calendar', cat="cal")
-@tbhelp('''cal -- schedule an event
-''')
-@needsreg("to schedule events")
-def cal(req):
-    c = Calendar.fromUser(req.user)
-    args = parseargs(req.args, ['do'])
-    when = args['']
-    what = args['do']
-    c.add(when, what)
-    c.save()
-    return success("calender entry saved")
