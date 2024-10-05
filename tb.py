@@ -26,8 +26,10 @@ from .userui import reg, unreg, whoami, saveloc, forget, share, unshare, more
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
 from .feed import news
-from .when import when
+from .when import when, tz, untz, now
+from .cal import cal
 from .fiveword import fiveword
+from .shell import echo
 
 ## bots
 from .bot import BotMon
