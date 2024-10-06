@@ -2,12 +2,12 @@ from .bot import ChannelBot
 from .word import tournamentWordOfTheDay
 from . import tb
 
+
 class WordBot(ChannelBot):
     handle = '@WordBot'
     phone = '+078070001000'
     tag = '#twotd'
-    runhr = 16
-    runmin = 16
+    when = "daily at 1616"
 
     def run(self):
         msg= tournamentWordOfTheDay()
