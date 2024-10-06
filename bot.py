@@ -1,11 +1,12 @@
-import atexit, datetime, os, time, sys
-
+import os, time, sys, signal
+from datetime import datetime, timedelta, timezone
 from flask import render_template
 
 from . import config, twilio
 from .core import isBotPhone
 from .user import User, HandleUnknownError
 from .group import Group, GroupUnknownError
+from .when import mkruleset
 
 
 def log(msg):
@@ -13,13 +14,14 @@ def log(msg):
    sys.stdout.flush()
 
 
+class BotError(Exception):
+    msg = "%s"
+
 class Bot(object):
     handle = None
     phone = None
-    runhr = None
-    runmin = None
+    when = None
 
-    _sleep = 60
     _lockfd = None
 
     @property
@@ -33,7 +35,7 @@ class Bot(object):
                 fd = os.open(self.lockfile, mode)
             except FileExistsError:
                     log("Waiting on %s" % self.lockfile)
-                    time.sleep(self._sleep)
+                    time.sleep(60)
             else:
                 self._lockfd = fd
 
@@ -46,30 +48,24 @@ class Bot(object):
             except FileNotFoundError:
                 log(f"{self.lockfile} did not exist anymore")
 
-    @classmethod
-    def trigger(cls):
-        now = datetime.datetime.now()
-        return now.hour== cls.runhr and now.minute==cls.runmin
-
-    @classmethod
-    def sleep(cls):
-        time.sleep(cls._sleep)
-
     def __init__(self):
         assert isBotPhone(self.phone)
         try:
             self.user = User.lookup(self.handle)
             assert self.phone == self.user.phone
-
         except HandleUnknownError:
             self.user = User.register(self.phone, self.handle)
-
         self._obtainLock()
-        atexit.register(self._releaseLock)
+        log(f"{self.handle} next: {self.next()}")
 
-    def __del__(self):
+    def next(self):
+        now = datetime.now(timezone(timedelta(0)))
+        rr = mkruleset(now, self.when)
+        return next(rr.xafter(now, count=1))
+
+
+    def shutdown(self):
         self._releaseLock()
-
 
     def getResponse(self, req):
         """Handle direct messages to this user"""
@@ -87,7 +83,6 @@ class Bot(object):
 class ChannelBot(Bot):
     def __init__(self):
         Bot.__init__(self)
-        log("%s at %d:%02d" % (self.handle, self.runhr, self.runmin))
         try:
             self.group = Group.fromTag(self.tag, self.user)
         except GroupUnknownError:
@@ -109,15 +104,48 @@ class ChannelBot(Bot):
         log('sent to %d users' % i)
 
 
+class UserBot(Bot):
+    @classmethod
+    def update(self, user):
+        pass
+
+
 class BotMon(object):
     def __init__(self, *botclasses):
-        self.bots = [b() for b in botclasses]
+        self.bots = [ bc() for bc in botclasses ]
+        self.nexts = [ (b.next(), b) for b in self.bots ]
+        self.nexts.sort()
+        self.running = False
+
+    def addEvent(self, dt, bot):
+        self.nexts.append((dt, bot))
+        self.nexts.sort()
+
+    def getNext(self):
+        dt, bot = self.nexts.pop(0)
+        nxt = bot.next()
+        if nxt:
+            self.addEvent(nxt, bot)
+        return dt, bot
+
+    def shutdown(self, signum, frame):
+        print("shutting down")
+        self.running = False
+        for bot in self.bots:
+            bot.shutdown()
+        raise BotError('reset')
 
     def run(self):
-        while True:
-            for b in self.bots:
-                if b.trigger():
-                    b.run()
-                    b.sleep()
-            Bot.sleep()
-
+        self.running = True
+        signal.signal(signal.SIGTERM, self.shutdown)
+        signal.signal(signal.SIGINT, self.shutdown)
+        while self.running:
+            try:
+                start = datetime.now(timezone(timedelta(0)))
+                dt, bot  = self.getNext()
+                slp = (dt  - start).total_seconds()
+                if slp > 0:
+                    time.sleep(slp)
+                bot.run()
+            except BotError:
+                pass
