@@ -6,7 +6,6 @@ try:
 except ModuleNotFoundError:
     from backports.zoneinfo import ZoneInfo
 
-from .bot import UserBot
 from .core import parseArgs, success, TBError
 from .dispatch import tbroute, tbhelp
 from .user import User, needsreg
