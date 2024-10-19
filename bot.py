@@ -6,7 +6,7 @@ from . import config, twilio
 from .core import isBotPhone
 from .user import User, HandleUnknownError
 from .group import Group, GroupUnknownError
-from .when import mkruleset
+from .when import mkruleset, mkdatetime
 
 
 def log(msg):
@@ -49,7 +49,6 @@ class Bot(object):
                 log(f"{self.lockfile} did not exist anymore")
 
     def __init__(self):
-        assert isBotPhone(self.phone)
         try:
             self.user = User.lookup(self.handle)
             assert self.phone == self.user.phone
@@ -59,10 +58,12 @@ class Bot(object):
         log(f"{self.handle} next: {self.next()}")
 
     def next(self):
-        now = datetime.now(timezone(timedelta(0)))
+        now = mkdatetime(datetime.now(), timezone(timedelta(0)), {})
         rr = mkruleset(now, self.when)
         return next(rr.xafter(now, count=1))
 
+    def run(self):
+        raise NotImplementedError
 
     def shutdown(self):
         self._releaseLock()
@@ -79,9 +80,9 @@ class Bot(object):
         twilio.smsToPhone(phone, msg)
 
 
-
 class ChannelBot(Bot):
     def __init__(self):
+        assert isBotPhone(self.phone)
         Bot.__init__(self)
         try:
             self.group = Group.fromTag(self.tag, self.user)
@@ -104,12 +105,6 @@ class ChannelBot(Bot):
         log('sent to %d users' % i)
 
 
-class UserBot(Bot):
-    @classmethod
-    def update(self, user):
-        pass
-
-
 class BotMon(object):
     def __init__(self, *botclasses):
         self.bots = [ bc() for bc in botclasses ]
@@ -127,6 +122,11 @@ class BotMon(object):
         if nxt:
             self.addEvent(nxt, bot)
         return dt, bot
+
+    def update(self, signum, frame):
+        print("updating")
+        self.nexts = [bot.update() for bot in self.bots]
+        self.nexts.sort()
 
     def shutdown(self, signum, frame):
         print("shutting down")
@@ -146,6 +146,6 @@ class BotMon(object):
                 slp = (dt  - start).total_seconds()
                 if slp > 0:
                     time.sleep(slp)
-                bot.run()
+                    bot.run()
             except BotError:
                 pass
