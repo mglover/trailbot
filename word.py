@@ -47,9 +47,13 @@ def oldTwotds(maxage=180):
 
     old = []
     for f in os.listdir(dbroot):
-        y=int(f[0:4])
-        m=int(f[4:6])
-        d=int(f[6:8])
+        try:
+            y=int(f[0:4])
+            m=int(f[4:6])
+            d=int(f[6:8])
+        except ValueError:
+            continue
+
         if date(y,m,d) > start:
             p = os.path.join(dbroot, f)
             with open(p) as fd:
