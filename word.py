@@ -1,6 +1,6 @@
-import random, datetime, os, json
+import random, os, json
 from urllib.parse import urljoin
-
+from datetime import date, datetime, timedelta
 from flask import render_template
 
 from . import config
@@ -30,7 +30,7 @@ class DictionarySource (NetSource):
 
     def makeResponse(self, *args, **kwargs):
         if type(self.content) is not list:
-            raise TypeError("Expected list, got %s" % type(res.content))
+            raise TypeError("Expected list, got %s" % type(self.content))
         else:
             if not len(self.content) or type(self.content[0]) is not dict:
                 return "No match for '%s' from %s" % (self.word, self.name)
@@ -41,12 +41,30 @@ class DictionarySource (NetSource):
                 d0['shortdef'][0]
             )
 
+def oldTwotds(maxage=180):
+    dbroot = os.path.join(config.DB_ROOT, 'twotd')
+    start = date.today() - timedelta(days=maxage)
+
+    old = []
+    for f in os.listdir(dbroot):
+        y=int(f[0:4])
+        m=int(f[4:6])
+        d=int(f[6:8])
+        if date(y,m,d) > start:
+            p = os.path.join(dbroot, f)
+            with open(p) as fd:
+                w = json.load(fd)
+            old.append(w['word'])
+    return old
+
+
 def tournamentWordOfTheDay():
     dbroot = os.path.join(config.DB_ROOT, 'twotd')
-    today = datetime.date.today()
+    today = date.today()
     dbfile = os.path.join(dbroot, today.strftime("%Y%m%d"))
 
     data = None
+
     if os.path.exists(dbfile):
         try:
             data = json.load(open(dbfile))
@@ -56,8 +74,9 @@ def tournamentWordOfTheDay():
         data = {}
 
     if 'word' not in data:
+        old = oldTwotds()
         data['word'] = randomWord()
-        while len(data['word']) > 5:
+        while len(data['word']) > 5 or data['word'] in old:
             data['word'] = randomWord()
 
     lookup = DictionarySource(data['word'])
