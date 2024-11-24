@@ -36,7 +36,8 @@ class DictionarySource (NetSource):
                 return "No match for '%s' from %s" % (self.word, self.name)
             d0 = self.content[0]
             if len(d0['shortdef']):
-                df = d0['shortdef']0
+                df = d0['shortdef'][0]
+            else:
                 df = 'no definition'
             return "From %s: %s: %s" % (
                 self.name,
