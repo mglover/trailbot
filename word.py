@@ -35,10 +35,13 @@ class DictionarySource (NetSource):
             if not len(self.content) or type(self.content[0]) is not dict:
                 return "No match for '%s' from %s" % (self.word, self.name)
             d0 = self.content[0]
+            if len(d0['shortdef']):
+                df = d0['shortdef']0
+                df = 'no definition'
             return "From %s: %s: %s" % (
                 self.name,
                 d0["hwi"]["hw"],
-                d0['shortdef'][0]
+                df
             )
 
 def oldTwotds(maxage=180):
