@@ -149,3 +149,6 @@ class BotMon(object):
                     bot.run()
             except BotError:
                 pass
+            except Exception as e:
+                log(str(e))
+
