@@ -266,4 +266,4 @@ class TestMkRuleset(unittest.TestCase):
 class TestWhen(TBTest):
     def test_when(self):
         resp = self.req1("when is next tuesday")
-        self.assertStartsWith(resp, "next tuesday is:")
+        self.assertStartsWith(resp, "next tuesday is a")
