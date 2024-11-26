@@ -1,9 +1,9 @@
 ##
 ## status/registration
 ##
-import os, json, shutil
+import os, json, shutil, time
 from . import config
-from .core import TBError
+from .core import TBError, exLock, exUnlock
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
@@ -33,7 +33,6 @@ class StatusTooShortError(TBError):
 class StatusTooLongError(TBError):
     msg = "Status is too long. Max. "+str(STATUS_MAX)+" characters"
 
-
 class RegistrationRequired(TBError):
     msg = \
 """You must register a @handle %s
@@ -60,20 +59,19 @@ class User(object):
 
     dbpath = os.path.join(config.DB_ROOT,'users')
 
-
     def __eq__(self, other):
         if type(other) is not User: return False
         return self.handle.__eq__(other.handle)
 
     @classmethod
-    def lookup(cls, crit, raiseOnFail=True):
+    def lookup(cls, crit, raiseOnFail=True, is_owner=False):
         if crit.startswith('@'):
             fxn = lambda x: x.lower().endswith(crit.lower())
         else:
             fxn = lambda x: x.startswith(crit+'@')
         for f in os.listdir(cls.dbpath):
             if fxn(f):
-                return cls(f)
+                return cls(f, is_owner=is_owner)
         if raiseOnFail:
             raise HandleUnknownError(crit)
         else:
@@ -130,18 +128,39 @@ class User(object):
         else:
             with open(fnam, 'wb') as fd: fd.write(val.encode(enc))
 
-    def __init__(self, userdir):
+
+    @property
+    def _lockfile(self):
+        return self.dbfile('_lock')
+
+    def __init__(self, userdir, is_owner=False):
         self.userdir = userdir
         self.phone, self.handle = userdir.split('@')
+
+        if is_owner:
+            self._lf = exLock(self._lockfile)
+        else:
+            self._lf = None
+
         self.status = self.getData('status')
         self.more = self.getData('more')
         self.subs = self.getData('subs', '').split('\n')
         self.tz = self.getData('tz')
         self.cal = self.getData('cal')
-        self.save()
+
+    def __del__(self):
+        try:
+            self.release()
+        except Exception:
+            pass
+
+
+    def release(self):
+        if self._lf:
+            self.save()
+            exUnlock(self._lf)
 
     def save(self):
-        if '' in self.subs: self.subs.remove('')
         try:
             self.setData('status', self.status)
             self.setData('more', self.more)
@@ -150,7 +169,6 @@ class User(object):
             self.setData('cal', self.cal)
         except FileNotFoundError:
             pass # after e.g. unsubscribe
-
 
     def subscribe(self, phone):
         if phone in self.subs:

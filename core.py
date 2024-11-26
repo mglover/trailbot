@@ -1,3 +1,6 @@
+import os, time
+from datetime import datetime, timedelta
+
 """
     NO trailbot includes!
     wrap includes with try/except
@@ -28,6 +31,36 @@ try:
 except ImportError as e:
     print (e)
 
+class TBError(Exception):
+    msg = "TBError: '%s'"
+    def __init__(self, *args):
+        self.args = args
+    def __str__(self):
+        return self.msg % self.args
+
+class LockError(TBError):
+    msg = "Couldn't lock access: %s"
+
+
+def exLock(lp, timeout=3):
+    end = datetime.now() + timedelta(seconds=timeout)
+    lf = None
+    while not lf:
+        try:
+            lf = open(lp, 'x')
+        except FileExistsError:
+            if datetime.now() > end:
+                raise LockError(lp)
+            time.sleep(1)
+    lf.write("%s" % os.getpid())
+    lf.close()
+    return lp
+
+def exUnlock(lp):
+    try:
+        os.unlink(lp)
+    except FileNotFoundError:
+        pass #e.g. after 'unreg'
 
 def escape(str_xml):
     str_xml = str_xml.replace("&", "&amp;")
@@ -43,15 +76,6 @@ def success(msg):
 def isBotPhone(phone):
     assert type(phone) is str
     return phone.startswith("+07807")
-
-
-class TBError(Exception):
-    msg = "TBError: '%s'"
-    def __init__(self, *args):
-        self.args = args
-    def __str__(self):
-        return self.msg % self.args
-
 
 def parseArgs(args, keywords):
     """ search the request for values separated by keywords 

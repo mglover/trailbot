@@ -63,7 +63,7 @@ class TBRequest(object):
         self.frm = frm
         self.cmd = cmd
         self.args = args
-        self.user = User.lookup(frm, raiseOnFail=False)
+        self.user = User.lookup(frm, raiseOnFail=False, is_owner=True)
 
     def __str__(self):
         return ', '.join((self.frm, self.cmd, self.args))
@@ -111,5 +111,6 @@ def dispatch(request):
     r = resp.asTwiML()
     if tbreq and tbreq.user:
         tbreq.user.setMore(resp.getMore())
+        tbreq.user.release()
 
     return r
