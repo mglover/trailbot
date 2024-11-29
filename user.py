@@ -63,6 +63,28 @@ class User(object):
         if type(other) is not User: return False
         return self.handle.__eq__(other.handle)
 
+    def __init__(self, userdir, is_owner=False):
+        self.userdir = userdir
+        self.phone, self.handle = userdir.split('@')
+
+        if is_owner:
+            self._lf = exLock(self._lockfile)
+        else:
+            self._lf = None
+
+        self.status = self.getData('status')
+        self.more = self.getData('more')
+        self.subs = self.getData('subs', '').split('\n')
+        self.tz = self.getData('tz')
+        self.cal = self.getData('cal')
+
+    @classmethod
+    def list(cls, **uargs):
+        return [
+            cls(u, **uargs) for u in os.listdir(cls.dbpath)
+            if u.startswith('+')
+        ]
+
     @classmethod
     def lookup(cls, crit, raiseOnFail=True, is_owner=False):
         if crit.startswith('@'):
@@ -76,6 +98,51 @@ class User(object):
             raise HandleUnknownError(crit)
         else:
             return None
+
+    def release(self):
+        if self._lf:
+            self.save()
+            exUnlock(self._lf)
+
+    def save(self):
+        try:
+            self.setData('status', self.status)
+            self.setData('more', self.more)
+            self.setData('subs', '\n'.join(self.subs))
+            self.setData('tz', self.tz)
+            self.setData('cal', self.cal)
+        except FileNotFoundError:
+            pass # after e.g. unsubscribe
+
+
+    def dbfile(self, fname):
+        return os.path.join(self.dbpath, self.userdir, fname)
+
+    @property
+    def _lockfile(self):
+        return self.dbfile('_lock')
+
+    def getData(self, name, default=None, enc='UTF-8'):
+        try:
+            with open(self.dbfile(name), 'rb') as fd:
+                return fd.read().decode(enc)
+        except FileNotFoundError:
+            return default
+
+    def setData(self, name, val, enc='UTF-8'):
+        fnam = self.dbfile(name)
+        if val is None:
+            if os.path.exists(fnam): os.unlink(fnam)
+            return
+        else:
+            with open(fnam, 'wb') as fd: fd.write(val.encode(enc))
+
+    def __del__(self):
+        try:
+            self.release()
+        except Exception:
+            pass
+
 
     @classmethod
     def register(cls, phone, handle):
@@ -104,71 +171,11 @@ class User(object):
 
         userdir = '%s@%s' % (phone, handle)
         os.mkdir(os.path.join(cls.dbpath, userdir))
-        return cls(userdir)
+        return cls(userdir, is_owner=True)
 
     def unregister(self):
         upath = os.path.join(self.dbpath,self.userdir)
         shutil.rmtree(upath)
-
-    def dbfile(self, fname):
-        return os.path.join(self.dbpath, self.userdir, fname)
-
-    def getData(self, name, default=None, enc='UTF-8'):
-        try:
-            with open(self.dbfile(name), 'rb') as fd:
-                return fd.read().decode(enc)
-        except FileNotFoundError:
-            return default
-
-    def setData(self, name, val, enc='UTF-8'):
-        fnam = self.dbfile(name)
-        if val is None:
-            if os.path.exists(fnam): os.unlink(fnam)
-            return
-        else:
-            with open(fnam, 'wb') as fd: fd.write(val.encode(enc))
-
-
-    @property
-    def _lockfile(self):
-        return self.dbfile('_lock')
-
-    def __init__(self, userdir, is_owner=False):
-        self.userdir = userdir
-        self.phone, self.handle = userdir.split('@')
-
-        if is_owner:
-            self._lf = exLock(self._lockfile)
-        else:
-            self._lf = None
-
-        self.status = self.getData('status')
-        self.more = self.getData('more')
-        self.subs = self.getData('subs', '').split('\n')
-        self.tz = self.getData('tz')
-        self.cal = self.getData('cal')
-
-    def __del__(self):
-        try:
-            self.release()
-        except Exception:
-            pass
-
-
-    def release(self):
-        if self._lf:
-            self.save()
-            exUnlock(self._lf)
-
-    def save(self):
-        try:
-            self.setData('status', self.status)
-            self.setData('more', self.more)
-            self.setData('subs', '\n'.join(self.subs))
-            self.setData('tz', self.tz)
-            self.setData('cal', self.cal)
-        except FileNotFoundError:
-            pass # after e.g. unsubscribe
 
     def subscribe(self, phone):
         if phone in self.subs:
