@@ -53,8 +53,9 @@ for d in days:
     i += 1
 tokmap['THUR'] = ('DOW', 'THURS', 4)
 
-tzones = {'EST': -5*3600, 'CST': -6*3600, 'MST': -7*3600, 'PST': -8*3600,
-          'EDT': -4*3600, 'CDT': -5*3600, 'MDT': -6*3600, 'PDT': -7*3600,
+hr = 60 * 60
+tzones = {'EST': -5*hr, 'CST': -6*hr, 'MST': -7*hr, 'PST': -8*hr,
+          'EDT': -4*hr, 'CDT': -5*hr, 'MDT': -6*hr, 'PDT': -7*hr,
           'UTC': 0}
 for z, off in tzones.items():
     tokmap[z] = ('ZONE', z, off)
