@@ -59,7 +59,12 @@ def getAction(search_cmd):
 
 
 class TBRequest(object):
-    def __init__(self, frm, cmd, args):
+    def __init__(self, frm, cmdargs):
+        parts = cmdargs.split(maxsplit=1)
+        if len(parts)==2: cmd,args = parts
+        else: cmd,args = cmdargs,""
+        cmd = cmd.lower()
+
         self.frm = frm
         self.cmd = cmd
         self.args = args
@@ -76,12 +81,7 @@ class TBRequest(object):
         if not frm or not sms:
             raise EmptyRequest
 
-        parts = sms.split(maxsplit=1)
-        if len(parts)==2: cmd,args = parts
-        else: cmd,args = sms,""
-        cmd = cmd.lower()
-
-        return cls(frm, cmd, args)
+        return cls(frm, sms)
 
 
 def dispatch(request):
