@@ -475,6 +475,7 @@ def getUserZone(user, default="UTC"):
 
 
 def getArgsZone(lnam, user):
+    """ return appropriate tz given user args"""
     if lnam:
         loc = Location.fromInput(lnam, user)
         zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
@@ -493,9 +494,10 @@ def getReqNow(req):
 
 
 def mkdatetime(now, output_tz, kwargs):
-    """ adjust datetime to UTC using desired offset (if given),
+    """ adjust now to UTC using desired offset (if given),
         zero-out second and microsecond
-        and ensure it's in the future
+        apply the relativedelta in kwargs to the time
+        and ensure it's not in the past
     """
 
     if 'tzoffset' in kwargs:
@@ -520,8 +522,13 @@ def mkdatetime(now, output_tz, kwargs):
         if then >= now:
             return then.astimezone(output_tz)
 
+
 def mkruleset(now, args):
-    # passing in 'now' to ease testing
+    """ main interface to the parser
+        given a timezone-aware datetime in now
+        and a human-language date description in args
+        return an rruleset representing the date(s)
+    """
     tzinfo = now.tzinfo
 
     rows = parser.parse(args)
