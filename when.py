@@ -451,18 +451,19 @@ from .location import Location, areaCodeFromPhone,\
 
 zf = TimezoneFinder()
 
-def getReqZone(req, default="UTC"):
+def getUserZone(user, default="UTC"):
+    """ return the appropriate tz for the given User"""
     loc = None
-    if req.user is not None:
-        if req.user.tz:
-            return (req.user.tz, None)
+    if user is not None:
+        if user.tz:
+            return (user.tz, None)
 
-        loc = UserObj.lookup('here', requser=req.user)
+        loc = UserObj.lookup('here', requser=user)
 
     if not loc:
         try:
-            ac = areaCodeFromPhone(req.frm)
-            loc = Location.fromAreaCode(ac, req.user)
+            ac = areaCodeFromPhone(user.phone)
+            loc = Location.fromAreaCode(ac, user)
         except (LookupAreaCodeError, NotAnAreaCode) as e:
            loc = None
 
@@ -482,7 +483,8 @@ def getArgsZone(lnam, user):
 
 
 def getReqNow(req):
-    zone, _ = getReqZone(req)
+    """ return the current time in the request's tz"""
+    zone, _ = getUserZone(req.user)
     if zone:
         tzdata = ZoneInfo(zone)
     else:
@@ -590,7 +592,7 @@ or just 'tz' to see the currently set zone
 def tz(req):
     loc = None
     if not len(req.args.strip()):
-        zone, loc = getReqZone(req)
+        zone, loc = getUserZone(req.user)
         if zone is None:
             return "No time zone or current location set"
         elif loc is None:
@@ -624,7 +626,7 @@ def now(req):
     if 'in' in args:
         zone, loc = getArgsZone(args.get('in'), user=req.user)
     else:
-        zone, loc = getReqZone(req)
+        zone, loc = getUserZone(req.user)
     now = datetime.now(tz=zone and ZoneInfo(zone))
 
     msg = "Current time is: %s" % now.ctime()
