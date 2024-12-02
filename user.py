@@ -103,6 +103,7 @@ class User(object):
         if self._lf:
             self.save()
             exUnlock(self._lf)
+            self._lf = None
 
     def save(self):
         try:
@@ -182,12 +183,10 @@ class User(object):
             raise AlreadySubscribedError(self.handle)
         else:
             self.subs.append(phone)
-            self.save()
 
     def unsubscribe(self, phone):
         if phone in self.subs:
             self.subs.remove(phone)
-            self.save()
         else:
            raise NotSubscribedError(self.handle)
 
@@ -197,12 +196,10 @@ class User(object):
         if len(status) < STATUS_MIN:
             raise StatusTooShortError
         self.status = status
-        self.save()
 
     def setMore(self, more):
         last = self.more
         self.more = more
-        self.save()
         return last
 
     def getMore(self):
