@@ -10,112 +10,217 @@ try:
 except ModuleNotFoundError:
     from backports.zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from .core import TBError, success, parseArgs
-from .dispatch import tbroute, tbhelp
-from .user import needsreg
+from .dispatch import TBRequest, tbroute, tbhelp
+from .user import User, needsreg
 from .userdata import UserObj
 from .location import Location, areaCodeFromPhone,\
      LookupAreaCodeError, NotAnAreaCode
 
-zf = TimezoneFinder()
+from .when_parser import WhenError, lexer, parser
 
-def getUserZone(user, default="UTC"):
-    """ return the appropriate tz for the given User"""
-    loc = None
-    if user is not None:
+class Zone(object):
+    name = None
+    source = None
+    search = None
+    tzinfo = None
+
+    def __init__(self, name, source=None, search=None, tzinfo=None):
+        self.name = name
+        self.source = source
+        self.search = search
+        self.tzinfo = tzinfo
+
+    @classmethod
+    @property
+    def default(cls):
+        return cls(
+            "UTC",
+            source="default",
+            search="default",
+            tzinfo=timezone(timedelta(0))
+        )
+
+    @classmethod
+    def fromLocation(cls, loc, source):
+        assert type(loc) is Location
+        zf = TimezoneFinder()
+        return cls(
+            zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat)),
+            source=source,
+            search=loc
+        )
+
+    @classmethod
+    def fromName(cls, name):
+        return cls(
+            tzinfo = ZoneInfo(name),
+            name = name,
+            source = "ZoneInfo",
+            search = name
+        )
+
+    @classmethod
+    def fromRequest(cls, req):
+        assert type(req) is TBRequest
+
+        if req.user:
+            zone = cls.fromUser(req.user)
+            if zone.source != "default":
+                return zone
+
+        try:
+            ac = areaCodeFromPhone(req.frm)
+            loc = Location.fromAreaCode(ac, req.user)
+        except (LookupAreaCodeError, NotAnAreaCode) as e:
+           return cls.default
+
+        return cls.fromLocation(loc, "phone")
+
+    @classmethod
+    def fromUser(cls, user):
+        assert type(user) is User
         if user.tz:
-            return (user.tz, None)
+            return cls.fromName(user.tz, source='user')
 
         loc = UserObj.lookup('here', requser=user)
+        if loc:
+            return cls.fromLocation(loc, "here")
+        return cls.default
 
-    if not loc:
-        try:
-            ac = areaCodeFromPhone(user.phone)
-            loc = Location.fromAreaCode(ac, user)
-        except (LookupAreaCodeError, NotAnAreaCode) as e:
-           loc = None
-
-    if loc:
-        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-        return (zone, loc)
-
-    return (default, None)
+    @classmethod
+    def fromArgs(cls, args):
+        if args:
+            loc = Location.fromInput(lnam, user)
+            return cls.fromLocation(loc)
+        return cls.default
 
 
-def getArgsZone(lnam, user):
-    """ return appropriate tz given user args"""
-    if lnam:
-        loc = Location.fromInput(lnam, user)
-        zone = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
-        return zone, loc
-    return None, None
-
-
-def getReqNow(req):
-    """ return the current time in the request's tz"""
-    zone, _ = getUserZone(req.user)
-    if zone:
-        tzdata = ZoneInfo(zone)
-    else:
-        tzdata = timezone.utc
-    return datetime.now(tzdata)
-
-
-def mkdatetime(now, output_tz, kwargs):
-    """ adjust now to UTC using desired offset (if given),
-        zero-out second and microsecond
-        apply the relativedelta in kwargs to the time
-        and ensure it's not in the past
-    """
-
-    if 'tzoffset' in kwargs:
-        input_tz = tzoffset(*kwargs['tzoffset'])
-        kwargs.pop('tzoffset')
-    else:
-        input_tz = output_tz
-
-    now = now.replace(second=0, microsecond=0).astimezone(input_tz)
-
-    then = now + relativedelta(**kwargs)
-    if then >= now: return then.astimezone(output_tz)
-
-    if 'year' in kwargs and kwargs['year'] < now.year:
-        raise WhenError("%d is in the past" % kwargs['year'])
-
-    moveable = [ p for p in ('day', 'month', 'year') if p not in kwargs]
-    for m in moveable:
-        kk = { m: getattr(now, m) + 1 }
-        kk.update(kwargs)
-        then = now + relativedelta(**kk)
-        if then >= now:
-            return then.astimezone(output_tz)
-
-
-def mkruleset(now, args):
-    """ main interface to the parser
-        given a timezone-aware datetime in now
-        and a human-language date description in args
-        return an rruleset representing the date(s)
-    """
-    tzinfo = now.tzinfo
-
-    rows = parser.parse(args)
-    rrs = rruleset()
-
-    for r in rows:
-        if type(r) is tuple:
-            # this is an rrule
-            freq, kwargs = r
-            kwargs['dtstart'] = mkdatetime(now, tzinfo,
-                kwargs.get('dtstart', {}))
-            rrs.rrule(rrule(freq, **kwargs))
+class Clock(object):
+    strip_fields = ('second', 'microsecond')
+    def __init__(self, dt, tzinfo=None):
+        assert type(dt) is datetime, dt
+        if tzinfo:
+            assert dt.tzinfo is None
+            dt = dt.replace(tzinfo=tzinfo)
         else:
-            kwargs = r
-            rrs.rdate(mkdatetime(now, tzinfo, kwargs))
-    return rrs
+            assert dt.tzinfo is not None
 
+        kvs = dict( [(k,0) for k in self.strip_fields ])
+        self.dt = dt.replace(**kvs)
+
+    @classmethod
+    def now(self, zone):
+        assert type(zone) is Zone, zone
+        return cls(datetime.now(zone.tzinfo))
+
+
+    def add(self, **kwargs):
+        can_move = ('day', 'month', 'year')
+
+        dt = self.dt
+
+        if 'tzoffset' in kwargs:
+            tzo = tzoffset(*kwargs['tzoffset'])
+            dt = dt.astimezone(tzo)
+            kwargs.pop('tzoffset')
+
+        if 'year' in kwargs and kwargs['year'] < dt.year:
+            raise WhenError("%d is in the past" % kwargs['year'])
+
+        nxdt = dt + relativedelta(**kwargs)
+        if nxdt >= dt:
+            return nxdt
+
+        moveable = [ p for p in can_move if p not in kwargs]
+        for m in moveable:
+            kk = { m: getattr(self.dt, m) + 1 }
+            kk.update(kwargs)
+            nxdt = dt + relativedelta(**kk)
+            if nxdt >= dt:
+                return nxdt
+
+        raise StopIteration
+
+    def inZone(self, tzinfo):
+        return self.dt.astimezone(tzinfo)
+
+
+class Event(object):
+    def __init__(self, when, zone, stamps=None):
+        self.when = when
+        self.zone = zone
+        self._rules = None
+        self._repeats = False
+        self._complete = False
+        if not stamps:
+            self.stamps = []
+        self.rows = parser.parse(when)
+
+    def __repr__(self):
+        return "Event(%s, %s)" % (self.when, self.zone)
+
+    def __eq__(self, other):
+        assert type(other) is type(self)
+        return self.when == other.when \
+            and self.zone.name == other.zone.name
+
+    @classmethod
+    def fromDict(cls, d):
+        return cls(
+            d['when'],
+            Zone.fromName(d['zone']),
+            stamps = d['stamps']
+        )
+
+    def toDict(self):
+        if self._complete:
+            return None
+
+        return {
+            'when':self.when,
+            'zone': self.zone.name,
+            'stamps': self.stamps
+        }
+
+    def after(self, after):
+        self._mkRules(after)
+        return self._rules.after(after, inc=True)
+
+    def is_active(self, after, before):
+        assert type(after) is datetime, after
+        assert type(before) is datetime, before
+        self._mkRules(after)
+        nxt = self._rules.after(after, inc=True)
+        if nxt and nxt < before:
+            return True
+        return False
+
+    def fire(self, ts):
+        """This event has occured at the given timestamp"""
+        self.stamps.append(ts)
+        if not self._repeats and len(self.stamps) == len(self.rows):
+            self._complete = True
+
+    def _mkRules(self, after):
+        if self._rules:
+            return
+        self._rules = rruleset(cache=True)
+        clk = Clock(after)
+
+        # either all rows will repeat, or no rows will
+        for i in range(len(self.rows)):
+            r = self.rows[i]
+            if type(r) is tuple:
+                self.repeats = True
+                freq, kwargs = r
+                start = kwargs.get('dtstart', {})
+                kwargs['dtstart'] = clk.add(start)
+                self._rules.rrule(rrule(freq, **kwargs))
+            else:
+                self._rules.rdate(clk.add(**r))
 
 
 ## TrailBot interface
@@ -128,31 +233,36 @@ say e.g: 'next tuesday'
 or: 'every friday at 9am'
 ''')
 def when(req):
-    in_now = getReqNow(req)
-    args = dict(parseArgs(req.args, ['max', 'in', 'is']))
+    args = dict(parseArgs(req.args, ['in', 'is']))
+
+    # query terms
     if 'is' in args:
         wh = args['is']
     else:
         wh = args['']
-    zone, _ = getArgsZone(args.get('in'), user=req.user)
-    if zone:
-        out_now = datetime.now(ZoneInfo(zone))
-    else:
-        out_now = in_now
-    try:
-        max = int(args.get('max',3))
-    except ValueError:
-        pass
 
-    rrs = mkruleset(in_now, wh)
-    evts = [r for r in rrs.xafter(in_now, count=max)]
-    if len(evts) == 1:
-       msg = "%s is:" % (wh)
+    # input and output timezones
+    in_zone = Zone.fromRequest(req)
+    if 'in' in args:
+        out_zone = Zone.fromLocation(
+                Location.fromInput(args['in'], req.user),
+                source = 'args')
     else:
-        msg = "%s is a recurring event. Next %d occurrences:" % (wh, len(evts))
-    for e in evts:
-        msg += "\n%s %s" % (e.astimezone(out_now.tzinfo).ctime(),
-            out_now.tzinfo)
+        out_zone = in_zone
+
+
+    in_now = datetime.now(in_zone.tzinfo)
+    evt = Event(wh, in_now.tzinfo)
+    nxt = evt.after(in_now)
+
+    if evt._repeats:
+        msg = "%s is a recurring event. Next occurrence:" % (wh)
+    else:
+        msg = "%s is:" % (wh)
+
+    msg += "\n%s %s" % (
+        nxt.astimezone(out_zone.tzinfo).ctime(),
+        out_zone.tzinfo)
     return msg
 
 
@@ -167,22 +277,24 @@ or just 'tz' to see the currently set zone
 ''')
 @needsreg("to use time zones")
 def tz(req):
-    loc = None
-    if not len(req.args.strip()):
-        zone, loc = getUserZone(req.user)
-        if zone is None:
-            return "No time zone or current location set"
-        elif loc is None:
-            return "You have set your time zone to: %s" % zone
-        else:
-            msg = "Based on your %s of: %s" % (loc.source, loc.orig)
-            msg+= "\nyour time zone is %s" % zone
-            return msg
-    try:
-        req.user.tz = str(ZoneInfo(req.args))
-    except (KeyError, ValueError):
-        return "Not a valid time zone: %s" % req.args
-    return success("Time zone set to %s" % req.user.tz)
+    args = req.args.strip()
+    if args:
+        try:
+            zone = Zone.fromName(req.args)
+            req.user.tz = zone.name
+        except (KeyError, ValueError):
+            return "Not a valid time zone: %s" % req.args
+        return success("Time zone set to %s" % req.user.tz)
+
+    zone = getUserZone(req.user)
+
+    if zone.source == "user":
+        return "You have set your time zone to: %s" % zone.name
+    if zone.source == "location":
+        msg = "Based on your %s of: %s" % (loc.source, loc.orig)
+        msg+= "\nyour time zone is %s" % zone
+        return msg
+    return "No time zone or current location set"
 
 
 @tbroute('untz', 'untimezone', cat='cal')
@@ -201,13 +313,14 @@ see also: tz, here
 def now(req):
     args = dict(parseArgs(req.args, ['in']))
     if 'in' in args:
-        zone, loc = getArgsZone(args.get('in'), user=req.user)
+        loc = Location.fromInput(args.get('in'), user=req.user)
+        zone = Zone.fromLocation(loc)
     else:
-        zone, loc = getUserZone(req.user)
-    now = datetime.now(tz=zone and ZoneInfo(zone))
+        zone = getUserZone(req.user)
+    now = datetime.now(zone.tzinfo)
 
     msg = "Current time is: %s" % now.ctime()
-    msg+= "\nCurrent time zone is: %s" % zone
+    msg+= "\nCurrent time zone is: %s" % zone.name
     if loc:
         msg+= "\n(Based on your %s of: %s)" % (loc.source, loc.orig)
     return msg

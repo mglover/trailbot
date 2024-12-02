@@ -3,9 +3,10 @@ import os, stat, signal
 
 from . import tb
 from .core import TBError
-from .cal import Calendar
-from .user import User
 from .dispatch import dispatch, TBRequest
+from .user import User
+from .when import Clock
+from .cal import Calendar
 
 class CronOverflow(TBError):
     msg = "CronBot failed to complete events in window: %s overflow"
@@ -34,11 +35,11 @@ class CronBot(object):
         c = Calendar.fromUser(user)
 
         for e in c:
-            next = e.next(start)
-            if not next:
-                continue
-            if next < stop:
-                res.append((user, e.what))
+            if e.trigger.is_active(start, stop):
+                res.append((user, e.action))
+                e.trigger.fire(datetime.now())
+
+        c.save()
         return res
 
     def perWindow(self, start, stop):
@@ -52,6 +53,7 @@ class CronBot(object):
         for user, cmd in evts:
             req = TBRequest(user.phone, cmd)
             resp = dispatch(req)
+            print(resp)
             #twilio.smsToPhone(user.phone, resp)
 
     def run(self):
@@ -65,9 +67,9 @@ class CronBot(object):
 
         # XX ???  we must set *a* timezone
         # XX ??? but is this always/ever correct?
-        tz = timezone(timedelta(0))
+        utc = timezone(timedelta(0))
 
-        start = mkdatetime(datetime.now(), tz, {})
+        start = Clock(datetime.now(), tzinfo=utc).dt
         stop = start + timedelta(minutes=1)
 
         while self.running:

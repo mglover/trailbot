@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from collections import UserList
 
 try:
     from zoneinfo import ZoneInfo
@@ -9,43 +10,28 @@ except ModuleNotFoundError:
 from .core import parseArgs, success, TBError
 from .dispatch import tbroute, tbhelp
 from .user import User, needsreg
-from .when import mkruleset, getReqZone
+from .when import Zone, Event
 
 
 class CalError(TBError):
     msg="%s"
 
 class CalEntry(object):
-    def __init__(self, what, when, zone):
-        self.what = what
-        self.when = when
-        self.zone = zone
-        now = datetime.now(ZoneInfo(self.zone))
-        rrules = mkruleset(now, self.when)
-        self.next = next(rrules.xafter(now, count=1))
-
-    def __gt__(self, other):
-        return self.next.__gt__(other.next)
-
-    def __lt__(self, other):
-        return self.next.__lt__(other.next)
+    def __init__(self, action, trigger):
+        assert type(trigger) is Event, trigger
+        self.action = action
+        self.trigger = trigger
 
     def __eq__(self, other):
-        return (
-            self.what == other.what
-            and self.when == other.when
-            and self.zone == other.zone
-        )
+        assert type(other) is type(self), type(other)
+        return self.action == other.action \
+            and self.trigger == other.trigger
 
-class Calendar(object):
-    def __init__(self, rows=None, user=None):
-        if rows is None: rows=[]
-        assert type(rows) is list
-        assert type(user) is User
+
+class Calendar(UserList):
+    def __init__(self, user):
+        super().__init__(self)
         self.user = user
-        self.entries = []
-        for what, when, zone in rows:
-            self.add(what, when, zone)
 
     @classmethod
     def fromUser(cls, user):
@@ -54,40 +40,69 @@ class Calendar(object):
             rows = []
         else:
             rows = json.loads(user.cal)
-        return cls( rows, user=user )
+
+        self = cls(user)
+        for d in rows:
+            what = d['action']
+            trig = Event.fromDict(d['trigger'])
+            self.append(what, trig)
+        return self
 
     def save(self):
         assert type(self.user) is User
-        self.user.cal = json.dumps([
-            ( e.what, e.when, e.zone )
-            for e in self.entries
-        ])
+        rows = []
+        for e in self:
+            trig = e.trigger.toDict()
+            if trig:
+                rows.append(
+                    {'action': e.action, 'trigger': trig}
+                )
+        self.user.cal = json.dumps(rows)
 
-    def add(self, what, when, zone):
-        e = CalEntry(what, when, zone)
-        if e in self.entries:
-            raise CalError("Event already exists")
-        self.entries.append(e)
-        self.entries.sort()
-        if self.entries[0] == e:
-            """ new next. ping the cal server"""
-            UserBot.update(self.user)
-        return e
+    def append(self, what, trigger):
+        e = CalEntry(what, trigger)
+        if e in self: raise CalError("Event already exists")
+        super().append(e)
 
+    def remove(self, what, trigger):
+        e = CalEntry(what, trigger)
+        return super().remove(e)
 
 
 @tbroute('cal', 'calendar', cat="cal")
 @tbhelp('''cal -- schedule an event
+
+e.g. to send yourself a weather report every morning at 9am, say:
+
+   cal daily at 9pm do wx
 ''')
-@needsreg("to schedule events")
+@needsreg("to use the calendar")
 def cal(req):
     args = dict(parseArgs(req.args, ['do']))
     when = args['']
     what = args.get('do')
-    if not what:
-        raise CalError("Err? What do you want me to do?")
+
     c = Calendar.fromUser(req.user)
-    zone, loc = getReqZone(req)
-    c.add(what, when, zone)
+
+    if not what:
+        ct = len(c)
+        o = "%d events" % ct
+        if ct:
+            nxt = c[0]
+            o+= "\n\nNext:"
+            o+= "\t %s: do %s" % (e.trigger.after(), e.action)
+        return o
+
+    zone  = Zone.fromUser(req.user)
+    trig = Event(when, zone)
+    c.append(what, trig)
     c.save()
     return success("calender entry saved")
+
+
+@tbroute('uncal', 'uncalendar', cat="cal")
+@tbhelp('''uncal -- unschedule an event
+''')
+@needsreg("to use the calendar")
+def uncal(req):
+    return "not yet"
