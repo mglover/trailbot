@@ -74,7 +74,8 @@ class User(object):
 
         self.status = self.getData('status')
         self.more = self.getData('more')
-        self.subs = self.getData('subs', '').split('\n')
+        subl = self.getData('subs', '')
+        self.subs = [s for s in subl.split('\n') if s != '']
         self.tz = self.getData('tz')
         self.cal = self.getData('cal')
 
@@ -109,11 +110,10 @@ class User(object):
         try:
             self.setData('status', self.status)
             self.setData('more', self.more)
-            self.setData('subs', '\n'.join(self.subs))
             self.setData('tz', self.tz)
             self.setData('cal', self.cal)
         except FileNotFoundError:
-            pass # after e.g. unsubscribe
+            pass # after e.g. unregister
 
 
     def dbfile(self, fname):
@@ -183,10 +183,12 @@ class User(object):
             raise AlreadySubscribedError(self.handle)
         else:
             self.subs.append(phone)
+            self.setData('subs', '\n'.join(self.subs))
 
     def unsubscribe(self, phone):
         if phone in self.subs:
             self.subs.remove(phone)
+            self.setData('subs', '\n'.join(self.subs))
         else:
            raise NotSubscribedError(self.handle)
 
