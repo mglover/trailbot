@@ -1,6 +1,7 @@
 import re, os, traceback
 
 from .core import TBError
+from .shell_parser import parser, lexer
 from .twilio import TBResponse
 from .user import User
 
@@ -59,15 +60,14 @@ def getAction(search_cmd):
 
 
 class TBRequest(object):
-    def __init__(self, frm, cmdargs):
-        parts = cmdargs.split(maxsplit=1)
-        if len(parts)==2: cmd,args = parts
-        else: cmd,args = cmdargs,""
-        cmd = cmd.lower()
-
+    def __init__(self, frm, cmd):
+        seq = parser.parse(cmd,lexer=lexer)
         self.frm = frm
-        self.cmd = cmd
-        self.args = args
+        self.cmd = seq[0].exe
+        if seq[0].args:
+            self.args = ' '.join(seq[0].args)
+        else:
+            self.args = ''
         self.user = User.lookup(frm, raiseOnFail=False, is_owner=True)
 
     def __str__(self):
