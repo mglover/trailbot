@@ -73,3 +73,4 @@ class CronTest(unittest.TestCase):
 
     def test_empty(self):
         evts = self.runRange(hour=18, minute=30)
+        self.assertEqual(0, len(evts))
