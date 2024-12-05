@@ -157,7 +157,7 @@ class Event(object):
         self._complete = False
         if not stamps:
             self.stamps = []
-        self.rows = parser.parse(when)
+        self.rows = parser.parse(when, lexer=lexer)
 
     def __repr__(self):
         return "Event(%s, %s)" % (self.when, self.zone)

@@ -1,7 +1,7 @@
 import unittest
 from dateutil.rrule import YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
 
-from when_parser import WhenError, parser
+from when_parser import WhenError, parser, lexer
 
 
 class ParserTest(unittest.TestCase):
@@ -11,7 +11,8 @@ class ParserTest(unittest.TestCase):
 
     def tearDown(self):
         if self.expectError:
-            self.assertRaises(self.expectError, parser.parse, self.input)
+            self.assertRaises(self.expectError, parser.parse, self.input,
+                lexer=lexer)
         else:
             res = parser.parse(self.input)
             self.assertEquals(self.expect, res)
