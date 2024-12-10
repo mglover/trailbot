@@ -18,8 +18,13 @@ class TBMessage(object):
         self.kwargs = kwargs
         self.more = ''
 
-    def __str__(self):
-        return self.msg
+    def __repr__(self):
+        return "%s %s" %( self.msg, self.kwargs)
+
+    def __eq__(self, other):
+        assert type(other) is TBMessage
+        return self.msg == other.msg \
+            and self.kwargs == other.kwargs
 
     def asTwiML(self):
         resp = '<Message'
@@ -40,10 +45,13 @@ class TBMessage(object):
 class TBResponse(object):
     """
         A set of TBMessages, each possibly to a different number,
-        sent in response to an incoming message
     """
-    def __init__(self):
-        self.msgs = []
+    def __init__(self, *msgs):
+        self.msgs = [ TBMessage(m) for m in msgs ]
+
+    def __eq__(self, other):
+        assert type(other) is TBResponse
+        return self.msgs == other.msgs
 
     def __len__(self):
         return len(self.msgs)
