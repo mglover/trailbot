@@ -21,6 +21,8 @@ from .location import Location, areaCodeFromPhone,\
 
 from .when_parser import WhenError, lexer, parser
 
+UTC = timezone(timedelta(0))
+
 class Zone(object):
     name = None
     source = None
@@ -40,7 +42,7 @@ class Zone(object):
             "UTC",
             source="default",
             search="default",
-            tzinfo=timezone(timedelta(0))
+            tzinfo=UTC
         )
 
     @classmethod
@@ -149,7 +151,7 @@ class Clock(object):
 
 
 class Event(object):
-    def __init__(self, when, zone, stamps=None):
+    def __init__(self, when, zone, stamps=None, created=None):
         self.when = when
         self.zone = zone
         self._rules = None
@@ -157,6 +159,7 @@ class Event(object):
         self._complete = False
         if not stamps:
             self.stamps = []
+        self.created = created or datetime.now(UTC)
         self.rows = parser.parse(when, lexer=lexer)
 
     def __repr__(self):
@@ -169,9 +172,13 @@ class Event(object):
 
     @classmethod
     def fromDict(cls, d):
+        zone = Zone.fromName(d['zone'])
+        created = datetime.fromtimestamp(d['created'],
+                tz=zone.tzinfo)
         return cls(
             d['when'],
-            Zone.fromName(d['zone']),
+            zone,
+            created = created,
             stamps = d['stamps']
         )
 
@@ -182,17 +189,18 @@ class Event(object):
         return {
             'when':self.when,
             'zone': self.zone.name,
+            'created': self.created.timestamp(),
             'stamps': self.stamps
         }
 
     def after(self, after):
-        self._mkRules(after)
+        self._mkRules()
         return self._rules.after(after, inc=True)
 
     def is_active(self, after, before):
         assert type(after) is datetime, after
         assert type(before) is datetime, before
-        self._mkRules(after)
+        self._mkRules()
         nxt = self._rules.after(after, inc=True)
         if nxt and nxt < before:
             return True
@@ -204,11 +212,12 @@ class Event(object):
         if not self._repeats and len(self.stamps) == len(self.rows):
             self._complete = True
 
-    def _mkRules(self, after):
+    def _mkRules(self):
         if self._rules:
             return
         self._rules = rruleset(cache=True)
-        clk = Clock(after)
+
+        clk = Clock(self.created)
 
         # either all rows will repeat, or no rows will
         for i in range(len(self.rows)):
@@ -221,7 +230,6 @@ class Event(object):
                 self._rules.rrule(rrule(freq, **kwargs))
             else:
                 self._rules.rdate(clk.add(**r))
-
 
 ## TrailBot interface
 
@@ -313,8 +321,8 @@ see also: tz, here
 def now(req):
     args = dict(parseArgs(req.args, ['in']))
     if 'in' in args:
-        loc = Location.fromInput(args.get('in'), user=req.user)
-        zone = Zone.fromLocation(loc)
+        loc = Location.fromInput(args.get('in'), requser=req.user)
+        zone = Zone.fromLocation(loc, source='location')
     else:
         zone = getUserZone(req.user)
     now = datetime.now(zone.tzinfo)
