@@ -30,6 +30,7 @@ def tbhelp(helpmsg):
         return cmd
     return fxn
 
+
 def tbroute(*specs, cat=None):
     def fxn(cmd, *args, **kwargs):
         for spec in specs:
@@ -40,6 +41,7 @@ def tbroute(*specs, cat=None):
         return cmd
     return fxn
 
+
 def matchesSpec(search, spec):
     assert type(search) in (str, re.Pattern)
     return \
@@ -47,6 +49,7 @@ def matchesSpec(search, spec):
             and spec.match(search) \
         or type(spec) == str \
             and spec.startswith(search) \
+
 
 def getAction(search_cmd):
     m = [(spec,cmd) for spec, cmd in routes
@@ -60,37 +63,67 @@ def getAction(search_cmd):
 
 
 class TBRequest(object):
-    def __init__(self, frm, cmd):
-        seq = parser.parse(cmd,lexer=lexer)
+    def __init__(self, user, frm, sms, argv=None):
+        self.user = user
         self.frm = frm
-        self.cmd = seq[0].exe
-        if seq[0].args:
-            self.args = ' '.join(seq[0].args)
+        if argv:
+            assert type(argv) is list
+            # we were passed in pre-parsed args
+            self.cmd = sms
+            self.argv = argv
+            self.args = ' '.join(self.argv)
+            return
+
+        self.argv = None
+        p = sms.split(maxsplit=1)
+        if len(p) == 2:
+            self.cmd, self.args = p
         else:
+            self.cmd = p
             self.args = ''
-        self.user = User.lookup(frm, raiseOnFail=False, is_owner=True)
+
+    @classmethod
+    def fromPipeline(cls, ureq, pl):
+        return cls(ureq.user, ureq.frm, pl.exe, argv=pl.args)
 
     def __str__(self):
         return ', '.join((self.frm, self.cmd, self.args))
 
-    @classmethod
-    def fromFlask(cls, request):
-        frm = request.args.get('From')
-        sms = request.args.get('Body')
 
-        if not frm or not sms:
+class TBUserRequest(object):
+    def __init__(self, frm, cmd, user=None):
+        if not frm or not cmd:
             raise EmptyRequest
+        if user:
+            assert user.phone == frm
+            self.user = user
+        else:
+            self.user = User.lookup(frm, raiseOnFail=False, is_owner=True)
+        self.frm = frm
+        self.seq = parser.parse(cmd,lexer=lexer)
 
-        return cls(frm, sms)
+
+def processPipeline(req, idx):
+    pl = req.seq[idx]
+    preq = TBRequest.fromPipeline(req, pl)
+    act = getAction(pl.exe)
+    resp = act(preq)
+    while pl.pipe:
+        pl = pl.pipe
+        pl.args.append(resp)
+        preq = TBRequest.fromPipeline(req, pl)
+        act = getAction(pl.exe)
+        resp = act(preq)
+    return resp
 
 
-def dispatch(request):
-    tbreq = None
+def internal_dispatch(tbreq):
     msg = None
     try:
-        tbreq = TBRequest.fromFlask(request)
-        act = getAction(tbreq.cmd)
-        msg = act(tbreq)
+        for i in range(1):
+            # XX how to merge multiple messages
+            # XX which may not go to the same destination?
+            msg = processPipeline(tbreq, i)
 
     except TBError as e:
         msg = str(e)
@@ -108,9 +141,17 @@ def dispatch(request):
         resp = TBResponse()
         resp.addMsg(msg)
 
-    r = resp.asTwiML()
     if tbreq and tbreq.user:
         tbreq.user.setMore(resp.getMore())
         tbreq.user.release()
 
-    return r
+    return resp
+
+
+
+def flask_dispatch(flask_req):
+    frm = flask_req.args.get('From')
+    sms = flask_req.args.get('Body')
+    tbreq = TBUserRequest(frm, sms)
+    resp = internal_dispatch(tbreq)
+    return resp.asTwiML()

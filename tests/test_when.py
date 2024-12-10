@@ -57,11 +57,16 @@ class TestWhenOffset(MkdatetimeTest):
         self.expect = self.now
 
 
+class TestWhenRelative(MkdatetimeTest):
+    def test_in(self):
+        self.kwargs = {'weekday': 4}
+        self.expect = datetime(1990, 6, 15, 13, 30)
+
 
 class TestWhenAction(TBTest):
-    def test_when(self):
-        resp = self.req1("when is next tuesday")
-        self.assertStartsWith(resp, "next tuesday is:")
+    def test_when_relative(self):
+        resp = self.req1("when next monday")
+        self.assertStartsWith(resp, "next monday is:")
 
 
 
@@ -70,8 +75,8 @@ class TestEvent(unittest.TestCase):
         self.now = datetime(1990, 6, 15, 13, 30, tzinfo=timezone.utc)
 
     def getRules(self,input):
-        e = Event(input, self.now.tzinfo)
-        e._mkRules(self.now)
+        e = Event(input, self.now.tzinfo, created=self.now)
+        e._mkRules()
         return e._rules
 
     def test_hrmin(self):

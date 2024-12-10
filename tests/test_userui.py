@@ -5,7 +5,7 @@ class TestDM(TBTest):
         self.reg1()
         self.reg2()
         resp = self.req1("@test2 what's up", only_first=False)
-        self.assertEqual(str(resp.msgs[0]), "@test1: what's up")
+        self.assertEqual(resp.msgs[0].msg, "@test1: what's up")
         self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
 
 

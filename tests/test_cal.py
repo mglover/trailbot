@@ -19,3 +19,7 @@ class TestUserCal(TBTest):
         self.req1(cmd)
         res = self.req1(cmd)
         self.assertStartsWith(res, "Event already")
+
+    def test_list(self):
+        self.req1("cal 9am do echo hello")
+        res = self.req1("cal")

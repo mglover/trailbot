@@ -8,7 +8,7 @@ from urllib3.connectionpool import InsecureRequestWarning
 from flask import request, Response, abort, Blueprint
 
 from . import config
-from .dispatch import dispatch
+from .dispatch import flask_dispatch
 from .twilio import TBMessage
 
 bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
@@ -76,7 +76,7 @@ def auth_reqd(error):
 @bp.route("/fetch")
 def sms_reply():
     authenticate(request)
-    return dispatch(request)
+    return flask_dispatch(request)
 
 ## bot runner CLI
 @bp.cli.command('botman')

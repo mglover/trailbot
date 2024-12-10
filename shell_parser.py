@@ -31,7 +31,7 @@ class SyntaxError(ShellError):
 class ShellPipeline(object):
     def __init__(self, exe, args=None, pipe=None, redir=None):
         self.exe = exe
-        self.args = args
+        self.args = args or []
         self.pipe = pipe
         self.redir = redir
 
@@ -64,7 +64,7 @@ def p_sequence_single(p):
     p[0] = [ p[1] ]
 
 def p_pipeline(p):
-    """ pipeline : command PIPE exe
+    """ pipeline : command PIPE pipeline
     """
     p[0] = p[1]
     p[0].pipe = p[3]

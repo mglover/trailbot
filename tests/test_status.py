@@ -31,7 +31,7 @@ class TestStatus(TBTest):
         self.assertSuccess(str(resp.msgs[1]))
         self.assertEqual(self.frm2, resp.msgs[0].kwargs['to'])
         self.assertEqual("TrailBot: update from @test1: foo", 
-            str(resp.msgs[0]))
+            resp.msgs[0].msg)
 
     def test_status_subs(self):
         self.reg1()
@@ -40,7 +40,7 @@ class TestStatus(TBTest):
         resp = self.req2("sub @test1", only_first=False)
         self.assertEqual(2, len(resp.msgs))
         self.assertSuccess(str(resp.msgs[0]))
-        self.assertEqual("@test1: foobar", str(resp.msgs[1]))
+        self.assertEqual("@test1: foobar", str(resp.msgs[1].msg))
 
     def test_status_empty(self):
         self.assertError(self.req1("status"))
