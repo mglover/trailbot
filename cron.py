@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta
-import os, stat, signal
+from datetime import datetime, timedelta, timezone
+import os, stat, signal, time
 
-from . import tb
 from .core import TBError
-from .dispatch import dispatch, TBRequest
+from .dispatch import internal_dispatch, TBUserRequest
 from .user import User
-from .when import Clock
+from .when import UTC
 from .cal import Calendar
 
 class CronOverflow(TBError):
@@ -20,14 +19,15 @@ class CronBot(object):
         signal.signal(signal.SIGINT, self.shutdown)
 
     def clearSignals(self):
-        signal.signal(signal.SIGTERM, None)
-        signal.signal(signal.SIGINT, None)
+        signal.signal(signal.SIGTERM, signal.SIG_DFL)
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    def shutdown(self):
+    def shutdown(self, *args):
+        print("shutting down")
         self.running = False
 
     def perUser(self, user, start, stop):
-        """ return a list of (User, args) tuples
+        """ return a list of args for this user
             which are scheduled in this window
         """
         res = []
@@ -36,8 +36,8 @@ class CronBot(object):
 
         for e in c:
             if e.trigger.is_active(start, stop):
-                res.append((user, e.action))
-                e.trigger.fire(datetime.now())
+                res.append(e.action)
+                e.trigger.fire(datetime.now(UTC))
 
         c.save()
         return res
@@ -45,50 +45,44 @@ class CronBot(object):
     def perWindow(self, start, stop):
         res = []
         for u in User.list(is_owner=True):
-            res += self.perUser(u, start, stop)
-            u.release()
+            cmds = self.perUser(u, start, stop)
+            for c in cmds:
+                req = TBUserRequest(u.phone, c, user=u)
+                res.append(internal_dispatch(req))
         return res
 
-    def processEvents(self, evts):
-        for user, cmd in evts:
-            req = TBRequest(user.phone, cmd)
-            resp = dispatch(req)
-            print(resp)
-            #twilio.smsToPhone(user.phone, resp)
 
     def run(self):
         """ time-sycnronizing loop
             run forever, until signalled
             checking every minute-long window
-              for user events
+            for user events
         """
-        self.setSignals()
         self.running = True
 
-        # XX ???  we must set *a* timezone
-        # XX ??? but is this always/ever correct?
-        utc = timezone(timedelta(0))
-
-        start = Clock(datetime.now(), tzinfo=utc).dt
+        start = datetime.now(UTC)
         stop = start + timedelta(minutes=1)
 
         while self.running:
-            evts = self.perWindow(start, stop)
-            self.processEvents(evts)
+            self.setSignals()
+            print("Window", start, stop)
+            res = self.perWindow(start, stop)
+
+            for r in res:
+                print("  r:", r.msgs)
+                ## XX yes, do this
+                """ send to phone"""
 
             start = stop
             stop = start + timedelta(minutes=1)
-            now = datetime.now(tzinfo=tz)
+            now = datetime.now(UTC)
 
             slp = start-now
-            if slp < 0:
+            print('slp', slp)
+            self.clearSignals()
+            if slp < timedelta(0):
                 raise CronOverflow(slp)
             else:
-                time.sleep(slp)
-
-        self.clearSignals()
+                time.sleep(slp.total_seconds())
 
 
-@tb.bp.cli.command('cron')
-def cron():
-    CronBot().run()
