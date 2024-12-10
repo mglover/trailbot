@@ -5,7 +5,7 @@ from .core import success, TBError, parseArgs, isBotPhone
 from .user import User, needsreg
 from .userdata import UserObj
 from .dispatch import tbhelp, tbroute
-from .twilio import TBMessage
+from .response import TBMessage
 from .location import Location
 
 @tbroute(re.compile('^@.*$'), cat='chat')

@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from collections import UserList
 
 try:
@@ -81,6 +81,7 @@ def cal(req):
     args = dict(parseArgs(req.args, ['do']))
     when = args['']
     what = args.get('do')
+    now = datetime.now(timezone(timedelta(0)))
 
     c = Calendar.fromUser(req.user)
 
@@ -90,7 +91,7 @@ def cal(req):
         if ct:
             nxt = c[0]
             o+= "\n\nNext:"
-            o+= "\t %s: do %s" % (e.trigger.after(), e.action)
+            o+= "\t %s: do %s" % (c[0].trigger.after(now), c[0].action)
         return o
 
     zone  = Zone.fromUser(req.user)

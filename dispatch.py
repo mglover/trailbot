@@ -2,8 +2,9 @@ import re, os, traceback
 
 from .core import TBError
 from .shell_parser import parser, lexer
-from .twilio import TBResponse
+from .response import TBResponse
 from .user import User
+from .twilio import twiMLfromMessage, twiMLfromResponse
 
 routes = []
 cats = {}
@@ -154,4 +155,4 @@ def flask_dispatch(flask_req):
     sms = flask_req.args.get('Body')
     tbreq = TBUserRequest(frm, sms)
     resp = internal_dispatch(tbreq)
-    return resp.asTwiML()
+    return twiMLfromResponse(resp)

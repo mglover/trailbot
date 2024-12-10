@@ -9,7 +9,8 @@ from flask import request, Response, abort, Blueprint
 
 from . import config
 from .dispatch import flask_dispatch
-from .twilio import TBMessage
+from .response import TBMessage
+from .twilio import twiMLfromMessage
 
 bp = Blueprint('trailbot', __name__, '/wx', template_folder='templates')
 
@@ -53,8 +54,9 @@ warnings.simplefilter(
 ##
 @bp.errorhandler(500)
 def code_fail(error):
-    return TBMessage("""I'm sorry, something has gone wrong with my programming.
-Try again?  That works sometimes.  I'll let the boss know what happened!""").asTwiML()
+    err = """I'm sorry, something has gone wrong with my programming.
+Try again?  That works sometimes.  I'll let the boss know what happened!"""
+    return twiMLromMessage(TBMessage(err))
 
 def authenticate(request):
     if not request.authorization \

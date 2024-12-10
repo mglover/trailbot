@@ -8,7 +8,7 @@ from flask import Flask
 
 from trailbot import tb, netsource
 from trailbot import netsource
-from trailbot.twilio import TBResponse
+from trailbot.response import TBResponse
 from trailbot.dispatch import routes
 
 HAS_REMOTE = False

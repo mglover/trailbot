@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 from .user import User
 from .when import UTC, Zone, Clock, Event
 from .cal import Calendar, CalEntry
-from .twilio import TBResponse
+from .response import TBResponse
 from .cron import CronBot
 from tests.base import TBTest
 
