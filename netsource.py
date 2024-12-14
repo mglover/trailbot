@@ -106,7 +106,6 @@ class NetSource (object):
                 params=params,
                 data=data)
             if not self._response.ok:
-                print("_load", self._response.content)
                 if self.raiseOnError:
                     raise ResponseError(self.name)
                 self.err = f"{self.name} returned an error"

@@ -9,13 +9,7 @@ from .core import TBError
 
 
 if DEBUG:
-    logging.basicConfig(
-        level = logging.DEBUG,
-        filename = "shell_errors.txt",
-        filemode = "w",
-        format = "%(message)s"
-    )
-    log = logging.getLogger()
+    log = logging.getLogger('shell_parser')
 else:
     log = None
 

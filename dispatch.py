@@ -1,4 +1,4 @@
-import re, os, traceback
+import logging, os, re, sys, traceback
 
 from .core import TBError
 from .shell_parser import parser, lexer
@@ -8,6 +8,15 @@ from .twilio import twiMLfromMessage, twiMLfromResponse
 
 routes = []
 cats = {}
+
+logging.basicConfig(
+    level = logging.DEBUG,
+    stream = sys.stdout
+)
+stderr = logging.StreamHandler()
+stderr.setLevel(logging.ERROR)
+logging.getLogger('').addHandler(stderr)
+
 
 class EmptyRequest(TBError):
     msg = "No request"
@@ -130,7 +139,7 @@ def internal_dispatch(tbreq):
         msg = str(e)
 
     except Exception as e:
-        traceback.print_exc()
+        log.error(''.join(traceback.format_exc()))
 
     if msg is None:
         msg = "This is TrailBot:  something strange happened, "

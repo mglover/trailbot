@@ -13,13 +13,7 @@ class WhenError(TBError):
     msg = "When? %s"
 
 if DEBUG:
-    logging.basicConfig(
-        level = logging.DEBUG,
-        filename = "errors.txt",
-        filemode = "w",
-        format = "%(lineno)4d:%(message)s"
-    )
-    log = logging.getLogger()
+    log = logging.getLogger('when_parser')
 else:
     log = None
 
@@ -84,7 +78,8 @@ precedence = (
     ('left', 'COMMA', 'AND'),
 )
 def t_error(t):
-    print(f"Unexpected character '%s' at %d" % (t.value[0],t.lexer.lexpos))
+    log.error(f"Unexpected character '%s' at %d\n" \
+        % (t.value[0],t.lexer.lexpos))
 
 t_ignore = ' \t\n'
 t_ORDINAL = '[2-9]*1st|[2-9*]*2nd|[2=9]*3rd|[1-9][0-9]*th'

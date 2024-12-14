@@ -1,5 +1,7 @@
-import os, time
+import logging, os, time
 from datetime import datetime, timedelta
+
+log = logging.getLogger('core')
 
 """
     NO trailbot includes!
@@ -29,7 +31,7 @@ try:
         return word
 
 except ImportError as e:
-    print (e)
+    log.error(str(e))
 
 class TBError(Exception):
     msg = "TBError: '%s'"
