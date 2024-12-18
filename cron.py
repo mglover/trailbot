@@ -56,26 +56,27 @@ class CronBot(object):
         """ return a list of args for this user
             which are scheduled in this window
         """
-        res = []
-        if not user.cal: return res
+        cmds = []
+        if not user.cal: return cmds
         c = Calendar.fromUser(user)
 
         for e in c:
             if e.trigger.is_active(start, stop):
-                res.append(e.action)
+                cmds.append(e.action)
                 e.trigger.fire(datetime.now(UTC))
 
         c.save()
-        return res
+        return cmds
 
     def perWindow(self, start, stop):
-        res = []
+        rlist = []
         for u in User.list(is_owner=True):
             cmds = self.perUser(u, start, stop)
             for c in cmds:
                 req = TBUserRequest(u.phone, c, user=u)
-                res.append(internal_dispatch(req))
-        return res
+                rlist.append((u, internal_dispatch(req)))
+            u.release()
+        return rlist
 
 
     def run(self):
@@ -87,16 +88,20 @@ class CronBot(object):
         self.running = True
 
         start = datetime.now(UTC)
-        stop = start + timedelta(minutes=1)
+        stop = start.replace(
+            minute=start.minute+1,
+            second=0,
+            microsecond=0
+        )
 
         while self.running:
             logger.debug("Window ending: %s" % stop)
             self.setSignals(start.timestamp()))
 
-            for r in res:
-                print("  r:", r.msgs)
-                ## XX yes, do this
-                """ send to phone"""
+            for user, res in self.perWindow(start, stop):
+                for msg in res.msgs:
+                    dst= msg.kwargs.get('to', user.phone)
+                    sendMessage(dst, msg.msg)
 
             start = stop
             stop = start + timedelta(minutes=1)
