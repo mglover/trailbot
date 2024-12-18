@@ -1,14 +1,33 @@
 from datetime import datetime, timedelta, timezone
-import os, stat, signal, time
+import logging, os, stat, signal, time
 
+from . import config
 from .core import TBError
 from .dispatch import internal_dispatch, TBUserRequest
 from .user import User
 from .when import UTC
 from .cal import Calendar
 
-class CronOverflow(TBError):
+logger = logging.getLogger('cron')
+
+def smsToLog(phone, msg):
+    logger.info("%s %s" % (phone, msg))
+
+
+if config.DEBUG:
+   sendMessage = smsToLog
+else:
+    import twilio
+    sendMessage = twilio.smsToPhone
+
+class CronError(TBError):
+    pass
+
+class CronOverflow(CronError):
     msg = "CronBot failed to complete events in window: %s overflow"
+
+class CronLockingError(CronError):
+    msg = "Status file exists: %s"
 
 class CronBot(object):
     def __init__(self):
@@ -23,7 +42,7 @@ class CronBot(object):
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     def shutdown(self, *args):
-        print("shutting down")
+        logger.debug("shutting down")
         self.running = False
 
     def perUser(self, user, start, stop):
@@ -64,9 +83,8 @@ class CronBot(object):
         stop = start + timedelta(minutes=1)
 
         while self.running:
-            self.setSignals()
-            print("Window", start, stop)
-            res = self.perWindow(start, stop)
+            logger.debug("Window ending: %s" % stop)
+            self.setSignals(start.timestamp()))
 
             for r in res:
                 print("  r:", r.msgs)
@@ -78,8 +96,9 @@ class CronBot(object):
             now = datetime.now(UTC)
 
             slp = start-now
-            print('slp', slp)
+            logger.debug('slp: %s' %slp)
             self.clearSignals()
+
             if slp < timedelta(0):
                 raise CronOverflow(slp)
             else:

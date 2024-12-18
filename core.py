@@ -1,4 +1,4 @@
-import logging, os, time
+import logging, os, sys, time
 from datetime import datetime, timedelta
 
 log = logging.getLogger('core')
@@ -7,6 +7,16 @@ log = logging.getLogger('core')
     NO trailbot includes!
     wrap includes with try/except
 """
+
+logging.basicConfig(
+    level = logging.INFO,
+    stream = sys.stdout
+)
+stderr = logging.StreamHandler()
+stderr.setLevel(logging.ERROR)
+log = logging.getLogger('')
+log.addHandler(stderr)
+
 
 try:
     import random

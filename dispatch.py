@@ -9,14 +9,6 @@ from .twilio import twiMLfromMessage, twiMLfromResponse
 routes = []
 cats = {}
 
-logging.basicConfig(
-    level = logging.DEBUG,
-    stream = sys.stdout
-)
-stderr = logging.StreamHandler()
-stderr.setLevel(logging.ERROR)
-logging.getLogger('').addHandler(stderr)
-
 
 class EmptyRequest(TBError):
     msg = "No request"
@@ -156,7 +148,6 @@ def internal_dispatch(tbreq):
         tbreq.user.release()
 
     return resp
-
 
 
 def flask_dispatch(flask_req):
