@@ -39,7 +39,7 @@ class CronBot(object):
             raise CronLockingError(self.statusfile)
         with open(self.statusfile,'x') as sfd:
                 sfd.write("%s" % ts)
-        except:
+
         signal.signal(signal.SIGTERM, self.shutdown)
         signal.signal(signal.SIGINT, self.shutdown)
 
@@ -96,7 +96,7 @@ class CronBot(object):
 
         while self.running:
             logger.debug("Window ending: %s" % stop)
-            self.setSignals(start.timestamp()))
+            self.setSignals(start.timestamp())
 
             for user, res in self.perWindow(start, stop):
                 for msg in res.msgs:
