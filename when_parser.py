@@ -175,6 +175,7 @@ def p_every_unit(p):
     elif unit == 'WEEK': f=WEEKLY
     elif unit == 'DAY': f=DAILY
     elif unit == 'HOUR': f=HOURLY
+    else: raise WhenError("I can't do every %s" % unit)
     p[0] = (f, kwargs)
 
 def p_every_month(p):

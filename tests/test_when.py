@@ -63,13 +63,6 @@ class TestWhenRelative(MkdatetimeTest):
         self.expect = datetime(1990, 6, 15, 13, 30)
 
 
-class TestWhenAction(TBTest):
-    def test_when_relative(self):
-        resp = self.req1("when next monday")
-        self.assertStartsWith(resp, "next monday is:")
-
-
-
 class TestEvent(unittest.TestCase):
     def setUp(self):
         self.now = datetime(1990, 6, 15, 13, 30, tzinfo=timezone.utc)
@@ -81,13 +74,32 @@ class TestEvent(unittest.TestCase):
 
     def test_hrmin(self):
         rules = self.getRules("7pm")
-        self.assertEqual(datetime(1990, 6, 15, 19, 0, tzinfo=timezone.utc),
-             rules.after(self.now))
+        self.assertEqual(
+            datetime(1990, 6, 15, 19, 0, tzinfo=timezone.utc),
+             rules.after(self.now)
+        )
 
     def test_daymo(self):
         rules = self.getRules("19 July")
-        self.assertEqual(datetime(1990, 7, 19, 13, 30, tzinfo=timezone.utc),
-            rules.after(self.now))
+        self.assertEqual(
+            datetime(1990, 7, 19, 13, 30, tzinfo=timezone.utc),
+            rules.after(self.now)
+        )
+
+    def test_bounds(self):
+        rules= self.getRules("every hour between 9pm and 1am")
+        evts = [ e for e in rules.xafter(self.now, count=7) ]
+        self.assertEqual(
+            datetime(1990, 6, 15, 21, 0, tzinfo=timezone.utc),
+            evts[0]
+        )
+        self.assertEqual(
+            datetime(1990, 6, 16, 1, 0, tzinfo=timezone.utc),
+            evts[-1]
+        )
 
 
-
+class TestWhenAction(TBTest):
+    def test_when_relative(self):
+        resp = self.req1("when next monday")
+        self.assertStartsWith(resp, "next monday is:")

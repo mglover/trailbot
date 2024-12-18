@@ -66,7 +66,7 @@ class TimerTest(unittest.TestCase):
         evts = self.runRange(hour=18, minute=29, count=2)
 
         self.assertEqual(1, len(evts))
-        exp = TBResponse('hello')
+        exp = (self.user, TBResponse('hello'))
         self.assertEqual(exp, evts[0])
 
     def test_two(self):

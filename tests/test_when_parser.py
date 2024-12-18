@@ -14,7 +14,7 @@ class ParserTest(unittest.TestCase):
             self.assertRaises(self.expectError, parser.parse, self.input,
                 lexer=lexer)
         else:
-            res = parser.parse(self.input)
+            res = parser.parse(self.input, lexer=lexer)
             self.assertEquals(self.expect, res)
 
 class TestWhenAbsTimeNoWrap(ParserTest):
@@ -184,6 +184,10 @@ class TestWhenEvery(ParserTest):
             'dtstart': {'hour': 9, 'minute': 0},
             'until': {'hour': 18, 'minute': 0}
         }) ]
+
+    def test_every_typpo(self):
+        self.input = "every 5minutes between 9am and 1030"
+        self.expectError = WhenError
 
     def test_daily_multi(self):
         self.input = "every day at 9am, 11:30am, 2pm and 5pm"
