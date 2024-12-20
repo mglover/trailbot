@@ -16,6 +16,7 @@ from .when import Zone, Event
 class CalError(TBError):
     msg="%s"
 
+
 class CalEntry(object):
     def __init__(self, action, trigger):
         assert type(trigger) is Event, trigger
@@ -88,10 +89,13 @@ def cal(req):
     if not what:
         ct = len(c)
         o = "%d events" % ct
-        if ct:
-            nxt = c[0]
-            o+= "\n\nNext:"
-            o+= "\t %s: do %s" % (c[0].trigger.after(now), c[0].action)
+        for i in range(ct):
+            nxt = c[i]
+            o+= "\t '%s': next  %s  do %s\n" % (
+                c[i].trigger.when,
+                c[i].trigger.after(now),
+                c[i].action
+            )
         return o
 
     zone  = Zone.fromUser(req.user)
