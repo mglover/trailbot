@@ -9,6 +9,7 @@ from .twilio import twiMLfromMessage, twiMLfromResponse
 routes = []
 cats = {}
 
+log = logging.getLogger('dispatch')
 
 class EmptyRequest(TBError):
     msg = "No request"
