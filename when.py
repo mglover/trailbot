@@ -141,7 +141,7 @@ class Clock(object):
 
         moveable = [ p for p in can_move if p not in kwargs]
         for m in moveable:
-            kk = { m: getattr(self.dt, m) + 1 }
+            kk = { m: getattr(dt, m) + 1 }
             kk.update(kwargs)
             nxdt = dt + relativedelta(**kk)
             if nxdt >= dt:
@@ -196,6 +196,9 @@ class Event(object):
             'stamps': self.stamps
         }
 
+    def complete(self):
+        self._complete = True
+
     def after(self, after):
         self._mkRules()
         return self._rules.after(after, inc=True)
@@ -213,7 +216,7 @@ class Event(object):
         """This event has occured at the given timestamp"""
         self.stamps.append(ts)
         if not self._repeats and len(self.stamps) == len(self.rows):
-            self._complete = True
+            self.complete()
 
     def _mkRules(self):
         if self._rules:

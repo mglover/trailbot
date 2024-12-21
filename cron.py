@@ -65,6 +65,12 @@ class CronBot(object):
                 cmds.append(e.action)
                 e.trigger.fire(datetime.now(UTC))
 
+            # harvest events that have passed
+            # but haven't fired
+            if not e.trigger.after(stop):
+                log.info("no after: %s %s" %
+                    (e.trigger.when, e.trigger.created))
+                e.trigger.complete()
         c.save()
         return cmds
 
