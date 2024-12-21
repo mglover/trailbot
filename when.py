@@ -1,5 +1,6 @@
 __package__ = 'trailbot'
 
+import logging
 from dateutil.relativedelta import relativedelta, weekdays
 from dateutil.rrule import rrule, rruleset,\
     YEARLY, MONTHLY, WEEKLY, DAILY, HOURLY
@@ -20,6 +21,8 @@ from .location import Location, areaCodeFromPhone,\
      LookupAreaCodeError, NotAnAreaCode
 
 from .when_parser import WhenError, lexer, parser
+
+log = logging.getLogger('when')
 
 UTC = timezone(timedelta(0))
 

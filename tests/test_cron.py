@@ -84,6 +84,16 @@ class TimerTest(unittest.TestCase):
         evts = self.runRange(count=2)
         self.assertEqual(1, len(evts))
 
+    def test_no_after(self):
+        self.injectEvents(
+            'in 5 minutes', 'echo 1835'
+        )
+        evts = self.runRange(minutes=6, count=1)
+        c = Calendar.fromUser(User.lookup(self.user.phone))
+        self.assertEquals(0, len(evts))
+        self.assertEquals(0, len(c))
+
+
 class ProcessTest(TBTest):
     def setUp(self):
         TBTest.setUp(self)

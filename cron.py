@@ -8,10 +8,10 @@ from .user import User
 from .when import UTC
 from .cal import Calendar
 
-logger = logging.getLogger('cron')
+log = logging.getLogger('cron')
 
 def smsToLog(phone, msg):
-    logger.info("%s %s" % (phone, msg))
+    log.info("%s %s" % (phone, msg))
 
 
 if config.DEBUG:
@@ -49,7 +49,7 @@ class CronBot(object):
         os.unlink(self.statusfile)
 
     def shutdown(self, *args):
-        logger.debug("shutting down")
+        log.debug("shutting down")
         self.running = False
 
     def perUser(self, user, start, stop):
@@ -95,7 +95,7 @@ class CronBot(object):
         )
 
         while self.running:
-            logger.debug("Window ending: %s" % stop)
+            log.debug("Window ending: %s" % stop)
             self.setSignals(start.timestamp())
 
             for user, res in self.perWindow(start, stop):
@@ -108,7 +108,7 @@ class CronBot(object):
             now = datetime.now(UTC)
 
             slp = start-now
-            logger.debug('slp: %s' %slp)
+            log.debug('slp: %s' %slp)
             self.clearSignals()
 
             if slp < timedelta(0):

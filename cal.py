@@ -1,4 +1,4 @@
-import json
+import json, logging
 from datetime import datetime, timedelta, timezone
 from collections import UserList
 
@@ -12,6 +12,7 @@ from .dispatch import tbroute, tbhelp
 from .user import User, needsreg
 from .when import Zone, Event
 
+log = logging.getLogger("cal")
 
 class CalError(TBError):
     msg="%s"
