@@ -4,7 +4,8 @@ __package__ = 'trailbot'
 import json, os, sys
 
 from .dispatch import tbroute, tbhelp
-from .userdata import UserObj, needsreg
+from .user import needsreg
+from .userdata import UserObj
 from .core import shapedRandomWord
 from .db.TWL06 import twl
 
