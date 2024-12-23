@@ -57,3 +57,14 @@ class PipelineTest(TBTest):
         self.reg2()
         res = self.req1("echo jukes | twl | @test2")
         self.assertStartsWith(res, "@test1: YES")
+
+
+class RedirectTest(TBTest):
+    def test_redirect(self):
+        self.reg1()
+        res = self.req1("echo jukes > myword")
+        self.assertSuccess(res)
+        res = self.req1("echo < myword")
+        self.assertEquals(res, 'jukes')
+
+

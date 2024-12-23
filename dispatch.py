@@ -1,9 +1,10 @@
 import logging, os, re, sys, traceback
 
-from .core import TBError
-from .shell_parser import parser, lexer
+from .core import TBError, success
+from .shell_parser import parser, argsparser, lexer
 from .response import TBResponse
 from .user import User
+from .userdata import UserObj
 from .twilio import twiMLfromMessage, twiMLfromResponse
 
 routes = []
@@ -73,8 +74,8 @@ class TBRequest(object):
             assert type(argv) is list
             # we were passed in pre-parsed args
             self.cmd = sms
+            self.args = ' '.join(argv)
             self.argv = argv
-            self.args = ' '.join(self.argv)
             return
 
         self.argv = None
@@ -87,7 +88,12 @@ class TBRequest(object):
 
     @classmethod
     def fromPipeline(cls, ureq, pl):
-        return cls(ureq.user, ureq.frm, pl.exe, argv=pl.args)
+        if pl.invar:
+            args = Args.lookup(pl.invar, requser=ureq.user).args
+        else:
+            args = pl.args
+        return cls(ureq.user, ureq.frm, pl.exe, argv=args)
+
 
     def __str__(self):
         return ', '.join((self.frm, self.cmd, self.args))
@@ -106,17 +112,47 @@ class TBUserRequest(object):
         self.seq = parser.parse(cmd,lexer=lexer)
 
 
+class Args(UserObj):
+    typ = 'args'
+
+    def __init__(self, args=None, **kwargs):
+        super().__init__(**kwargs)
+        self.args = args
+
+    def toDict(self):
+        return self.args
+
+    def parseData(self, d):
+        self.args = d
+
+    @classmethod
+    def fromString(cls, s, requser):
+        return cls(
+            argsparser.parse(s, lexer=lexer),
+            requser=requser
+        )
+UserObj.register(Args)
+
+
 def processPipeline(req, idx):
     pl = req.seq[idx]
-    preq = TBRequest.fromPipeline(req, pl)
-    act = getAction(pl.exe)
-    resp = act(preq)
-    while pl.pipe:
-        pl = pl.pipe
-        pl.args.append(resp)
+    resp = ''
+    while pl:
+        if pl.invar:
+            v = Args.lookup(pl.invar, requser=req.user)
+            if not v:
+                raise ValueError('not a var: %s' % pl.invar)
+            pl.args = v.args
+        elif resp:
+            pl.args.append(resp)
         preq = TBRequest.fromPipeline(req, pl)
         act = getAction(pl.exe)
         resp = act(preq)
+        if pl.outvar:
+            Args.fromString(resp, requser=req.user).save(pl.outvar)
+            resp = success("value saved")
+        pl = pl.pipe
+
     return resp
 
 

@@ -23,11 +23,13 @@ class SyntaxError(ShellError):
 
 
 class ShellPipeline(object):
-    def __init__(self, exe, args=None, pipe=None, redir=None):
+    def __init__(self, exe, args=None, pipe=None, invar=None, outvar=None):
         self.exe = exe
         self.args = args or []
         self.pipe = pipe
-        self.redir = redir
+        self.outvar = None
+        self.invar = None
+
 
 tokens = ( 'PIPE', 'SEM', 'GT', 'LT', 'STR', 'QSTR' )
 t_PIPE = r'\|'
@@ -38,6 +40,9 @@ t_QSTR = r'\"[^"]*\"'
 t_STR = r'[^ |;<>"\t\n]+'
 
 t_ignore = ' \t\n'
+
+def t_error(t):
+    raise SyntaxError(lexer.lexpos, t)
 
 def p_error(p):
     if p is None:
@@ -57,6 +62,7 @@ def p_sequence_single(p):
     """
     p[0] = [ p[1] ]
 
+
 def p_pipeline(p):
     """ pipeline : command PIPE pipeline
     """
@@ -68,6 +74,18 @@ def p_pipeline_simple(p):
     """
     p[0] = p[1]
 
+def p_command_redir_in(p):
+    """command : command LT var
+    """
+    p[0] = p[1]
+    p[0].invar = p[3]
+
+def p_command_redir_out(p):
+    """command : command GT var
+    """
+    p[0] = p[1]
+    p[0].outvar = p[3]
+
 def p_command_args(p):
     """ command : exe args
     """
@@ -77,6 +95,11 @@ def p_command(p):
     """ command : exe
     """
     p[0] = ShellPipeline(p[1])
+
+def p_var(p):
+    """var : STR
+    """
+    p[0] = p[1]
 
 def p_args(p):
     """  args : args arg
@@ -107,5 +130,5 @@ def p_qstr(p):
 
 lexer = lex.lex(errorlog=log)
 parser = yacc.yacc(debug=DEBUG, errorlog=log)
-
+argsparser = yacc.yacc(errorlog=yacc.NullLogger(), start="args")
 __all__ = ('lexer', 'parser')
