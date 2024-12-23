@@ -1,22 +1,27 @@
 import logging, os, sys, time
 from datetime import datetime, timedelta
 
-log = logging.getLogger('core')
-
+from . import config
 """
-    NO trailbot includes!
+    NO other trailbot includes!
     wrap includes with try/except
 """
 
+if config.DEBUG:
+    level = logging.DEBUG
+else:
+    level = logging.INFO
+
 logging.basicConfig(
-    level = logging.INFO,
+    level = level,
     stream = sys.stdout
 )
 stderr = logging.StreamHandler()
 stderr.setLevel(logging.ERROR)
-log = logging.getLogger('')
-log.addHandler(stderr)
+rootlog = logging.getLogger('')
+rootlog.addHandler(stderr)
 
+log = logging.getLogger('core')
 
 try:
     import random
