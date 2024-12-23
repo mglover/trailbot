@@ -22,7 +22,6 @@ from .word import define, twl, twotd
 from .wiki import wiki
 from .location import where
 from .nav import drive, distance
-from .userdata import my
 from .userui import reg, unreg, whoami, saveloc, forget, share, unshare, more
 from .status import sub, unsub, status
 from .group import group, ungroup, invite, join, leave, chat
@@ -30,7 +29,7 @@ from .feed import news
 from .when import when, tz, untz, now
 from .cal import cal
 from .fiveword import fiveword
-from .shell import echo
+from .shell import echo, my
 
 ## bots
 from .bot import BotMon

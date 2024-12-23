@@ -1,10 +1,9 @@
-import json, os
+import json, logging, os
 
 from flask import render_template
 
 from .core import TBError
-from .user import User, needsreg
-from .dispatch import tbroute, tbhelp
+from .user import User
 
 NAM_MAX   = 10
 
@@ -24,6 +23,8 @@ class SharingAlreadyError(TBError):
 class SharingNotSharedError(TBError):
     msg = "Not sharing with %s"
 
+
+log = logging.getLogger('userdata')
 
 typs = {}
 
@@ -213,22 +214,3 @@ class UserObj(object):
         self.saveMeta()
 
 
-@tbroute('my', cat='settings')
-@tbhelp(
-"""my -- see your saved information
-say:
-  'my addrs' to see saved locations
-  'my news' to see saved feeds
-""")
-@needsreg("to use saved data")
-def my(req):
-    tmap = {'addrs': 'loc', 'news': 'url'}
-    if not req.args:
-        return "Err? What do you want to see?  Say 'help my' to learn more"
-
-    typ = tmap.get(req.args)
-    if typ is None:
-        return "I don't know anything about '%s'" % req.args
-
-    objs = UserObj.search(typ=typ, user=req.user)
-    return render_template('my.txt', cnam=req.args, objs=objs)
