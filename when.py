@@ -201,13 +201,14 @@ class Event(object):
 
     def after(self, after):
         self._mkRules()
-        return self._rules.after(after, inc=True)
+        after = after.replace(second=0, microsecond=0)
+        r =  self._rules.after(after, inc=True)
+        return r
 
     def is_active(self, after, before):
         assert type(after) is datetime, after
         assert type(before) is datetime, before
-        self._mkRules()
-        nxt = self._rules.after(after, inc=True)
+        nxt = self.after(after)
         if nxt and nxt < before:
             return True
         return False
