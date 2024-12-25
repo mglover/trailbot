@@ -20,14 +20,13 @@ else:
     import twilio
     sendMessage = twilio.smsToPhone
 
+
 class CronError(TBError):
     pass
 
-class CronOverflow(CronError):
-    msg = "CronBot failed to complete events in window: %s overflow"
-
 class CronLockingError(CronError):
     msg = "Status file exists: %s"
+
 
 class CronBot(object):
     def __init__(self):
@@ -61,16 +60,20 @@ class CronBot(object):
         c = Calendar.fromUser(user)
 
         for e in c:
+            fired = False
+            err = "no after: %s %s" % (e.trigger.when, e.trigger.created)
             if e.trigger.is_active(start, stop):
                 cmds.append(e.action)
                 e.trigger.fire(datetime.now(UTC))
+                fired = True
 
-            # harvest events that have passed
-            # but haven't fired
             if not e.trigger.after(stop):
-                log.info("no after: %s %s" %
-                    (e.trigger.when, e.trigger.created))
                 e.trigger.complete()
+                if not fired:
+                    log.error(err)
+                else:
+                    log.debug(err)
+
         c.save()
         return cmds
 
