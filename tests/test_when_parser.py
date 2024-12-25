@@ -64,11 +64,6 @@ class TestWhenAbsDate(ParserTest):
     def test_on_daymo(self):
         self.input=("on September 11th")
 
-    @unittest.skip("not detected here")
-    def test_invalid_day(self):
-        self.input = "32 Feb"
-        self.expectError = WhenError
-
     def test_on_daymo(self):
         self.input = "on 1 August"
         self.expect = [ {'month': 8, 'day': 1} ]
@@ -104,7 +99,7 @@ class TestWhenAbsDateTime(ParserTest):
 
     def test_next_dow(self):
         self.input = "next wednesday"
-        self.expect = [ {"weekday": 2} ]
+        self.expect = [ {"weekday": 2, 'days': 1} ]
 
     def test_dow_time(self):
         self.input = "thu at 6:45am"
@@ -183,6 +178,18 @@ class TestWhenEvery(ParserTest):
             'interval': 3,
             'dtstart': {'hour': 9, 'minute': 0},
             'until': {'hour': 18, 'minute': 0}
+        }) ]
+
+    def test_until(self):
+        self.input = "every day until december 12th"
+        self.expect = [ (DAILY, {
+            'until': {'month': 12, 'day': 12}
+        }) ]
+
+    def test_after(self):
+        self.input = "every day after december 12th"
+        self.expect = [ (DAILY, {
+            'dtstart': {'month': 12, 'day': 12}
         }) ]
 
     def test_every_typpo(self):

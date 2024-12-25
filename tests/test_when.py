@@ -34,14 +34,25 @@ class TestWhenWrap(MkdatetimeTest):
         self.kwargs = {'day': 10, 'month': 6}
         self.expect = datetime(1991, 6, 10, 13, 30)
 
+    def test_wrap_same_dow(self):
+        self.kwargs = {'weekday': 4, 'days': 1}
+        self.expect = datetime(1990, 6, 22, 13, 30)
+
     def test_wrap_month(self):
-        self.kwargs = {'month': 4}
+        self.kwargs = {'month': 4, 'years': 1}
         self.expect = datetime(1991, 4, 15, 13, 30)
+
+    def test_wrap_month_same_year(self):
+        self.kwargs = {'month': 8}
+        self.expect = datetime(1990, 8, 15, 13, 30)
+
+    def test_wrap_same_month(self):
+        self.kwargs = {'month': 6, 'day': 3}
+        self.expect = datetime(1991, 6, 3, 13, 30)
 
     def test_nowrap_daymonth(self):
         self.kwargs = {'month': 6, 'day': 15 }
         self.expect = datetime(1990, 6, 15, 13, 30)
-
 
 class TestWhenOffset(MkdatetimeTest):
     def test_hour(self):
@@ -99,7 +110,17 @@ class TestEvent(unittest.TestCase):
         )
 
 
+from when_parser import days, months
+
 class TestWhenAction(TBTest):
-    def test_when_relative(self):
-        resp = self.req1("when next monday")
-        self.assertStartsWith(resp, "next monday is:")
+    def test_when_relative_dow(self):
+        for day in days:
+            d = (day+'day').lower()
+            resp = self.req1("when next %s" % d)
+            self.assertStartsWith(resp, "next %s is:" % d)
+
+    def test_when_relative_month(self):
+        for month in months:
+            m = month.lower()
+            resp = self.req1("when next %s" % m)
+            self.assertStartsWith(resp, "next %s is:" % m)

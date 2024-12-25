@@ -62,7 +62,7 @@ for r in repeats:
     tokmap[r]  = ('REPEAT', r)
 
 keywords = [
-    'IN', 'ON', 'AT', 'OF', 'THE', 'AND', 'BETWEEN', 'AFTER', 'BEFORE',
+    'IN', 'ON', 'AT', 'OF', 'THE', 'AND', 'BETWEEN', 'AFTER', 'UNTIL',
      'NEXT', 'EVERY', 'REPEAT', 'OTHER', 'TOMORROW', 'NOON', 'AM', 'PM'
 ]
 for k in keywords:
@@ -128,6 +128,22 @@ def p_whenevery_at(p):
         for k,v in kk.items():
             kw[rmap.get(k, k)] = v
         p[0].append((freq, kw))
+
+def p_whenevery_after(p):
+    '''when : every AFTER date
+            | every AFTER time
+    '''
+    freq, kw = p[1]
+    kw['dtstart'] = p[3]
+    p[0] = [ (freq, kw), ]
+
+def p_whenevery_until(p):
+    '''when : every UNTIL date
+            | every UNTIL time
+    '''
+    freq, kw = p[1]
+    kw['until'] = p[3]
+    p[0] = [ (freq, kw) ]
 
 def p_whenevery_bounded(p):
     '''when : every BETWEEN time AND time
@@ -242,10 +258,10 @@ def p_next(p):
         p[0] =  { val.lower() : 1 }
     elif tok[0] == 'MONTH':
         monum = tokmap[val][2]
-        p[0] = {'month': monum}
+        p[0] = {'month': monum }
     elif tok[0] == 'DOW':
         val = val[:2].upper()
-        p[0] = { 'weekday': tok[2] }
+        p[0] = { 'weekday': tok[2], 'days':1 }
     else:
         p[0] = p[1]
     p[0] = [ p[0] ]
