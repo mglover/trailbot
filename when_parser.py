@@ -76,6 +76,7 @@ tokens = keywords + ['DIGIT', 'COLON', 'COMMA', 'ORDINAL',
 precedence = (
     ('left', 'AT'),
     ('left', 'COMMA', 'AND'),
+    ('right', 'DIGIT'),
 )
 def t_error(t):
     log.error(f"Unexpected character '%s' at %d\n" \
