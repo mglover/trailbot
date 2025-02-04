@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 stderr = logging.StreamHandler()
 stderr.setLevel(logging.ERROR)
-rootlog = logging.getLogger('')
+rootlog = logging.getLogger()
 rootlog.addHandler(stderr)
 
 log = logging.getLogger('core')

@@ -121,7 +121,7 @@ class CronBot(object):
             self.clearSignals()
 
             if slp < timedelta(0):
-                raise CronOverflow(slp)
+                log.error('overflow: %ss' % -slp)
             else:
                 time.sleep(slp.total_seconds())
 

@@ -236,7 +236,6 @@ class Event(object):
                 kwargs['dtstart'] = clk.add(**start)
                 if 'until' in kwargs:
                     kwargs['until'] = clk.add(**kwargs['until'])
-                    #kwargs.pop('until')
                 self._rules.rrule(rrule(freq, **kwargs))
             else:
                 self._rules.rdate(clk.add(**r))

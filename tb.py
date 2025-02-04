@@ -31,19 +31,20 @@ from .cal import cal
 from .fiveword import fiveword
 from .shell import echo, my
 
-## bots
-from .bot import BotMon
+## cron daemon
+from .cron import CronBot
 from .wordbot import WordBot
 
+WordBot()
 
 # requests run through the local proxy with an unknown cert
 warnings.simplefilter(
-    "ignore", 
+    "ignore",
     category=InsecureRequestWarning,
     lineno=1099
 )
 warnings.simplefilter(
-    "ignore", 
+    "ignore",
     category=InsecureRequestWarning,
     lineno=999
 )
@@ -55,7 +56,7 @@ warnings.simplefilter(
 def code_fail(error):
     err = """I'm sorry, something has gone wrong with my programming.
 Try again?  That works sometimes.  I'll let the boss know what happened!"""
-    return twiMLromMessage(TBMessage(err))
+    return twiMLfromMessage(TBMessage(err))
 
 def authenticate(request):
     if not request.authorization \
@@ -79,8 +80,7 @@ def sms_reply():
     authenticate(request)
     return flask_dispatch(request)
 
-## bot runner CLI
-@bp.cli.command('botman')
-def botman():
-    BotMon(WordBot).run()
 
+@bp.cli.command('cron')
+def cron():
+    CronBot().run()

@@ -29,6 +29,8 @@ class DictionarySource (NetSource):
         return params
 
     def makeResponse(self, *args, **kwargs):
+        if self.content is None:
+            return "No response from  %s" % self.name
         if type(self.content) is not list:
             raise TypeError("Expected list, got %s" % type(self.content))
         else:
