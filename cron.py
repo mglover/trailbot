@@ -34,18 +34,20 @@ class CronBot(object):
         self.statusfile = "status"
 
     def setSignals(self, ts):
+
+        """
         if os.path.exists(self.statusfile):
             raise CronLockingError(self.statusfile)
         with open(self.statusfile,'x') as sfd:
                 sfd.write("%s" % ts)
-
+        """
         signal.signal(signal.SIGTERM, self.shutdown)
         signal.signal(signal.SIGINT, self.shutdown)
 
     def clearSignals(self):
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGINT, signal.SIG_DFL)
-        os.unlink(self.statusfile)
+        """os.unlink(self.statusfile)"""
 
     def shutdown(self, *args):
         log.debug("shutting down")

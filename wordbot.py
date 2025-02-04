@@ -1,7 +1,7 @@
 import os, logging
 
 from .user import User, HandleUnknownError
-from .cal import Calendar
+from .cal import Calendar, CalError
 from .when import Zone, Event
 
 
@@ -13,16 +13,21 @@ class Bot(object):
 
     def __init__(self):
         try:
-            self.user = User.lookup(self.handle)
+            self.user = User.lookup(self.handle, is_owner=True)
             assert self.phone == self.user.phone
         except HandleUnknownError:
             self.user = User.register(self.phone, self.handle)
 
+        c = Calendar(self.user)
         try:
-            c = Calendar.fromUser(self.user)
-            c.append(self.what, Event(self.when
+            c.append(self.what,
+                Event(self.when, Zone.fromUser(self.user))
+            )
         except CalError:
             pass
+
+        c.save()
+        self.user.release()
 
     def getResponse(self, req):
         """Handle direct messages to this user"""
