@@ -17,7 +17,7 @@ def smsToLog(phone, msg):
 if config.DEBUG:
    sendMessage = smsToLog
 else:
-    import twilio
+    from . import twilio
     sendMessage = twilio.smsToPhone
 
 
