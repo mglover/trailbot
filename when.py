@@ -39,7 +39,6 @@ class Zone(object):
         self.tzinfo = tzinfo
 
     @classmethod
-    @property
     def default(cls):
         return cls(
             "UTC",
@@ -80,7 +79,7 @@ class Zone(object):
             ac = areaCodeFromPhone(req.frm)
             loc = Location.fromAreaCode(ac, req.user)
         except (LookupAreaCodeError, NotAnAreaCode) as e:
-           return cls.default
+           return cls.default()
 
         return cls.fromLocation(loc, "phone")
 
@@ -88,19 +87,19 @@ class Zone(object):
     def fromUser(cls, user):
         assert type(user) is User
         if user.tz:
-            return cls.fromName(user.tz, source='user')
+            return cls.fromName(user.tz)
 
         loc = UserObj.lookup('here', requser=user)
         if loc:
             return cls.fromLocation(loc, "here")
-        return cls.default
+        return cls.default()
 
     @classmethod
     def fromArgs(cls, args):
         if args:
             loc = Location.fromInput(lnam, user)
             return cls.fromLocation(loc)
-        return cls.default
+        return cls.default()
 
 
 class Clock(object):
@@ -303,7 +302,7 @@ def tz(req):
             return "Not a valid time zone: %s" % req.args
         return success("Time zone set to %s" % req.user.tz)
 
-    zone = getUserZone(req.user)
+    zone = Zone.fromUser(req.user)
 
     if zone.source == "user":
         return "You have set your time zone to: %s" % zone.name
@@ -333,7 +332,8 @@ def now(req):
         loc = Location.fromInput(args.get('in'), requser=req.user)
         zone = Zone.fromLocation(loc, source='location')
     else:
-        zone = getUserZone(req.user)
+        loc = None
+        zone = Zone.fromUser(req.user)
     now = datetime.now(zone.tzinfo)
 
     msg = "Current time is: %s" % now.ctime()
