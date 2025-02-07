@@ -46,7 +46,6 @@ class UserDatum(object):
         sdir = self.owner.dbfile("saved")
         if not os.path.exists(sdir):
             os.mkdir(sdir)
-
         self.path = os.path.join(sdir, self.nam)
 
     def save(self):
@@ -88,6 +87,8 @@ class UserObj(object):
     def search(cls, user, typ=None):
         if not typ: typ=cls.typ
         dnam = user.dbfile("saved")
+        if not os.path.exists(dnam):
+            os.mkdir(dnam)
         return list(filter(
             lambda o: o and o.typ==typ,
             [cls.lookup(f, user) for f in os.listdir(dnam)]
