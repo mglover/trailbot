@@ -106,7 +106,7 @@ class CronBot(object):
         )
 
         while self.running:
-            log.debug("Window ending: %s" % stop)
+            log.info("Window ending: %s" % stop)
             self.setSignals(start.timestamp())
 
             for user, res in self.perWindow(start, stop):
