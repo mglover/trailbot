@@ -2,7 +2,7 @@
     Low-level interface to sending and receiving messages
     through the Twilio API.
 """
-import requests
+import logging, requests
 from . import config
 from .core import escape
 
@@ -10,6 +10,7 @@ MSG_MAX_LEN=1500
 
 baseurl_sending = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % config.TWILIO_ACCOUNT_SID
 
+log = logging.getLogger('twilio')
 
 def twiMLfromMessage(self):
     resp = '<Message'
@@ -47,6 +48,7 @@ def smsToPhone(phone, msg):
         'MessagingServiceSid': config.TWILIO_MSG_SID,
         'To': phone
     }
+    log.info( "twilio to %s: %s" % (phone, msg) )
     res = requests.post(
         baseurl_sending,
         data=data,
