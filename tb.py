@@ -33,6 +33,10 @@ from .shell import echo, my
 
 ## cron daemon
 from .cron import CronBot
+from .wordbot import WordBot
+
+for bot in [WordBot]:
+    bot()
 
 # requests run through the local proxy with an unknown cert
 warnings.simplefilter(
