@@ -7,7 +7,7 @@ from datetime import datetime
 
 from flask import render_template
 
-from .core import TBError, success
+from .core import parseArgs, TBError, success
 from .dispatch import tbroute, tbhelp
 from .netsource import NetSource, ResponseError
 from .user import User, RegistrationRequired
@@ -134,7 +134,7 @@ class Feed (NetSource, UserObj):
         except ResponseError:
             raise FeedNotFound('%s returned an error' % self.name)
 
-    def makeFeedHeads(self, ents):
+    def makeFeedHeads(self, ents, links=False):
         if self.nam: src=self.nam
         elif self.orig_url: src = self.orig_url
         else: src = self.url
@@ -145,8 +145,15 @@ class Feed (NetSource, UserObj):
 
         if not ents:
             return ''
-        return "\n  ".join([f"From {src}"] \
-            + [f"{e.title}: {date(e)}" for e in ents])
+
+        ret = "From %s:" % src
+        for i, e in enumerate(ents):
+            ret+='\n\t%d' % i
+            ret+=e.title
+            if links:
+                ret+= " (%s)" % e.link
+            ret+=" on %s" % date(e)
+        return ret
 
     def makeResponse(self, scmd, *args, **kwargs):
         feed = self.content
@@ -183,8 +190,17 @@ registered users) the NAME of a saved feed
 
 ''')
 def news(req):
-    if req.args: args = req.args.split(' ')
-    else: args=[]
+    args = dict(parseArgs(req.args, ['with', 'as']))
+    print('args', args)
+    links = False
+    if 'with' in args:
+        if args['with'] == 'links':
+            links=True
+        else:
+            raise NewsSyntaxError()
+    if 'as' in args:
+        savename = args['as']
+    args = args[''].split()
 
     if len(args) <1:
         # see new articles in all saved groups
@@ -198,7 +214,7 @@ def news(req):
         for f in feeds:
            try:
                 ents = f.newer()
-                if ents: msg.append(f.makeFeedHeads(ents))
+                if ents: msg.append(f.makeFeedHeads(ents, links))
            except (FeedNotFound,ResponseError) as e:
                 msg.append("%s: %s" % (f.nam, str(e)))
         if len(msg):
@@ -213,16 +229,14 @@ def news(req):
         # see new articles in this group
         ents = feed.newer()
         if ents:
-            return feed.makeFeedHeads(ents)
+            return feed.makeFeedHeads(ents, links)
         return "Nothing new from %s" % feed.url
 
 
-    scmd = args.pop(0)
-    if scmd == 'as':
+    if savename:
         # save feed with name
         if not req.user: raise RegistrationRequired("to save news")
-        nam = args.pop(0)
-        feed.save(nam=nam, requser=req.user)
+        feed.save(nam=savename, requser=req.user)
         return success(f"feed {feed.url} saved as {nam}")
 
     else:
