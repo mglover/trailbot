@@ -1,3 +1,4 @@
+import logging
 from requests import request, Session, ConnectionError, JSONDecodeError
 from urllib.parse import urljoin
 
@@ -8,6 +9,8 @@ class ConnectionError(TBError):
     msg = "%s failed to respond"
 class ResponseError(TBError):
     msg = "%s returned an error"
+
+log = logging.getLogger('netsource')
 
 class TBSession (Session):
     def __init__(self):
@@ -106,6 +109,10 @@ class NetSource (object):
                 params=params,
                 data=data)
             if not self._response.ok:
+                r = self._response
+                log.info("%s returned error %s: %s" %
+                    (url, r.status_code, r.content[:80])
+                )
                 if self.raiseOnError:
                     raise ResponseError(self.name)
                 self.err = f"{self.name} returned an error"
