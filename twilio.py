@@ -4,7 +4,7 @@
 """
 import logging, requests
 from . import config
-from .core import escape
+from .core import escape, isBotPhone
 
 MSG_MAX_LEN=1500
 
@@ -43,6 +43,10 @@ def smsToPhone(phone, msg):
         A single message, sent to a single phone number,
         *not* in  response to an incoming message
     """
+    if isBotPhone(phone):
+        log.error("Internal send to Bot(%s): %s" % (phone, msg) )
+        return
+
     data = {
         'Body': msg,
         'MessagingServiceSid': config.TWILIO_MSG_SID,

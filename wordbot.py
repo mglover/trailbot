@@ -38,5 +38,7 @@ class WordBot(Bot):
     handle = '@WordBot'
     phone = '+078070001000'
     when = "daily at 1616"
-    what = "twotd | #twodt"
+    what = "twotd | #twotd"
 
+    def getResponse(self, req):
+        return None
