@@ -304,11 +304,12 @@ def tz(req):
 
     zone = Zone.fromUser(req.user)
 
-    if zone.source == "user":
+    if zone.source == "ZoneInfo":
         return "You have set your time zone to: %s" % zone.name
-    if zone.source == "location":
+    if zone.source == "here":
+        loc = zone.search
         msg = "Based on your %s of: %s" % (loc.source, loc.orig)
-        msg+= "\nyour time zone is %s" % zone
+        msg+= "\nyour time zone is %s" % zone.name
         return msg
     return "No time zone or current location set"
 
