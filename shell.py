@@ -1,3 +1,5 @@
+from flask import render_template
+
 from .dispatch import tbroute,tbhelp
 from .user import needsreg
 from .userdata import UserObj
