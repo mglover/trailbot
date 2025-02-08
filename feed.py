@@ -147,8 +147,9 @@ class Feed (NetSource, UserObj):
             return ''
 
         ret = "From %s:" % src
-        for i, e in enumerate(ents):
-            ret+='\n\t%d' % i
+        for i,e in enumerate(ents):
+            print('i,e', i, e)
+            ret+='\n\t%d: ' % (i+1)
             ret+=e.title
             if links:
                 ret+= " (%s)" % e.link
@@ -190,19 +191,31 @@ registered users) the NAME of a saved feed
 
 ''')
 def news(req):
-    args = dict(parseArgs(req.args, ['with', 'as']))
-    print('args', args)
     links = False
+    args = dict(parseArgs(req.args, ['with', 'as']))
+    if '' in args:
+        a = args.get('','').split()
+        url = a and a.pop(0)
+        num = a and a.pop(0)
+    else:
+        url = None
+        num = None
+
+    if 'as' in args:
+        # save feed with name
+        if not url: raise NewsSyntaxError()
+        feed = Feed.fromInput(url, req.user)
+        if not req.user: raise RegistrationRequired("to save news")
+        feed.save(nam=args['as'], requser=req.user)
+        return success( "feed %ssaved as %s" % (feed.nam, args['as']) )
+
     if 'with' in args:
         if args['with'] == 'links':
             links=True
         else:
             raise NewsSyntaxError()
-    if 'as' in args:
-        savename = args['as']
-    args = args[''].split()
 
-    if len(args) <1:
+    if not url:
         # see new articles in all saved groups
         if not req.user:
             raise RegistrationRequired("to use saved news")
@@ -222,27 +235,18 @@ def news(req):
         else:
             return "Nothing new to report"
 
-    url = args.pop(0)
-    feed = Feed.fromInput(url, req.user)
-
-    if len(args) <1:
+    if not num:
         # see new articles in this group
+        feed = Feed.fromInput(url, req.user)
         ents = feed.newer()
         if ents:
             return feed.makeFeedHeads(ents, links)
         return "Nothing new from %s" % feed.url
 
-
-    if savename:
-        # save feed with name
-        if not req.user: raise RegistrationRequired("to save news")
-        feed.save(nam=savename, requser=req.user)
-        return success(f"feed {feed.url} saved as {nam}")
-
     else:
         # read article N
         try:
-            idx=int(scmd)-1
+            idx=int(num)-1
         except ValueError:
             raise NewsSyntaxError
         return feed.toSMS('detail', idx)
