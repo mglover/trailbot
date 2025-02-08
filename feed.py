@@ -148,7 +148,6 @@ class Feed (NetSource, UserObj):
 
         ret = "From %s:" % src
         for i,e in enumerate(ents):
-            print('i,e', i, e)
             ret+='\n\t%d: ' % (i+1)
             ret+=e.title
             if links:
