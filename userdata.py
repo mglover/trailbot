@@ -23,7 +23,6 @@ class SharingAlreadyError(TBError):
 class SharingNotSharedError(TBError):
     msg = "Not sharing with %s"
 
-
 log = logging.getLogger('userdata')
 
 typs = {}
@@ -94,6 +93,9 @@ class UserObj(object):
             [cls.lookup(f, user) for f in os.listdir(dnam)]
         ))
 
+    @classmethod
+    def getDefault(cls):
+        return None
 
     def __init__(self, nam=None, requser=None, owner=None,
                                 readers=None, rawdata=None):
@@ -136,6 +138,8 @@ class UserObj(object):
             except ValueError as e:
                 tnam = nam
                 nam = cls.getDefault()
+                if not nam:
+                    raise DatumDoesNotExistError(nam)
             target = User.lookup(tnam)
         else:
             if type(requser) is not User:
