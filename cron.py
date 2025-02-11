@@ -50,7 +50,7 @@ class CronBot(object):
         """os.unlink(self.statusfile)"""
 
     def shutdown(self, *args):
-        log.debug("shutting down")
+        log.info("shutting down")
         self.running = False
 
     def perUser(self, user, start, stop):
@@ -105,8 +105,9 @@ class CronBot(object):
             microsecond=0
         )
 
+        log.info( "CronBot starting: %s" % start )
         while self.running:
-            log.info("Window ending: %s" % stop)
+            log.info( "Window ending: %s" % stop )
             self.setSignals(start.timestamp())
 
             for user, res in self.perWindow(start, stop):
