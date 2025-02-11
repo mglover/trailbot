@@ -69,12 +69,12 @@ class CronBot(object):
                 e.trigger.fire(datetime.now(UTC))
                 fired = True
 
-            if not e.trigger.after(stop):
+            if not e.trigger.after(stop, inc=False):
                 e.trigger.complete()
                 if not fired:
                     log.error(err)
                 else:
-                    log.debug(err)
+                    log.info(err)
 
         c.save()
         return cmds

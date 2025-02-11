@@ -198,10 +198,10 @@ class Event(object):
     def complete(self):
         self._complete = True
 
-    def after(self, after):
+    def after(self, after, inc=True):
         self._mkRules()
         after = after.replace(second=0, microsecond=0)
-        r =  self._rules.after(after, inc=True)
+        r =  self._rules.after(after, inc=inc)
         return r
 
     def is_active(self, after, before):
