@@ -16,7 +16,8 @@ class TimerTest(unittest.TestCase):
         self.uname = 't1'
         self.user = User.register('+0708666', self.uname)
         self.user.release()
-        self.now = datetime.now(UTC)
+        self.range = None
+        self.now = None
 
     def tearDown(self):
         self.user.unregister()
@@ -27,10 +28,19 @@ class TimerTest(unittest.TestCase):
     def releaseUser(self):
         self.user.release()
 
+    def getCal(self):
+        return Calendar.fromUser(User.lookup(self.user.phone))
+
+    def setClock(self, count=1, only_first=False, **kwargs):
+        clk = Clock(datetime.now(UTC))
+        self.now = clk.add(**kwargs)
+
     def runRange(self, count=1, only_first=False, **kwargs):
+        if not self.now:
+            self.setClock(count, only_first, **kwargs)
+        res = []
         clk = Clock(self.now)
         start = clk.add(**kwargs)
-        res = []
         for i in range(count):
             s = start+timedelta(minutes=i)
             e = s + timedelta(minutes=1)
@@ -62,6 +72,7 @@ class TimerTest(unittest.TestCase):
         self.assertEqual(0, len(evts))
 
     def test_simple(self):
+        self.setClock(hour=18, minute=29, count=2)
         self.injectEvents('1830 UTC', 'echo hello')
         evts = self.runRange(hour=18, minute=29, count=2)
 
@@ -89,7 +100,7 @@ class TimerTest(unittest.TestCase):
             'in 5 minutes', 'echo 1835'
         )
         evts = self.runRange(minutes=6, count=1)
-        c = Calendar.fromUser(User.lookup(self.user.phone))
+        c = self.getCal()
         self.assertEquals(0, len(evts))
         self.assertEquals(0, len(c))
 
