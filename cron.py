@@ -63,7 +63,6 @@ class CronBot(object):
 
         for e in c:
             fired = False
-            err = "no after: %s %s" % (e.trigger.when, e.trigger.created)
             if e.trigger.is_active(start, stop):
                 cmds.append(e.action)
                 e.trigger.fire(datetime.now(UTC))
@@ -71,10 +70,11 @@ class CronBot(object):
 
             if not e.trigger.after(stop, inc=False):
                 e.trigger.complete()
+                msg = "no after: %s %s" % (e.trigger.when, e.trigger.created)
                 if not fired:
-                    log.error(err)
+                    log.error(msg)
                 else:
-                    log.info(err)
+                    log.info(msg)
 
         c.save()
         return cmds
