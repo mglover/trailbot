@@ -68,7 +68,7 @@ class CronBot(object):
                 e.trigger.fire(datetime.now(UTC))
                 fired = True
 
-            if not e.trigger.after(stop, inc=False):
+            if not e.trigger.after(stop, inc=True):
                 e.trigger.complete()
                 msg = "no after: %s %s" % (e.trigger.when, e.trigger.created)
                 if not fired:

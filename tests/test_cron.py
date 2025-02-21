@@ -104,6 +104,14 @@ class TimerTest(unittest.TestCase):
         self.assertEquals(0, len(evts))
         self.assertEquals(0, len(c))
 
+    def test_every(self):
+        self.setClock(hour=18, minute=30)
+        self.injectEvents('every day at 1831 UTC', 'echo again')
+        evts = self.runRange(minutes=1, count=2)
+        self.assertEqual(1, len(evts))
+        c = self.getCal()
+        self.assertEquals(1, len(c))
+
 
 class ProcessTest(TBTest):
     def setUp(self):
