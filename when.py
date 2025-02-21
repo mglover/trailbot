@@ -38,6 +38,9 @@ class Zone(object):
         self.search = search
         self.tzinfo = tzinfo
 
+    def __repr__(self):
+        return self.name
+
     @classmethod
     def default(cls):
         return cls(

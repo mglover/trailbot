@@ -29,6 +29,8 @@ class CalEntry(object):
         return self.action == other.action \
             and self.trigger == other.trigger
 
+    def __repr__(self):
+        return "%s do %s" % (self.trigger, self.action)
 
 class Calendar(UserList):
     def __init__(self, user):
