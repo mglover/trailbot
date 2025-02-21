@@ -79,13 +79,15 @@ class CronBot(object):
         c.save()
         return cmds
 
-    def perWindow(self, start, stop):
+    def perWindow(self, start, stop, users=None):
         rlist = []
         for u in User.list(is_owner=True):
+            if users and u.handle not in users: continue
             cmds = self.perUser(u, start, stop)
             for c in cmds:
                 req = TBUserRequest(u.phone, c, user=u)
                 rlist.append((u, internal_dispatch(req)))
+
             u.release()
         return rlist
 

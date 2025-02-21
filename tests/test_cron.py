@@ -34,7 +34,7 @@ class TimerTest(unittest.TestCase):
         for i in range(count):
             s = start+timedelta(minutes=i)
             e = s + timedelta(minutes=1)
-            res += self.bot.perWindow(s, e)
+            res += self.bot.perWindow(s, e, users=[self.uname])
         return res
 
     def injectEvents(self, *args):
