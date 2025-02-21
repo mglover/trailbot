@@ -164,6 +164,8 @@ class Event(object):
         self._complete = False
         if not stamps:
             self.stamps = []
+        else:
+            self.stamps = stamps
         self.created = created or datetime.now(UTC)
         self.rows = parser.parse(when, lexer=lexer)
 
@@ -184,7 +186,7 @@ class Event(object):
             d['when'],
             zone,
             created = created,
-            stamps = d['stamps']
+            stamps = [ datetime.fromtimestamp(dd)  for dd in d['stamps'] ]
         )
 
     def toDict(self):
@@ -195,7 +197,7 @@ class Event(object):
             'when':self.when,
             'zone': self.zone.name,
             'created': self.created.timestamp(),
-            'stamps': self.stamps
+            'stamps': [ s.timestamp() for s in self.stamps ]
         }
 
     def complete(self):
@@ -232,9 +234,13 @@ class Event(object):
         for i in range(len(self.rows)):
             r = self.rows[i]
             if type(r) is tuple:
-                self.repeats = True
+                self._repeats = True
                 freq, kwargs = r
+
                 start = kwargs.get('dtstart', {})
+                if 'tzoffset' in kwargs:
+                    start['tzoffset'] = kwargs['tzoffset']
+                    kwargs.pop('tzoffset')
                 kwargs['dtstart'] = clk.add(**start)
                 if 'until' in kwargs:
                     kwargs['until'] = clk.add(**kwargs['until'])
