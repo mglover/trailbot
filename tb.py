@@ -5,7 +5,7 @@ Flask blueprint, command inmports, and entry point for TrailBot
 """
 import warnings
 from urllib3.connectionpool import InsecureRequestWarning
-from flask import request, Response, abort, Blueprint
+from flask import render_template, request, Response, abort, Blueprint
 
 from . import config
 from .dispatch import flask_dispatch
@@ -59,12 +59,17 @@ def code_fail(error):
 Try again?  That works sometimes.  I'll let the boss know what happened!"""
     return twiMLfromMessage(TBMessage(err))
 
-def authenticate(request):
+def authenticate_basic(request):
     if not request.authorization \
       or request.authorization.username != config.BASICAUTH_USER \
       or request.authorization.password != config.BASICAUTH_PASS:
         abort(401)
 
+def authenticate_internal(request):
+    """check something or other here
+    to make sure the request is coming through the webui
+    """
+    return True
 
 @bp.errorhandler(401)
 def auth_reqd(error):
@@ -75,12 +80,21 @@ def auth_reqd(error):
     )
 
 
-## entry point
+## twilio entry point
 @bp.route("/fetch")
 def sms_reply():
-    authenticate(request)
+    authenticate_basic(request)
     return flask_dispatch(request)
 
+
+@bp.route('/internal')
+def internal_reply():
+    authenticate_internal(request)
+    return flask_dispatch(request)
+
+@bp.route('/webui')
+def webui():
+    return render_template('webui.html')
 
 @bp.cli.command('cron')
 def cron():
