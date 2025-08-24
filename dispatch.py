@@ -186,7 +186,6 @@ def internal_dispatch(tbreq):
 
     return resp
 
-
 def flask_dispatch(flask_req):
     frm = flask_req.args.get('From')
     sms = flask_req.args.get('Body')
