@@ -68,6 +68,7 @@ def authenticate_basic(request):
 def authenticate_internal(request):
     """check something or other here
     to make sure the request is coming through the webui
+    match it up with a fake internal number
     """
     return True
 
@@ -86,11 +87,16 @@ def sms_reply():
     authenticate_basic(request)
     return flask_dispatch(request)
 
-
-@bp.route('/internal')
-def internal_reply():
+from .dispatch import TBUserRequest, internal_dispatch
+@bp.route('/api')
+def api_reply():
+    body = request.args.get('body')
+    frm = config.INTERNAL_NUMBER_PREFIX+"0000"
     authenticate_internal(request)
-    return flask_dispatch(request)
+    tbreq = TBUserRequest(frm, body)
+    tbresp = internal_dispatch(tbreq)
+    msg = tbresp.msgs[0].msg
+    return msg
 
 @bp.route('/webui')
 def webui():

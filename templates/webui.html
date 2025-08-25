@@ -1,17 +1,104 @@
 <html>
 
 <head>
+<!--link rel="stylesheet" href="/static/style.css"-->
+<style>
+#content {
+    max-height: 100vh;
+}
+#session {
+    padding: 1em;
+    background: black;
+    width: 90%;
+    max-width: 40em;
+    margin: auto
+}
+#log {
+    height: 70vh;
+    min-height: 5em;
+    overflow: scroll;
+    padding: 0.5em;
+    width: 80%;
+    margin: auto;
+}
+code {
+    display: block;
+    padding: .5em;
+    margin: .5em;
+}
+code.a {
+    background: white;
+    text-align: right;
+}
+code.b {
+    background: grey;
+    text-align: left;
+}
+input {
+    background: white;
+    text-align: right
+    padding: 0.5em;
+    width: 80%;
+    margin: auto;
+    display: block;
+
+}
+</style>
+<script>
+    function wrap(link) {
+        return "<a href=\""+link+"\">"+link+"</a>"
+    }
+    function markup(str) {
+        str = str.replaceAll("<", "&lt;")
+        str = str.replaceAll(">", "&gt;")
+        str = str.replaceAll('\n', '\n<br>')
+
+
+        link_re = /https*:\/\/[-\/\._A-Za-z0-9]+/g
+        str = str.replaceAll(link_re, wrap)
+        return str
+    }
+    function append(cls, str) {
+        log = document.getElementById('log')
+        n = document.createElement('code')
+        n.className=cls
+        n.innerHTML=markup(str)
+        log.appendChild(n)
+        log.scrollTop = log.scrollHeight
+    }
+    function xact(msg) {
+        append('a', msg)
+        
+        xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            append('b', xhr.responseText)
+        }
+        xhr.open("get", "/wx/api?body="+encodeURIComponent(msg));
+        xhr.send()
+    }
+
+    window.onload = function() {
+        console.log('loaded')
+        inp = document.getElementById('input')
+        inp.onkeypress = function (evt) {
+            if (evt.key == "Enter") {
+                xact(inp.value)
+                inp.value = ''
+            }
+        }
+        inp.value = ''
+    }
+
+</script>
 </head>
 
 <body>
-I'm going to write a web ui for trailbot here.  This page will load some JS thingy that will make requests using internal (+0807) numbers.  Some day it will let you authenticate a web session from yr phone so you have access to yr account over the web.
-
-<ul>
-<li> find a JS framework
-<li> style this page
-<li> ...a miracle occurs...
-<li> done
-</ul>
-
+<div class="content">
+    <p>Trailbot: improve styling, anonymous interface complete, link account to web session
+    <div id="session">
+        <div id="log"></div>
+        <input autofocus type="text"  id="input"></input>
+    </div>
+</div>
 </body>
 </html>
