@@ -108,10 +108,11 @@ class UserObj(object):
         self.rawdata = rawdata or {}
 
     def toDict(self):
+        """return a serializable dictionary of this object"""
         raise UnimplementedError
 
-
     def parseData(self, data):
+        """ set the current object's members from dictionary"""
         raise UnimplementedError
 
     def toJson(self):
