@@ -101,8 +101,8 @@ class TimerTest(unittest.TestCase):
         )
         evts = self.runRange(minutes=6, count=1)
         c = self.getCal()
-        self.assertEquals(0, len(evts))
-        self.assertEquals(0, len(c))
+        self.assertEqual(0, len(evts))
+        self.assertEqual(0, len(c))
 
     def test_every(self):
         self.setClock(hour=18, minute=30)
@@ -110,7 +110,7 @@ class TimerTest(unittest.TestCase):
         evts = self.runRange(minutes=1, count=2)
         self.assertEqual(1, len(evts))
         c = self.getCal()
-        self.assertEquals(1, len(c))
+        self.assertEqual(1, len(c))
 
 
 class ProcessTest(TBTest):

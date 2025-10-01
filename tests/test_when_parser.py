@@ -15,7 +15,7 @@ class ParserTest(unittest.TestCase):
                 lexer=lexer)
         else:
             res = parser.parse(self.input, lexer=lexer)
-            self.assertEquals(self.expect, res)
+            self.assertEqual(self.expect, res)
 
 class TestWhenAbsTimeNoWrap(ParserTest):
 

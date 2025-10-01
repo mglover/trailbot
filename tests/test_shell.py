@@ -10,39 +10,39 @@ class ShellTest(unittest.TestCase):
 
     def test_simple(self):
         seq = self.parse("echo hello")
-        self.assertEquals(1, len(seq))
+        self.assertEqual(1, len(seq))
         pl = seq[0]
-        self.assertEquals(pl.exe, 'echo')
-        self.assertEquals(pl.args, ['hello'])
-        self.assertEquals(pl.pipe, None)
+        self.assertEqual(pl.exe, 'echo')
+        self.assertEqual(pl.args, ['hello'])
+        self.assertEqual(pl.pipe, None)
 
     def test_pipeline(self):
         seq = self.parse("echo  hello | @test")
-        self.assertEquals(1, len(seq))
+        self.assertEqual(1, len(seq))
         pl = seq[0]
-        self.assertEquals(pl.exe, 'echo')
-        self.assertEquals(pl.args, ['hello'])
-        self.assertEquals(pl.pipe.exe, '@test')
+        self.assertEqual(pl.exe, 'echo')
+        self.assertEqual(pl.args, ['hello'])
+        self.assertEqual(pl.pipe.exe, '@test')
 
     def test_qstr(self):
         seq = self.parse('echo "hello world"')
         self.assertEqual(1, len(seq))
         pl = seq[0]
-        self.assertEquals(pl.exe, 'echo')
-        self.assertEquals(pl.args, ['hello world'])
+        self.assertEqual(pl.exe, 'echo')
+        self.assertEqual(pl.args, ['hello world'])
 
     def test_multiarg(self):
         seq = self.parse('echo hello world')
         self.assertEqual(1, len(seq))
         pl = seq[0]
-        self.assertEquals(pl.exe, 'echo')
-        self.assertEquals(pl.args, ['hello', 'world'])
+        self.assertEqual(pl.exe, 'echo')
+        self.assertEqual(pl.args, ['hello', 'world'])
 
     def test_sequence(self):
         seq = self.parse('echo hello;echo world')
-        self.assertEquals(2, len(seq))
-        self.assertEquals(['hello'], seq[0].args)
-        self.assertEquals(['world'], seq[1].args)
+        self.assertEqual(2, len(seq))
+        self.assertEqual(['hello'], seq[0].args)
+        self.assertEqual(['world'], seq[1].args)
 
 
 class PipelineTest(TBTest):
@@ -65,6 +65,6 @@ class RedirectTest(TBTest):
         res = self.req1("echo jukes > myword")
         self.assertSuccess(res)
         res = self.req1("echo < myword")
-        self.assertEquals(res, 'jukes')
+        self.assertEqual(res, 'jukes')
 
 
