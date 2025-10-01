@@ -6,19 +6,22 @@ import json, os, sys
 from .dispatch import tbroute, tbhelp
 from .user import needsreg
 from .userdata import UserObj
-from .core import shapedRandomWord
+from .core import TBError, shapedRandomWord
 from .db.TWL06 import twl
 
-class FiveError(Exception):
+class FiveError(TBError):
     pass
+
+class NotAWord(FiveError):
+    msg = "%s is not a word."
 
 
 class FiveWord(UserObj):
     """Try to guess the secret five-letter word
-in six guesses
+in five guesses
 
 After each guess, I'll tell you which letters are
-right, and which of those are in the correct 
+right, and which of those are in the correct
 location in the secret word. I'll also show you
 all of the letters you guessed so far,
 and which ones are part of the secret word.
@@ -30,14 +33,19 @@ NY Times website,  you know how to play
 say '5word' and your five-letter guess  to start playing,
 """
     WLEN=5
-    MAXTURN=6
+    MAXTURN=5
+    MAXSTRIKES=3
     typ = '5word'
 
-    def __init__(self, word='', guessed=None, **kwargs):
+    def __init__(self, word='', guessed=None, strikes=None, **kwargs):
         UserObj.__init__(self, **kwargs)
         self.word = word.lower()
+
         if not guessed: guessed=[]
         self.guessed = guessed
+
+        if not strikes: strikes=[]
+        self.strikes = strikes
 
     @classmethod
     def random(cls, **kwargs):
@@ -47,7 +55,8 @@ say '5word' and your five-letter guess  to start playing,
     def toDict(self):
         return {
             'word': self.word,
-            'guessed': self.guessed
+            'guessed': self.guessed,
+            'strikes' : self.strikes or []
         }
 
     def parseData(self, d):
@@ -55,6 +64,7 @@ say '5word' and your five-letter guess  to start playing,
         assert len(word) == self.WLEN and twl.check(word)
         self.word = word
         self.guessed = d['guessed']
+        self.strikes = d.get('strikes') or []
 
     @property
     def turn(self):
@@ -104,7 +114,8 @@ say '5word' and your five-letter guess  to start playing,
             raise FiveError( "Must guess five letters")
 
         if not twl.check(guess):
-            raise FiveError ('%s is not a word' % guess)
+            self.strikes.append(guess)
+            raise NotAWord(guess)
 
         self.guessed.append(guess)
         if guess == self.word:
@@ -116,7 +127,7 @@ say '5word' and your five-letter guess  to start playing,
         return  self.guessed and self.guessed[-1] == self.word
 
     def didLose(self):
-        return self.turn > self.MAXTURN
+        return self.turn > self.MAXTURN or len(self.strikes) >= self.MAXSTRIKES
 
 UserObj.register(FiveWord)
 
@@ -138,6 +149,17 @@ def playFiveWord(user, args):
 
     try:
         out = f.doGuess(args)
+
+    except NotAWord as e:
+        out = str(e)
+        left = f.MAXSTRIKES - len(f.strikes)
+        if left > 1:
+            out += "You have %d strikes left." % left
+        elif left == 1:
+            out += "One more strike left."
+        else:
+            out += "No strikes left."
+
     except FiveError as e:
         return str(e)
 
@@ -151,7 +173,7 @@ def playFiveWord(user, args):
     else:
         f.erase()
         if won: out = "You win!"
-        else: out = "You lose."
+        else: out += "\nYou lose."
         return out + "\nWord was %s" %  word
 
 
