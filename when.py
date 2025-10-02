@@ -54,10 +54,12 @@ class Zone(object):
     def fromLocation(cls, loc, source):
         assert type(loc) is Location
         zf = TimezoneFinder()
+        tzname = zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat))
         return cls(
-            zf.timezone_at(lng=float(loc.lon), lat=float(loc.lat)),
+            tzname,
             source=source,
-            search=loc
+            search=loc,
+            tzinfo=ZoneInfo(tzname)
         )
 
     @classmethod
