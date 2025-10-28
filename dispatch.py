@@ -187,8 +187,14 @@ def internal_dispatch(tbreq):
     return resp
 
 def flask_dispatch(flask_req):
-    frm = flask_req.args.get('From')
-    sms = flask_req.args.get('Body')
+    def form_or_args(key):
+        val = flask_req.form.get(key)
+        if not val:
+            val = flask_req.args.get(key)
+        return val
+
+    frm = form_or_args('From')
+    sms = form_or_args('Body')
     tbreq = TBUserRequest(frm, sms)
     resp = internal_dispatch(tbreq)
     return twiMLfromResponse(resp)
