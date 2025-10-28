@@ -20,6 +20,9 @@ class NewsSyntaxError(TBError):
 class FeedNotFound(TBError):
     msg = "Feed not found: %s"
 
+class InvalidDate(TBError):
+    msg = "Err? I couldn't figure out when you meant by '%s'"
+
 class HTMLHasAlternate(TBError):
     pass
 
@@ -108,9 +111,15 @@ class Feed (NetSource, UserObj):
             raise FeedNotFound(c.bozo_exception)
         return c
 
-    def newer(self, max=5):
+    def newer(self, since=None, max=5):
         new = []
-        if 'published' in self.content.feed:
+        if since:
+            try:
+                newlast = dateutil.parser.parse(since)
+            except dateutil.parser.ParserError:
+                raise InvalidDate(since)
+
+        elif 'published' in self.content.feed:
             newlast = dateutil.parser.parse(self.content.feed.published)
         else : newlast=None
 
@@ -123,8 +132,8 @@ class Feed (NetSource, UserObj):
                 new.append(ent)
             if newlast is None or pubdate > newlast:
                 newlast = pubdate
-        self.last = newlast
-        if self.nam and self.requser:
+        if not since and self.nam and self.requser:
+            self.last = newlast
             self.save()
         return new[:max]
 
@@ -185,13 +194,11 @@ UserObj.register(Feed)
     'news'
   to get headlines from your saved feeds
 
-where FEED is the URL for an RSS or Atom feed, or (for
-registered users) the NAME of a saved feed
-
+where  FEED is the URL of a webpage that publishes an RSS or Atom feed or (for registered users) the NAME of a saved feed.
 ''')
 def news(req):
     links = False
-    args = dict(parseArgs(req.args, ['with', 'as']))
+    args = dict(parseArgs(req.args, ['with', 'as', 'since']))
     if '' in args:
         a = args.get('','').split()
         url = a and a.pop(0)
@@ -225,7 +232,7 @@ def news(req):
         msg = []
         for f in feeds:
            try:
-                ents = f.newer()
+                ents = f.newer(since=args.get('since'))
                 if ents: msg.append(f.makeFeedHeads(ents, links))
            except (FeedNotFound,ResponseError) as e:
                 msg.append("%s: %s" % (f.nam, str(e)))
@@ -237,7 +244,7 @@ def news(req):
     if not num:
         # see new articles in this group
         feed = Feed.fromInput(url, req.user)
-        ents = feed.newer()
+        ents = feed.newer(since=args.get('since'))
         if ents:
             return feed.makeFeedHeads(ents, links)
         return "Nothing new from %s" % feed.url
