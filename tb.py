@@ -82,13 +82,13 @@ def auth_reqd(error):
 
 
 ## twilio entry point
-@bp.route("/fetch")
+@bp.route("/fetch", methods=['GET','POST'])
 def sms_reply():
     authenticate_basic(request)
     return flask_dispatch(request)
 
 from .dispatch import TBUserRequest, internal_dispatch
-@bp.route('/api')
+@bp.route('/api', methods=['GET','POST'])
 def api_reply():
     body = request.args.get('body')
     frm = config.INTERNAL_NUMBER_PREFIX+"0000"
