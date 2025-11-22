@@ -130,15 +130,17 @@ Say something like:
 """)
 @needsreg("to use saved data")
 def saveloc(req):
+    print('req.cmd', req.cmd)
     if req.cmd == 'addr':
-        nam, q = req.args.split(maxsplit=1)
+        args = req.args.split(maxsplit=1)
     else:
-        nam = req.cmd
-        q = req.args
+        args = (req.cmd, req.args)
 
-    loc = Location.fromInput(q, req.user)
-    loc.save(nam.lower())
-
+    nam = args[0]
+    if len(args) > 1 and args[1]:
+        loc = Location.fromInput(args[1], req.user)
+        loc.save(nam.lower())
+    else:
+        print('nam', nam)
+        loc = Location.lookup(nam, req.user)
     return render_template("forget.txt", nam=nam.lower(), loc=loc)
-
-
