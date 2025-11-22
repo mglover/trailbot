@@ -345,7 +345,7 @@ def now(req):
         zone = Zone.fromLocation(loc, source='location')
     else:
         loc = None
-        zone = Zone.fromUser(req.user)
+        zone = Zone.fromRequest(req)
     now = datetime.now(zone.tzinfo)
 
     msg = "Current time is: %s" % now.ctime()
