@@ -83,7 +83,7 @@ class TBRequest(object):
         if len(p) == 2:
             self.cmd, self.args = p
         else:
-            self.cmd = p
+            self.cmd = p[0]
             self.args = ''
 
     @classmethod
