@@ -67,9 +67,10 @@ def getAction(search_cmd):
 
 
 class TBRequest(object):
-    def __init__(self, user, frm, sms, argv=None):
+    def __init__(self, user, frm, sms, cookies=None, argv=None):
         self.user = user
         self.frm = frm
+        self.cookies = cookies or {}
         if argv:
             assert type(argv) is list
             # we were passed in pre-parsed args
@@ -87,12 +88,12 @@ class TBRequest(object):
             self.args = ''
 
     @classmethod
-    def fromPipeline(cls, ureq, pl):
+    def fromPipeline(cls, ureq, pl, **kwargs):
         if pl.invar:
             args = Args.lookup(pl.invar, requser=ureq.user).args
         else:
             args = pl.args
-        return cls(ureq.user, ureq.frm, pl.exe, argv=args)
+        return cls(ureq.user, ureq.frm, pl.exe, argv=args, **kwargs)
 
 
     def __str__(self):
@@ -100,7 +101,7 @@ class TBRequest(object):
 
 
 class TBUserRequest(object):
-    def __init__(self, frm, cmd, user=None):
+    def __init__(self, frm, cmd, cookies=None, user=None):
         if not frm or not cmd:
             raise EmptyRequest
         if user:
@@ -110,6 +111,28 @@ class TBUserRequest(object):
             self.user = User.lookup(frm, raiseOnFail=False, is_owner=True)
         self.frm = frm
         self.seq = parser.parse(cmd,lexer=lexer)
+        self.cookies = cookies
+
+    def processPipeline(self, idx):
+        pl = self.seq[idx]
+        resp = ''
+        while pl:
+            if pl.invar:
+                v = Args.lookup(pl.invar, requser=self.user)
+                if not v:
+                   raise ValueError('not a var: %s' % pl.invar)
+                pl.args = v.args
+            elif resp:
+                pl.args.append(resp)
+            preq = TBRequest.fromPipeline(self, pl, cookies=self.cookies)
+            act = getAction(pl.exe)
+            resp = act(preq)
+            if pl.outvar:
+                Args.fromString(resp, requser=self.user).save(pl.outvar)
+                resp = success("value saved")
+            pl = pl.pipe
+
+        return resp
 
 
 class Args(UserObj):
@@ -134,35 +157,11 @@ class Args(UserObj):
 UserObj.register(Args)
 
 
-def processPipeline(req, idx):
-    pl = req.seq[idx]
-    resp = ''
-    while pl:
-        if pl.invar:
-            v = Args.lookup(pl.invar, requser=req.user)
-            if not v:
-                raise ValueError('not a var: %s' % pl.invar)
-            pl.args = v.args
-        elif resp:
-            pl.args.append(resp)
-        preq = TBRequest.fromPipeline(req, pl)
-        act = getAction(pl.exe)
-        resp = act(preq)
-        if pl.outvar:
-            Args.fromString(resp, requser=req.user).save(pl.outvar)
-            resp = success("value saved")
-        pl = pl.pipe
-
-    return resp
-
-
 def internal_dispatch(tbreq):
     msg = None
     try:
-        for i in range(1):
-            # XX how to merge multiple messages
-            # XX which may not go to the same destination?
-            msg = processPipeline(tbreq, i)
+        # XX handle multiple requsts per pipeline
+        msg = tbreq.processPipeline(0)
 
     except TBError as e:
         msg = str(e)
@@ -183,7 +182,6 @@ def internal_dispatch(tbreq):
     if tbreq and tbreq.user:
         tbreq.user.setMore(resp.getMore())
         tbreq.user.release()
-
     return resp
 
 def flask_dispatch(flask_req):
@@ -195,6 +193,7 @@ def flask_dispatch(flask_req):
 
     frm = form_or_args('From')
     sms = form_or_args('Body')
-    tbreq = TBUserRequest(frm, sms)
+    cookies = flask_req.cookies
+    tbreq = TBUserRequest(frm, sms, cookies=cookies)
     resp = internal_dispatch(tbreq)
     return twiMLfromResponse(resp)
