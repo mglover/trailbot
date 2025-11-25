@@ -93,7 +93,7 @@ def success(msg):
 def getPhoneClass(phone):
     assert type(phone) is str
     if phone.startswith("+07807"): return 'bot'
-    if phone.startswith("+0400"): return 'webui'
+    if phone.startswith(config.INTERNAL_NUMBER_PREFIX): return 'webui'
     else: return 'phone'
 
 def parseArgs(args, keywords):
