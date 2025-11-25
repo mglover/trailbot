@@ -38,6 +38,9 @@ from .wordbot import WordBot
 for bot in [WordBot]:
     bot()
 
+## API/WebUI
+from .api import webui, api_reply
+
 # requests run through the local proxy with an unknown cert
 warnings.simplefilter(
     "ignore",
@@ -57,6 +60,8 @@ warnings.simplefilter(
 def code_fail(error):
     err = """I'm sorry, something has gone wrong with my programming.
 Try again?  That works sometimes.  I'll let the boss know what happened!"""
+
+    # XXX maybe log something here?
     return twiMLfromMessage(TBMessage(err))
 
 def authenticate_basic(request):
@@ -64,13 +69,6 @@ def authenticate_basic(request):
       or request.authorization.username != config.BASICAUTH_USER \
       or request.authorization.password != config.BASICAUTH_PASS:
         abort(401)
-
-def authenticate_internal(request):
-    """check something or other here
-    to make sure the request is coming through the webui
-    match it up with a fake internal number
-    """
-    return True
 
 @bp.errorhandler(401)
 def auth_reqd(error):
@@ -80,27 +78,11 @@ def auth_reqd(error):
         {'WWW-Authenticate': 'Basic realm TrailBot'}
     )
 
-
 ## twilio entry point
 @bp.route("/fetch", methods=['GET','POST'])
 def sms_reply():
     authenticate_basic(request)
     return flask_dispatch(request)
-
-from .dispatch import TBUserRequest, internal_dispatch
-@bp.route('/api', methods=['GET','POST'])
-def api_reply():
-    body = request.args.get('body')
-    frm = config.INTERNAL_NUMBER_PREFIX+"0000"
-    authenticate_internal(request)
-    tbreq = TBUserRequest(frm, body)
-    tbresp = internal_dispatch(tbreq)
-    msg = tbresp.msgs[0].msg
-    return msg
-
-@bp.route('/webui')
-def webui():
-    return render_template('webui.html')
 
 @bp.cli.command('cron')
 def cron():

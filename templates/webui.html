@@ -48,17 +48,17 @@ input {
     function wrap(link) {
         return "<a href=\""+link+"\">"+link+"</a>"
     }
+
     function markup(str) {
         str = str.replaceAll("<", "&lt;")
         str = str.replaceAll(">", "&gt;")
         str = str.replaceAll('\n', '\n<br>')
-
-
         link_re = /https*:\/\/[-\/\._A-Za-z0-9]+/g
         str = str.replaceAll(link_re, wrap)
         return str
     }
-    function append(cls, str) {
+
+    function appendMsg(cls, str) {
         log = document.getElementById('log')
         n = document.createElement('code')
         n.className=cls
@@ -66,12 +66,15 @@ input {
         log.appendChild(n)
         log.scrollTop = log.scrollHeight
     }
+
     function xact(msg) {
-        append('a', msg)
+        appendMsg('a', msg)
         
         xhr = new XMLHttpRequest();
         xhr.onload = function () {
-            append('b', xhr.responseText)
+            if (xhr.responseText) {
+                appendMsg('b', xhr.responseText)
+            }
         }
         xhr.open("get", "/wx/api?body="+encodeURIComponent(msg));
         xhr.send()
