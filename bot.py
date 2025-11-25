@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from flask import render_template
 
 from . import config, twilio
-from .core import isBotPhone
+from .core import getPhoneClass
 from .user import User, HandleUnknownError
 from .group import Group, GroupUnknownError
 from .when import mkruleset, mkdatetime
@@ -74,7 +74,7 @@ class Bot(object):
 
     def send_to_phone(self, phone, msg):
         if phone == self.phone: return
-        if isBotPhone(phone):
+        if getPhoneClass(phone) == 'bot'
             raise ValueError("Trying to send to bot phone %s" % phone)
 
         twilio.smsToPhone(phone, msg)
@@ -82,7 +82,7 @@ class Bot(object):
 
 class ChannelBot(Bot):
     def __init__(self):
-        assert isBotPhone(self.phone)
+        assert getPhoneClass(self.phone) == 'bot')
         Bot.__init__(self)
         try:
             self.group = Group.fromTag(self.tag, self.user)

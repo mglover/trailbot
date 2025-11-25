@@ -4,7 +4,7 @@
 """
 import logging, requests
 from . import config
-from .core import escape, isBotPhone
+from .core import escape, getPhoneClass
 
 MSG_MAX_LEN=1500
 
@@ -43,7 +43,7 @@ def smsToPhone(phone, msg):
         A single message, sent to a single phone number,
         *not* in  response to an incoming message
     """
-    if isBotPhone(phone):
+    if getPhoneClass(phone) == 'bot':
         log.error("Internal send to Bot(%s): %s" % (phone, msg) )
         return
 

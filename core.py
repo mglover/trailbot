@@ -90,9 +90,11 @@ def escape(str_xml):
 def success(msg):
     return "TrailBot: Success: %s" % msg
 
-def isBotPhone(phone):
+def getPhoneClass(phone):
     assert type(phone) is str
-    return phone.startswith("+07807")
+    if phone.startswith("+07807"): return 'bot'
+    if phone.startswith("+0400"): return 'webui'
+    else: return 'phone'
 
 def parseArgs(args, keywords):
     """ search the request for values separated by keywords 
