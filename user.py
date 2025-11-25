@@ -3,7 +3,7 @@
 ##
 import os, json, shutil, time
 from . import config
-from .core import TBError, exLock, exUnlock
+from .core import TBError, exLock, exUnlock, getPhoneClass
 
 HANDLE_MIN = 2
 HANDLE_MAX = 15
@@ -24,6 +24,8 @@ class HandleExistsError(TBError):
     msg = "Handle '@%s' already exists"
 class HandleAlreadyYoursError(TBError):
     msg = "The handle @%s is already registered to this phone number"
+class PhoneNotAPhoneError(TBError):
+    msg = "You have to register from your phone, not the Web UI"
 class PhoneExistsError(TBError):
     msg = "This phone number is already registered with the handle @%s"
 class HandleUnknownError(TBError):
@@ -156,6 +158,8 @@ class User(object):
             raise HandleTooShortError(handle)
         if not handle.isalnum():
             raise HandleBadCharsError(handle)
+        if not getPhoneClass(phone) == 'phone':
+            raise PhoneNotAPhoneError()
 
         # both the phone and handle must be unique
         pu = cls.lookup(phone, False)

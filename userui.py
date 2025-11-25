@@ -37,7 +37,7 @@ def reg(req):
 @tbhelp(
 """unregister -- delete your TrailBot @handle
 
-Say: 'unregister' or 'unreg'
+Say: 'unregister @handle' or 'unreg @handle'
 
 WARNING: this will immediately delete all of your
 saved data.  There is no undo!
@@ -46,6 +46,8 @@ saved data.  There is no undo!
 def unreg(req):
     if not req.user:
         raise RegistrationRequired('to unregister')
+    if req.args != '@'+req.user.handle:
+        return ("You need to say 'unregister @handle' to unregister")
     req.user.unregister()
     return success("@%s unregistered." % req.user.handle)
 
