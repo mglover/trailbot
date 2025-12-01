@@ -118,7 +118,8 @@ class LoginCode(object):
         if not os.path.exists(path):
             raise WebUICodeInvalid(user.handle)
         with open(path) as fd:
-            code2 = fd.readline()
+            code2 = fd.readline().strip()
+
             exps = fd.readline().strip()
         exp = datetime.datetime.fromtimestamp(float(exps))
         now = datetime.datetime.now()
