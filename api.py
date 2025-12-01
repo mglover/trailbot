@@ -136,7 +136,7 @@ def webui(req):
             raise RegistrationRequired("to enable the WebUI")
         # XXX ensure this is a true user
         otp = LoginCode.generate(req.user)
-        return "Your WebUI login code is: %06d."
+        return "Your WebUI login code is: %s." % otp
 
     elif cmd == 'login':
         try:
