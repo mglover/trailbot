@@ -83,8 +83,8 @@ class WebSession(object):
 
     @classmethod
     def _generateCookie(cls):
-        rnd = random.randbytes(16)
-        return sha1(rnd).hexdigest()
+        rnd = ''.join([ chr(random.randint(0,256)) for r in range(16) ])
+        return sha1(rnd.encode()).hexdigest()
 
 
     @classmethod
