@@ -98,24 +98,32 @@ class WebSession(object):
 
 
 class LoginCode(object):
-    codes = {}
+    db = os.path.join(DB_ROOT, 'otp')
+    if not os.path.exists(db):
+        os.mkdir(db)
 
     @classmethod
     def generate(cls, user):
         code = "%06d" % random.randint(0, 999999)
         exp = datetime.datetime.now()+AUTH_TIMEOUT
-        cls.codes[user.handle] = (code, exp)
+        exps = str(exp.timestamp())
+        path = os.path.join(cls.db, user.handle)
+        with open(path, 'w') as fd:
+            fd.write( "%s\n%s"" % (code, exps) )
         return code
 
     @classmethod
     def validate(cls, user, code1):
-        now = datetime.datetime.now()
-        try:
-            (code2, exp) = cls.codes[user.handle]
-        except KeyError:
+        path = os.path.join(cls.db, user.handle)
+        if not os.path.exists(path):
             raise WebUICodeInvalid(code1)
+        with open(path) as fd:
+            code2 = fd.readline()
+            exps = fd.readline().strip()
+        exp = datetime.datetime.fromtimestamp(float(exps))
+        now = datetime.datetime.now()
         if code1 != code2 or now > exp :
-            raise WebUICodeInvalid(code)
+            raise WebUICodeInvalid(code1)
         return exp
 
 
