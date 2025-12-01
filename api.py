@@ -109,7 +109,7 @@ class LoginCode(object):
         exps = str(exp.timestamp())
         path = os.path.join(cls.db, user.handle)
         with open(path, 'w') as fd:
-            fd.write( "%s\n%s"" % (code, exps) )
+            fd.write( "%s\n%s" % (code, exps) )
         return code
 
     @classmethod
