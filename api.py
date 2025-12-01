@@ -116,7 +116,7 @@ class LoginCode(object):
     def validate(cls, user, code1):
         path = os.path.join(cls.db, user.handle)
         if not os.path.exists(path):
-            raise WebUICodeInvalid(code1)
+            raise WebUICodeInvalid(user.handle)
         with open(path) as fd:
             code2 = fd.readline()
             exps = fd.readline().strip()
