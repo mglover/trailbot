@@ -26,7 +26,10 @@ class WebUILoginHelp(TBError):
 class WebSession(object):
     cname = "WebUI"
     db =os.path.join(DB_ROOT, 'sessions')
-    open_phones = []
+    if not os.path.exists(db):
+        os.mkdir(db)
+
+    open_phones = [] # I don't think this works
 
     def __init__(self, cookie=None, phone=None, exp=None):
         now = datetime.datetime.now()
@@ -68,12 +71,21 @@ class WebSession(object):
 
     @classmethod
     def fromCookie(cls, cookie):
-        if not os.path.exists(cls.db):
-            os.mkdir(cls.db)
         path = os.path.join(cls.db, cookie)
+        return cls.fromPath(path)
+
+    @classmethod
+    def fromUser(cls, user):
+        for f in os.listdir(cls.db):
+            s = cls.fromPath(os.path.join(cls.db, f))
+            if s.phone == user.phone:
+                return s
+        return cls(None, None, None)
+
+    @classmethod
+    def fromPath(cls, path):
         if not os.path.exists(path):
             return cls(None, None, None)
-
         with open(path) as fd:
             phone = fd.readline().strip()
             exps = fd.readline().strip()
@@ -163,7 +175,7 @@ def webui(req):
             (user.handle, left.seconds//60)
 
     elif cmd == 'logout':
-        session = WebSession.fromRequest(req)
+        session = WebSession.fromUser(req.user)
         session.phone = None
         session.save()
         return "Signed out. Thanks for using the WebUI!"
