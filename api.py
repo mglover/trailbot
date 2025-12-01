@@ -16,10 +16,10 @@ AUTH_TIMEOUT=datetime.timedelta(seconds=30*60)
 class WebSessionExpired(ValueError):
     pass
 
-class WebCodeInvalid(TBError):
+class WebUICodeInvalid(TBError):
     msg = "Not a valid WebUI code: %s"
 
-class WebLoginHelp(TBError):
+class WebUILoginHelp(TBError):
     msg = "You must provide a handle and a login code."
 
 
@@ -29,7 +29,6 @@ class WebSession(object):
     open_phones = []
 
     def __init__(self, cookie=None, phone=None, exp=None):
-        print('__init__', cookie, phone, exp)
         now = datetime.datetime.now()
         if cookie:
             self.cookie = cookie
@@ -48,7 +47,6 @@ class WebSession(object):
             self.phone = self._allocInternalPhone()
             self.exp = now + AUTH_TIMEOUT
 
-        print('WebSession', self.phone, self.cookie, self.exp)
 
     def save(self):
         cf = os.path.join(self.db, self.cookie)
@@ -56,7 +54,6 @@ class WebSession(object):
         else: exps = ''
         with open(cf, 'w') as fd:
             fd.write("%s\n%s" % (self.phone, exps))
-        print('save', self.cookie, self.phone, self.exp)
 
     @property
     def cookies(self):
@@ -101,7 +98,7 @@ class WebSession(object):
 
 
 class LoginCode(object):
-    codes = {'mg': ('000000', datetime.datetime.now()+datetime.timedelta(30)) }
+    codes = {}
 
     @classmethod
     def generate(cls, user):
@@ -113,7 +110,10 @@ class LoginCode(object):
     @classmethod
     def validate(cls, user, code1):
         now = datetime.datetime.now()
-        (code2, exp) = cls.codes[user.handle]
+        try:
+            (code2, exp) = cls.codes[user.handle]
+        except KeyError:
+            raise WebUICodeInvalid(code1)
         if code1 != code2 or now > exp :
             raise WebUICodeInvalid(code)
         return exp

@@ -6,20 +6,37 @@
 #content {
     max-height: 100vh;
 }
-#session {
-    padding: 1em;
-    background: black;
+#banner, #session {
     width: 90%;
     max-width: 40em;
-    margin: auto
+    margin: auto;
+    padding: 1em;
+}
+#banner {
+    background: grey;
+    max-height: 30vh;
+}
+#session {
+    background: grey;
 }
 #log {
+    background: black;
     height: 70vh;
     min-height: 5em;
     overflow: scroll;
     padding: 0.5em;
     width: 80%;
     margin: auto;
+}
+.todo {
+    font-family: mono;
+    font-size: 80%;
+    background: #ffa;
+    margin: auto;
+    width: 50%;
+    text-align: center;
+    list-style-type: none;
+    padding: 1em;
 }
 code {
     display: block;
@@ -36,15 +53,16 @@ code.b {
 }
 input {
     background: white;
-    text-align: right
-    padding: 0.5em;
+    text-align: right;
     width: 80%;
-    margin: auto;
+    margin: 2em auto;
     display: block;
 
 }
 </style>
 <script>
+    inp = null
+
     function wrap(link) {
         return "<a href=\""+link+"\">"+link+"</a>"
     }
@@ -70,7 +88,8 @@ input {
     function xact(msg) {
         appendMsg('a', msg)
         
-        xhr = new XMLHttpRequest();
+        var xhr = new XMLHttpRequest();
+
         xhr.onload = function () {
             if (xhr.responseText) {
                 appendMsg('b', xhr.responseText)
@@ -82,14 +101,34 @@ input {
 
     window.onload = function() {
         console.log('loaded')
+        h = []
+        hidx = 0
         inp = document.getElementById('input')
-        inp.onkeypress = function (evt) {
+        inp.onkeydown = function (evt) {
             if (evt.key == "Enter") {
+                h.push(inp.value)
+                hidx = h.length
                 xact(inp.value)
                 inp.value = ''
+                inp.focus()
+            }
+            else if (evt.key == "ArrowUp") {
+                if (hidx > 0) {
+                    inp.value = h[--hidx]
+                }
+            }
+            else if (evt.key == "ArrowDown") {
+                if (hidx < h.length-1) {
+                    inp.value = h[++hidx]
+                } else {
+                    inp.value = ''
+                    hidx=h.length
+                }
             }
         }
+        xact('help')
         inp.value = ''
+        inp.focus()
     }
 
 </script>
@@ -97,10 +136,13 @@ input {
 
 <body>
 <div class="content">
-    <p>Trailbot: improve styling, anonymous interface complete, link account to web session
+  <div id="banner">
+    <p>Trailbot WebUI
+  </div>
     <div id="session">
-        <div id="log"></div>
-        <input autofocus type="text"  id="input"></input>
+      <div id="log"></div>
+       <input autofocus type="text"  id="input"></input>
+      </div>
     </div>
 </div>
 </body>
