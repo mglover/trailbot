@@ -11,7 +11,7 @@ from .response import TBResponse
 from .user import User, RegistrationRequired
 
 
-AUTH_TIMEOUT=datetime.timedelta(seconds=30*60)
+AUTH_TIMEOUT=datetime.timedelta(seconds=2*60*60)
 
 class WebSessionExpired(ValueError):
     pass
