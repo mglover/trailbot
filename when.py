@@ -256,8 +256,8 @@ class Event(object):
 @tbroute('when', cat="cal")
 @tbhelp('''when -- parse a plain english date
 
-say e.g: 'next tuesday'
-or: 'every friday at 9am'
+say e.g: 'when is next tuesday'
+or: 'when every friday at 9am'
 ''')
 def when(req):
     args = dict(parseArgs(req.args, ['in', 'is']))
