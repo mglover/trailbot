@@ -103,7 +103,7 @@ class LoginCode(object):
     @classmethod
     def generate(cls, user):
         code = "%06d" % random.randint(0, 999999)
-        exp = datetime.datetime.now+AUTH_TIMEOUT
+        exp = datetime.datetime.now()+AUTH_TIMEOUT
         cls.codes[user.handle] = (code, exp)
         return code
 
