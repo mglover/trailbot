@@ -89,9 +89,10 @@ class WebSession(object):
         with open(path) as fd:
             phone = fd.readline().strip()
             exps = fd.readline().strip()
-            if exps: exp = datetime.datetime.fromtimestamp(float(exps))
-            else: exp = None
-            return cls(cookie, phone, exp)
+        cookie = os.path.basename(path)
+        if exps: exp = datetime.datetime.fromtimestamp(float(exps))
+        else: exp = None
+        return cls(cookie, phone, exp)
 
     @classmethod
     def _generateCookie(cls):
@@ -131,7 +132,6 @@ class LoginCode(object):
             raise WebUICodeInvalid(user.handle)
         with open(path) as fd:
             code2 = fd.readline().strip()
-
             exps = fd.readline().strip()
         exp = datetime.datetime.fromtimestamp(float(exps))
         now = datetime.datetime.now()
@@ -151,7 +151,7 @@ def webui(req):
 
     if len(args) < 1:
         return "webui what? say 'help webui' for help"
-    cmd = args[0]
+    cmd = args.pop(0)
     if cmd == 'enable':
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
@@ -161,13 +161,13 @@ def webui(req):
 
     elif cmd == 'login':
         try:
-            handle, code = args[1:3]
+            handle, code = args
         except ValueError:
             raise WebUILoginHelp()
 
         user = User.lookup(handle)
-        session = WebSession.fromRequest(req)
         exp = LoginCode.validate(user, code)
+        session = WebSession.fromRequest(req)
         session.phone = user.phone
         session.save()
         left = exp - datetime.datetime.now()
