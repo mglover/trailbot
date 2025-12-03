@@ -52,6 +52,9 @@ code.b {
     background: grey;
     text-align: left;
 }
+code.error {
+    background: #ffaaaa;
+}
 #input {
     background: white;
      width: 80%;
@@ -77,29 +80,37 @@ code.b {
     }
 
     function appendMsg(cls, str) {
-        log = document.getElementById('log')
         n = document.createElement('code')
         n.className=cls
         n.innerHTML=markup(str)
         log.appendChild(n)
         log.scrollTop = log.scrollHeight
+        return n
     }
 
     function xact(msg) {
-        appendMsg('a', msg)
-        
         var xhr = new XMLHttpRequest();
+        var elMsg = appendMsg('a', msg)
 
         xhr.onload = function () {
             if (xhr.responseText) {
                 appendMsg('b', xhr.responseText)
             }
         }
+        xhr.onerror = function () {
+            console.log('error')
+            elMsg.classList.add('error')
+        }
+        xhr.ontimeout = function () {
+            console.log('timeout')
+            elMsg.classList.add('error')
+        }
         xhr.open("get", "/wx/api?body="+encodeURIComponent(msg));
         xhr.send()
     }
 
     window.onload = function() {
+        log = document.getElementById('log')
         console.log('loaded')
         h = []
         hidx = 0
