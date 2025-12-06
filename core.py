@@ -93,8 +93,16 @@ def success(msg):
 def getPhoneClass(phone):
     assert type(phone) is str
     if phone.startswith("+07807"): return 'bot'
-    if phone.startswith(config.INTERNAL_NUMBER_PREFIX): return 'webui'
+    if phone.startswith(config.INTERNAL_NUMBER_PREFIX): return 'WebUI'
     else: return 'phone'
+
+class PhoneClassError(TBError):
+    msg = "You have to do that from your %s, not a %s"
+
+def requirePhoneClass(phone, rcls):
+    acls = getPhoneClass(phone)
+    if acls != rcls:
+        raise PhoneClassError(rcls, acls)
 
 def parseArgs(args, keywords):
     """ search the request for values separated by keywords 

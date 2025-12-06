@@ -3,7 +3,7 @@ from hashlib import sha1
 from flask import request, make_response, render_template
 
 from . import config
-from .core import TBError
+from .core import TBError, requirePhoneClass
 from .config import DB_ROOT
 from .tb import bp
 from .dispatch import tbroute, tbhelp, TBUserRequest, internal_dispatch
@@ -155,7 +155,7 @@ def webui(req):
     if cmd == 'enable':
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
-        # XXX ensure this is a true user
+        requirePhoneClass(req.phone, 'phone')
         otp = LoginCode.generate(req.user)
         return "Your WebUI login code is: %s." % otp
 
