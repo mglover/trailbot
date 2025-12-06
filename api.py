@@ -152,7 +152,7 @@ def webui(req):
     if len(args) < 1:
         return "webui what? say 'help webui' for help"
     cmd = args.pop(0)
-    if cmd == 'enable':
+    if cmd in ('up', 'code'):
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
         requirePhoneClass(req.phone, 'phone')
