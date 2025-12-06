@@ -155,7 +155,7 @@ def webui(req):
     if cmd in ('up', 'code'):
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
-        requirePhoneClass(req.phone, 'phone')
+        requirePhoneClass(req.frm, 'phone')
         otp = LoginCode.generate(req.user)
         return "Your WebUI login code is: %s." % otp
 
