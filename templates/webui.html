@@ -117,7 +117,10 @@ code.error {
         inp = document.getElementById('input')
         inp.onkeydown = function (evt) {
             if (evt.key == "Enter") {
-                h.push(inp.value)
+                if ( !h.length || h[h.length-1]!=inp.value ) {
+                    // keep dups out of the history
+                    h.push(inp.value)
+                }
                 hidx = h.length
                 xact(inp.value)
                 inp.value = ''
