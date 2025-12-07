@@ -163,7 +163,7 @@ def webui(req):
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
         requirePhoneClass(req.frm, 'phone')
-        if WebSession.fromRequest(req).is_new:
+        if not WebSession.fromRequest(req).is_new:
             raise PhoneClassError('phone', 'WebUI')
 
         otp = LoginCode.generate(req.user)
