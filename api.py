@@ -3,7 +3,7 @@ from hashlib import sha1
 from flask import request, make_response, render_template
 
 from . import config
-from .core import TBError, requirePhoneClass
+from .core import TBError, requirePhoneClass, PhoneClassError
 from .config import DB_ROOT
 from .tb import bp
 from .dispatch import tbroute, tbhelp, TBUserRequest, internal_dispatch
@@ -14,6 +14,9 @@ from .user import User, RegistrationRequired
 AUTH_TIMEOUT=datetime.timedelta(seconds=2*60*60)
 
 class WebSessionExpired(ValueError):
+    pass
+
+class WebSessionNotFound(ValueError):
     pass
 
 class WebUICodeInvalid(TBError):
@@ -31,7 +34,7 @@ class WebSession(object):
 
     open_phones = [] # I don't think this works
 
-    def __init__(self, cookie=None, phone=None, exp=None):
+    def __init__(self, cookie=None, phone=None, exp=None, is_new=False):
         now = datetime.datetime.now()
         if cookie:
             self.cookie = cookie
@@ -49,7 +52,7 @@ class WebSession(object):
         else:
             self.phone = self._allocInternalPhone()
             self.exp = now + AUTH_TIMEOUT
-
+        self.is_new =is_new
 
     def save(self):
         cf = os.path.join(self.db, self.cookie)
@@ -63,11 +66,15 @@ class WebSession(object):
         return {self.cname: self.cookie or ''}
 
     @classmethod
+    def newSession(cls):
+        return cls(None, None, None, is_new=True)
+
+    @classmethod
     def fromRequest(cls, request):
         try:
             return cls.fromCookie(request.cookies[cls.cname])
         except KeyError:
-            return cls(None, None, None)
+            return cls.newSession()
 
     @classmethod
     def fromCookie(cls, cookie):
@@ -80,12 +87,12 @@ class WebSession(object):
             s = cls.fromPath(os.path.join(cls.db, f))
             if s.phone == user.phone:
                 return s
-        return cls(None, None, None)
+        return cls.newSession()
 
     @classmethod
     def fromPath(cls, path):
         if not os.path.exists(path):
-            return cls(None, None, None)
+            return cls.newSession()
         with open(path) as fd:
             phone = fd.readline().strip()
             exps = fd.readline().strip()
@@ -140,10 +147,9 @@ class LoginCode(object):
         return exp
 
 
-
 @tbroute('webui')
 @tbhelp("""webui -- use Trailbot's web interface
-you can say: 'webui enable' from your phone to get a web code
+you can say: 'webui code' from your phone to get a one-time <code>
     'webui login <handle> <code>' from the web ui to log in
     'webui logout' from anywhere, to close the web session""")
 def webui(req):
@@ -152,10 +158,14 @@ def webui(req):
     if len(args) < 1:
         return "webui what? say 'help webui' for help"
     cmd = args.pop(0)
+
     if cmd in ('up', 'code'):
         if not req.user:
             raise RegistrationRequired("to enable the WebUI")
         requirePhoneClass(req.frm, 'phone')
+        if WebSession.fromRequest(req).is_new:
+            raise PhoneClassError('phone', 'WebUI')
+
         otp = LoginCode.generate(req.user)
         return "Your WebUI login code is: %s." % otp
 
