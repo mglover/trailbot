@@ -40,20 +40,32 @@
     padding: 1em;
 }
 code {
-    display: block;
-    padding: .5em;
-    margin: .5em;
+    display: block;d
+    padding-bottom: 0.2em;
 }
-code.a {
+.msg {
+    padding: 0.5em 1em 0 1em;
+    margin-bottom: 0.2em;
+    border-radius: 1em;
+}
+.a.msg {
     background: white;
     text-align: right;
 }
-code.b {
+.b.msg {
     background: grey;
     text-align: left;
 }
-code.error {
-    background: #ffaaaa;
+.status {
+    border-top: 2px solid #666;
+    font-size: 80%;
+}
+.status.error::before {
+    text-align: left;
+    content: "!";
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 150%
 }
 #input {
     background: white;
@@ -71,6 +83,7 @@ code.error {
     }
 
     function markup(str) {
+        str = str.replaceAll(" ", "&nbsp;")
         str = str.replaceAll("<", "&lt;")
         str = str.replaceAll(">", "&gt;")
         str = str.replaceAll('\n', '\n<br>')
@@ -80,30 +93,57 @@ code.error {
     }
 
     function appendMsg(cls, str) {
-        n = document.createElement('code')
-        n.className=cls
+        var p = document.createElement('div')
+        p.className="msg "+cls
+
+        var n = document.createElement('code')
         n.innerHTML=markup(str)
-        log.appendChild(n)
+
+        var s = document.createElement('div')
+        s.className="status"
+
+        p.appendChild(n)
+        p.appendChild(s)        
+        log.appendChild(p)
         log.scrollTop = log.scrollHeight
-        return n
+        return p
+    }
+
+    function setStatus(msg, status, isError) {
+        var s = msg.children[1]
+        if (isError) s.classList.add('error')
+        s.innerHTML = status
+    }
+
+    function now() {
+        var d = new Date()
+        var h = d.getHours()
+        var m = d.getMinutes()
+        if ( h < 10 )
+            h = "0" + h
+        if ( m < 10 ) 
+            m = "0" + m
+        return h+':'+m
     }
 
     function xact(msg) {
         var xhr = new XMLHttpRequest();
         var elMsg = appendMsg('a', msg)
-
+        setStatus(elMsg, "sending...")
         xhr.onload = function () {
             if (xhr.responseText) {
-                appendMsg('b', xhr.responseText)
+                var m = appendMsg('b', xhr.responseText)
+                setStatus(elMsg, now())
+                setStatus(m, now())
             }
         }
         xhr.onerror = function () {
             console.log('error')
-            elMsg.classList.add('error')
+            setStatus(elMsg, 'failed', true)
         }
         xhr.ontimeout = function () {
             console.log('timeout')
-            elMsg.classList.add('error')
+            setStatus(elMsg, 'timeout', true)
         }
         xhr.open("get", "/wx/api?body="+encodeURIComponent(msg));
         xhr.send()
