@@ -79,8 +79,11 @@ Related help: 'addr', 'here', 'there'
 """)
 @needsreg("to use saved data")
 def forget(req):
-    UserObj.lookup(req.args, req.user).erase()
-    return success("'%s' forgotten" % req.args)
+    obj = UserObj.lookup(req.args, req.user)
+    if obj:
+        obj.erase()
+        return success("'%s' forgotten" % req.args)
+    raise DatumDoesNotExistError(req.args)
 
 
 @tbroute('share', cat='settings')
