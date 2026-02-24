@@ -151,12 +151,13 @@ code {
     }
 
     window.onload = function() {
-        log = document.getElementById('log')
-        console.log('loaded')
-        h = []
-        hidx = 0
-        inp = document.getElementById('input')
+        let log = document.getElementById('log')
+        let h = []
+        let hidx = 0
+        let inp = document.getElementById('input')
+
         inp.onkeydown = function (evt) {
+            let j=-1
             if (evt.key == "Enter") {
                 if ( !h.length || h[h.length-1]!=inp.value ) {
                     // keep dups out of the history
@@ -171,6 +172,7 @@ code {
                 if (hidx > 0) {
                     inp.value = h[--hidx]
                 }
+                j = inp.textLength
             }
             else if (evt.key == "ArrowDown") {
                 if (hidx < h.length-1) {
@@ -179,11 +181,17 @@ code {
                     inp.value = ''
                     hidx=h.length
                 }
+                j = inp.textLength
+            }
+            if (j >= 0) {
+                inp.focus()
+                window.setTimeout(() =>{inp.setSelectionRange(j, j)}, 0)
             }
         }
         xact('help')
         inp.value = ''
         inp.focus()
+        console.log('loaded')
     }
 
 </script>
